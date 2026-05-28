@@ -1,0 +1,254 @@
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f0f0;
+  padding: 20px;
+}
+
+.login-container {
+  display: flex;
+  width: 100%;
+  max-width: 860px;
+  min-height: 580px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+}
+
+/* 왼쪽 */
+.login-left {
+  flex: 1.1;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 44px 48px 28px;
+}
+
+.login-logo-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.login-logo {
+  width: 180px;
+  height: auto;
+  margin-bottom: 8px;
+}
+
+.login-tagline {
+  font-size: 14px;
+  color: #555;
+  font-weight: 500;
+}
+
+.login-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.input-wrap {
+  display: flex;
+  align-items: center;
+  background: #eef2f7;
+  border-radius: 6px;
+  padding: 0 14px;
+  gap: 10px;
+}
+
+.input-icon {
+  font-size: 15px;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+.login-input {
+  flex: 1;
+  padding: 13px 0;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  color: #333;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 14px;
+  background: #F5841F;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  margin-top: 4px;
+  transition: background 0.15s;
+}
+
+.login-btn:hover { background: #e07318; }
+
+.remember-row {
+  display: flex;
+  align-items: center;
+}
+
+.remember-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #666;
+  cursor: pointer;
+}
+
+.login-divider {
+  height: 1px;
+  background: #eee;
+  margin: 4px 0;
+}
+
+.login-links {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.login-links span {
+  font-size: 12px;
+  color: #888;
+  cursor: pointer;
+}
+
+.login-links span:hover { color: #F5841F; }
+
+.link-div {
+  color: #ddd !important;
+  cursor: default !important;
+}
+
+.login-footer {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.footer-brand {
+  font-size: 13px;
+  font-weight: 700;
+  color: #aaa;
+  margin-bottom: 3px;
+}
+
+.footer-copy { font-size: 11px; color: #bbb; }
+
+/* 오른쪽 */
+.login-right {
+  flex: 0.9;
+  background: #FED400;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 36px 28px;
+  gap: 20px;
+}
+
+.right-top { text-align: center; }
+
+.hello-text {
+  font-size: 22px;
+  font-weight: 900;
+  color: #1a1a1a;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* 배너 */
+.banner-wrap {
+  width: 100%;
+  background: rgba(255,255,255,0.25);
+  border-radius: 10px;
+  padding: 24px 20px 16px;
+  text-align: center;
+}
+
+.banner-slide { min-height: 80px; }
+
+.banner-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+}
+
+.banner-title {
+  font-size: 22px;
+  font-weight: 900;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+}
+
+.banner-sub {
+  font-size: 14px;
+  color: #333;
+  font-weight: 600;
+}
+
+.banner-dots {
+  display: flex;
+  justify-content: flex-end;
+  gap: 5px;
+  margin-top: 12px;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.2);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.dot.active { background: rgba(0,0,0,0.55); }
+
+/* 고객지원 */
+.support-wrap {
+  width: 100%;
+  text-align: center;
+}
+
+.support-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+}
+
+.support-tel {
+  font-size: 32px;
+  font-weight: 900;
+  color: #1a1a1a;
+  margin-bottom: 6px;
+  letter-spacing: -1px;
+}
+
+.support-sub {
+  font-size: 12px;
+  color: #333;
+  margin-bottom: 2px;
+}
+
+.support-time {
+  font-size: 12px;
+  color: #444;
+}
