@@ -6,6 +6,7 @@ import {
   Tooltip, Legend, ResponsiveContainer
 } from 'recharts'
 import './Dashboard.css'
+import TopNav from '../components/TopNav'
 
 const MENUS = [
   { id: 'students',    icon: '/icons/students.svg',     label: '수강생관리' },
@@ -22,14 +23,6 @@ const MENUS = [
   { id: 'labor',      icon: '/icons/labor.svg',        label: '노무관리' },
   { id: 'accounting', icon: '/icons/acccounting.svg',  label: '회계관리' },
   { id: 'shop',       icon: '/icons/shop.svg',         label: '회원전용몰' },
-]
-
-const TOP_RIGHT = [
-  { icon: '🏠', label: '메인홈' },
-  { icon: '📋', label: '교재관리' },
-  { icon: '⚙️', label: '환경설정' },
-  { icon: '⚡', label: '빠른메뉴' },
-  { icon: '🖥️', label: '원격지원' },
 ]
 
 const PAYMENTS = [
@@ -119,37 +112,22 @@ export default function Dashboard() {
   return (
     <div className="dash-wrap">
 
-      {/* 상단 네비 */}
-      <div className="top-nav">
-        <div className="tnav-left">
-          <img src="/logo-en.svg" alt="AcademyUP" className="tnav-logo" />
-          <div className="tnav-sep" />
-          <span className="tnav-item">🏫 OO학원</span>
-          <div className="tnav-sep" />
-          <span className="tnav-item">원장 (200001)님</span>
-          <div className="tnav-sep" />
-          <span className="tnav-link">나의정보</span>
-        </div>
-        <div className="tnav-right">
-          {TOP_RIGHT.map(item => (
-            <span key={item.label} className="tnav-link">
-              {item.icon} {item.label}
-            </span>
-          ))}
-          <span className="tnav-link" onClick={() => navigate('/')}>
-            🚪 로그아웃
-          </span>
-        </div>
-      </div>
+    <TopNav />
 
       {/* 메뉴 바 */}
       <div className="menu-bar">
+        <button className="hamburger-btn" style={{visibility:'hidden'}}>☰</button>
         <div className="menu-list">
           {MENUS.map(m => (
             <div
               key={m.id}
               className={`menu-item ${activeMenu===m.id?'active':''}`}
-              onClick={() => setActiveMenu(m.id)}
+              onClick={() => {
+               setActiveMenu(m.id)
+               if (m.id === 'students') navigate('/students')
+               if (m.id === 'payments') navigate('/payments')
+               if (m.id === 'classes') navigate('/classes')
+              }}
             >
               <img src={m.icon} alt={m.label} className="menu-icon" />
               <span className="menu-label">{m.label}</span>

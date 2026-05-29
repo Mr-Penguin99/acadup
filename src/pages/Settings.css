@@ -1,0 +1,141 @@
+.settings-wrap {
+  min-height: 100vh;
+  background: #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+/* 바디 */
+.settings-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+/* 사이드바 */
+.settings-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: #fff;
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 94px;
+  height: calc(100vh - 94px);
+  overflow-y: auto;
+}
+
+/* 메인 콘텐츠 */
+.settings-main {
+  flex: 1;
+  padding: 20px 24px;
+  overflow-y: auto;
+  background: #f5f5f5;
+}
+
+.sm-page-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #666;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sm-title-icon { color: #F5841F; }
+
+/* 섹션 */
+.sm-section {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.sm-sec-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-bottom: 2px solid #00B5A9;
+  background: #fff;
+}
+
+.sm-sec-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #333;
+  padding-left: 8px;
+  border-left: 3px solid #333;
+}
+
+.sm-edit-btn {
+  padding: 5px 16px;
+  background: #F5841F;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* 폼 */
+.sm-form { padding: 14px 16px; }
+
+.sm-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.sm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sm-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #444;
+}
+
+.sm-label.required::before {
+  content: '* ';
+  color: #F5841F;
+}
+
+.sm-input {
+  padding: 7px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  color: #333;
+  background: #fff;
+  width: 100%;
+}
+
+.sm-input:focus { border-color: #F5841F; }
+.sm-input:read-only { background: #f9f9f9; color: #888; }
+
+.sm-zip-btn {
+  padding: 7px 12px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.sm-zip-btn:hover:not(:disabled) { border-color: #F5841F; color: #F5841F; }

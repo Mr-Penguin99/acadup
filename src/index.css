@@ -6,3 +6,214 @@ body {
   color: #333;
 }
 button { cursor: pointer; font-family: inherit; }
+
+.ss-phone {
+  font-size: 24px;
+  font-weight: 530;
+  color: #bbb;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ss-phone::before {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background-image: url('/icons/phone.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.ss-hours {
+  font-size: 16px;
+  color: #bbb;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.ss-hours::before {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background-image: url('/icons/clock.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.tnav-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  vertical-align: middle;
+}
+
+/* ===== 공통 상단 네비 ===== */
+.top-nav {
+  height: 36px;
+  background: #192a3c;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-shrink: 0;
+}
+
+.tnav-left, .tnav-right { display: flex; align-items: center; gap: 4px; }
+.tnav-logo { height: 26px; width: auto; }
+.tnav-sep { width: 1px; height: 14px; background: rgba(255,255,255,0.25); margin: 0 6px; }
+.tnav-item { font-size: 15px; color: #fff; white-space: nowrap; }
+.tnav-link { font-size: 14px; color: #fff; cursor: pointer; white-space: nowrap; padding: 0 4px; }
+.tnav-link:hover { color: #00AB9A; }
+.tnav-academy { color: #00AB9A !important; }
+.tnav-icon { width: 14px; height: 14px; object-fit: contain; vertical-align: middle; }
+
+/* ===== 공통 메뉴 바 ===== */
+.menu-bar {
+  height: 58px;
+  background: #F5F7F9;
+  display: flex;
+  align-items: stretch;
+  padding: 0 8px;
+  position: sticky;
+  top: 36px;
+  z-index: 99;
+  flex-shrink: 0;
+  border-bottom: none;
+}
+
+.menu-bar::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(to right, #F2CC1F, #27A27B);
+}
+
+.menu-list {
+  display: flex;
+  align-items: stretch;
+  flex: 1;
+  overflow-x: auto;
+  padding-left: 160px;
+}
+
+.menu-list::-webkit-scrollbar { display: none; }
+
+.menu-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 2px 22px;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+  white-space: nowrap;
+  min-width: 72px;
+  position: relative;
+  transition: background 0.15s;
+}
+
+.menu-item::after {
+  content: '';
+  position: absolute;
+  right: 0; top: 50%;
+  transform: translateY(-50%);
+  width: 1px; height: 15px;
+  background: #ddd;
+}
+
+.menu-item:last-child::after { display: none; }
+.menu-item:hover { background: none; }
+.menu-item:hover .menu-label { color: #F5841F; }
+.menu-item.active { border-bottom-color: transparent; }
+.menu-item.active .menu-label { color: #F5841F; }
+.menu-icon { width: 18px; height: 18px; object-fit: contain; }
+.menu-label { font-size: 14px; color: #000; font-weight: 500; }
+
+.menu-charge-btn {
+  background: #fff;
+  color: #333;
+  border: 1px solid #ccc;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  margin: 10px 0;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.hamburger-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0 10px;
+  color: #999;
+  flex-shrink: 0;
+}
+
+.hamburger-btn:hover { color: #F5841F; }
+
+/* ===== 공통 사이드바 ===== */
+.ss-title {
+  background: #F5841F;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 550;
+  padding: 16px 18px;
+  flex-shrink: 0;
+}
+
+.ss-group-wrap { border-bottom: 1px solid #eee; }
+
+.ss-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  cursor: pointer;
+  background: #fafafa;
+}
+
+.ss-group:hover { background: #f5f5f5; }
+.ss-toggle { font-size: 10px; color: #aaa; transition: color 0.15s; }
+.ss-group:hover .ss-toggle { color: #F5841F; }
+
+.ss-item {
+  padding: 8px 16px 8px 28px;
+  font-size: 13px;
+  color: #555;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ss-arrow { font-size: 8px; color: #bbb; transition: color 0.15s; }
+.ss-item:hover .ss-arrow { color: #F5841F; }
+.ss-item.active .ss-arrow { color: #F5841F; }
+.ss-item:hover { background: #eee; color: #ff9000; }
+.ss-item.active { color: #444; font-weight: 500; background: #fff4ec; }
+
+.ss-footer {
+  margin-top: auto;
+  padding: 16px;
+  border-top: 1px solid #eee;
+}
