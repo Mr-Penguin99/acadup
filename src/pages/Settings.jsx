@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './Settings.css'
 import TopNav from '../components/TopNav'
+import FavStar from '../components/FavStar'
 
 const MENUS = [
   { id: 'students',    icon: '/icons/students.svg',    label: '수강생관리' },
@@ -21,28 +22,32 @@ const MENUS = [
 ]
 
 const AUTH_GROUPS = [
-  { no:1,  code:'UA10', name:'직원관리-등록',   desc:'직원정보 등록, 수정, 삭제 가능' },
-  { no:2,  code:'UA11', name:'직원관리-조회',   desc:'직원 정보 조회만 가능' },
-  { no:3,  code:'UA20', name:'반 관리-등록',    desc:'반 정보 등록, 수정, 삭제 가능' },
-  { no:4,  code:'UA21', name:'반 관리-조회',    desc:'반 정보 조회만 가능' },
+  { no:1,  code:'UA10', name:'직원관리-등록',  desc:'직원정보 등록, 수정, 삭제 가능' },
+  { no:2,  code:'UA11', name:'직원관리-조회',  desc:'직원 정보 조회만 가능' },
+  { no:3,  code:'UA20', name:'반 관리-등록',   desc:'반 정보 등록, 수정, 삭제 가능' },
+  { no:4,  code:'UA21', name:'반 관리-조회',   desc:'반 정보 조회만 가능' },
   { no:5,  code:'UA30', name:'수강생관리-등록', desc:'수강생 정보 등록, 수정, 삭제 가능' },
   { no:6,  code:'UA31', name:'수강생관리-조회', desc:'수강생 정보 조회만 가능' },
-  { no:7,  code:'UA40', name:'청구수납-등록',   desc:'청구수납정보 등록, 수정, 삭제 가능' },
-  { no:8,  code:'UA41', name:'청구수납-조회',   desc:'청구수납정보 조회만 가능' },
-  { no:9,  code:'UA50', name:'수업관리-등록',   desc:'수업시간표, 출결/과제정보 등록, 수정, 삭제 가능' },
-  { no:10, code:'UA51', name:'수업관리-조회',   desc:'수업시간표, 출결/과제정보 조회만 가능' },
-  { no:11, code:'UA60', name:'상담관리-등록',   desc:'상담접수, 상담결과 등록, 수정, 삭제 가능' },
-  { no:12, code:'UA61', name:'상담관리-조회',   desc:'상담접수, 상담결과 조회만 가능' },
-  { no:13, code:'UA70', name:'경영현황-등록',   desc:'경영현황 정보 등록, 수정, 삭제 가능' },
-  { no:14, code:'UA71', name:'경영현황-조회',   desc:'경영현황 정보 조회만 가능' },
-  { no:15, code:'UA80', name:'교재관리-등록',   desc:'교재정보 등록, 수정, 삭제, 교재정보 문자전송' },
-  { no:16, code:'UA81', name:'교재관리-조회',   desc:'교재정보 조회만 가능' },
-  { no:17, code:'UA90', name:'환경설정-등록',   desc:'학원정보, 사용자코드 등을 등록, 수정, 삭제 가능' },
-  { no:18, code:'UA91', name:'환경설정-조회',   desc:'학원정보, 사용자코드 등을 조회만 가능' },
-  { no:19, code:'UL10', name:'노무관리-등록',   desc:'노무관리 정보 등록, 수정, 삭제 가능' },
-  { no:20, code:'UL11', name:'노무관리-조회',   desc:'노무관리 정보 조회만 가능' },
-  { no:21, code:'US10', name:'급여관리-등록',   desc:'급여관리 정보 등록, 수정, 삭제 가능' },
-  { no:22, code:'US11', name:'급여관리-조회',   desc:'급여관리 정보 조회만 가능' },
+  { no:7,  code:'UA40', name:'청구수납-등록',  desc:'청구수납정보 등록, 수정, 삭제 가능' },
+  { no:8,  code:'UA41', name:'청구수납-조회',  desc:'청구수납정보 조회만 가능' },
+  { no:9,  code:'UA50', name:'수업관리-등록',  desc:'수업시간표, 출결/과제정보 등록, 수정, 삭제 가능' },
+  { no:10, code:'UA51', name:'수업관리-조회',  desc:'수업시간표, 출결/과제정보 조회만 가능' },
+  { no:11, code:'UA60', name:'상담관리-등록',  desc:'상담접수, 상담결과 등록, 수정, 삭제 가능' },
+  { no:12, code:'UA61', name:'상담관리-조회',  desc:'상담접수, 상담결과 조회만 가능' },
+  { no:13, code:'UA70', name:'경영현황-등록',  desc:'경영현황 정보 등록, 수정, 삭제 가능' },
+  { no:14, code:'UA71', name:'경영현황-조회',  desc:'경영현황 정보 조회만 가능' },
+  { no:15, code:'UA80', name:'교재관리-등록',  desc:'교재정보 등록, 수정, 삭제, 교재정보 문자전송' },
+  { no:16, code:'UA81', name:'교재관리-조회',  desc:'교재정보 조회만 가능' },
+  { no:17, code:'UA90', name:'환경설정-등록',  desc:'학원정보, 사용자코드 등을 등록, 수정, 삭제 가능' },
+  { no:18, code:'UA91', name:'환경설정-조회',  desc:'학원정보, 사용자코드 등을 조회만 가능' },
+  { no:19, code:'UL10', name:'노무관리-등록',  desc:'노무관리 정보 등록, 수정, 삭제 가능' },
+  { no:20, code:'UL11', name:'노무관리-조회',  desc:'노무관리 정보 조회만 가능' },
+  { no:21, code:'UP10', name:'급여관리-등록',  desc:'급여관리 정보 등록, 수정, 삭제 가능' },
+  { no:22, code:'UP11', name:'급여관리-조회',  desc:'급여관리 정보 조회만 가능' },
+  { no:23, code:'UR10', name:'회계관리-등록',  desc:'회계관리 정보 등록, 수정, 삭제 가능' },
+  { no:24, code:'UR11', name:'회계관리-조회',  desc:'회계관리 정보 조회만 가능' },
+  { no:25, code:'UZ10', name:'전송관리-등록',  desc:'문자서비스 전송 처리' },
+  { no:26, code:'UZ20', name:'전송관리-조회',  desc:'문자서비스 전송 결과 조회' },
 ]
 
 const AUTH_COLS = [
@@ -178,22 +183,22 @@ export default function Settings() {
           {/* ===== 학원 기본정보 ===== */}
           {activeSide === 'basic' && (
             <>
-              <div className="sm-page-title"><span className="sm-title-icon">✦</span> 학원 기본정보</div>
+              <div className="sm-page-title"><FavStar label="학원 기본정보" path="/settings?page=basic" /> 학원 기본정보</div>
 
               <div className="sm-section">
                 <div className="sm-sec-head">
                   <div className="sm-sec-title">기본정보</div>
-                  <button className="sm-edit-btn" onClick={() => setEditing(!editing)}>{editing ? '저장' : '수정'}</button>
+                  <button className="sm-edit-btn" onClick={() => setEditing(!editing)}> 수정 </button>
                 </div>
                 <div className="sm-form">
                   <div className="sm-row">
                     <div className="sm-field">
                       <label className="sm-label required">학원명</label>
-                      <input className="sm-input" value={form.name} readOnly={!editing} onChange={e=>setForm(f=>({...f,name:e.target.value}))} />
+                      <input className="sm-input" value={form.name}  onChange={e=>setForm(f=>({...f,name:e.target.value}))} />
                     </div>
                     <div className="sm-field">
                       <label className="sm-label required">사업자번호</label>
-                      <input className="sm-input" value={form.bizNo} readOnly={!editing} placeholder="예: 123-45-67890" onChange={e=>setForm(f=>({...f,bizNo:e.target.value}))} />
+                      <input className="sm-input" value={form.bizNo}  placeholder="예: 123-45-67890" onChange={e=>setForm(f=>({...f,bizNo:e.target.value}))} />
                     </div>
                   </div>
                   <div className="sm-row">
@@ -203,8 +208,8 @@ export default function Settings() {
                     </div>
                     <div className="sm-field">
                       <label className="sm-label required">과세유형</label>
-                      <select className="sm-input" value={form.taxType} disabled={!editing} onChange={e=>setForm(f=>({...f,taxType:e.target.value}))}>
-                        <option>면세</option><option>과세</option>
+                      <select className="sm-input" value={form.taxType}  onChange={e=>setForm(f=>({...f,taxType:e.target.value}))}>
+                        <option>선택</option><option>일반과세</option><option>간이과세</option><option>면세</option><option>비영리</option>
                       </select>
                     </div>
                   </div>
@@ -212,53 +217,53 @@ export default function Settings() {
                     <div className="sm-field">
                       <label className="sm-label required">관할교육청/지청</label>
                       <div style={{display:'flex',gap:6}}>
-                        <select className="sm-input" style={{width:90}} value={form.region1} disabled={!editing} onChange={e=>setForm(f=>({...f,region1:e.target.value}))}>
-                          {['서울','경기','인천','부산','대구','광주','대전','울산'].map(r=><option key={r}>{r}</option>)}
+                        <select className="sm-input" style={{width:90}} value={form.region1}  onChange={e=>setForm(f=>({...f,region1:e.target.value}))}>
+                          {['서울','부산','대구','인천','광주','대전','울산','세종','경기','강원','충북','충남','전북','전남','경북','경남','제주'].map(r=><option key={r}>{r}</option>)}
                         </select>
-                        <input className="sm-input" value={form.region2} readOnly={!editing} placeholder="동부,서부,남부,북부,중부,강남서조" onChange={e=>setForm(f=>({...f,region2:e.target.value}))} />
+                        <input className="sm-input" value={form.region2}  placeholder="동부,서부,남부,북부,중부,강남서조" onChange={e=>setForm(f=>({...f,region2:e.target.value}))} />
                       </div>
                     </div>
                     <div className="sm-field">
                       <label className="sm-label required">학원등록번호</label>
-                      <input className="sm-input" value={form.regNo} readOnly={!editing} onChange={e=>setForm(f=>({...f,regNo:e.target.value}))} />
+                      <input className="sm-input" value={form.regNo}  onChange={e=>setForm(f=>({...f,regNo:e.target.value}))} />
                     </div>
                   </div>
                   <div className="sm-row">
                     <div className="sm-field">
                       <label className="sm-label required">전화번호</label>
-                      <input className="sm-input" value={form.tel} readOnly={!editing} placeholder="* 알림전송 발신번호" onChange={e=>setForm(f=>({...f,tel:e.target.value}))} />
+                      <input className="sm-input" value={form.tel}  placeholder="* 알림전송 발신번호" onChange={e=>setForm(f=>({...f,tel:e.target.value}))} />
                     </div>
                     <div className="sm-field">
                       <label className="sm-label required">관리자 휴대폰</label>
-                      <input className="sm-input" value={form.adminTel} readOnly={!editing} placeholder="* 청구서 안내문자 발송" onChange={e=>setForm(f=>({...f,adminTel:e.target.value}))} />
+                      <input className="sm-input" value={form.adminTel}  placeholder="* 청구서 안내문자 발송" onChange={e=>setForm(f=>({...f,adminTel:e.target.value}))} />
                     </div>
                   </div>
                   <div className="sm-row">
                     <div className="sm-field">
                       <label className="sm-label">이메일</label>
                       <div style={{display:'flex',gap:6,alignItems:'center'}}>
-                        <input className="sm-input" style={{flex:1}} value={form.email1} readOnly={!editing} onChange={e=>setForm(f=>({...f,email1:e.target.value}))} />
+                        <input className="sm-input" style={{flex:1}} value={form.email1}  onChange={e=>setForm(f=>({...f,email1:e.target.value}))} />
                         <span>@</span>
-                        <input className="sm-input" style={{flex:1}} value={form.email2} readOnly={!editing} onChange={e=>setForm(f=>({...f,email2:e.target.value}))} />
-                        <select className="sm-input" style={{width:90}} value={form.emailType} disabled={!editing} onChange={e=>setForm(f=>({...f,emailType:e.target.value}))}>
-                          <option>직접입력</option><option>gmail.com</option><option>naver.com</option><option>kakao.com</option>
+                        <input className="sm-input" style={{flex:1}} value={form.email2}  onChange={e=>setForm(f=>({...f,email2:e.target.value}))} />
+                        <select className="sm-input" style={{width:160}} value={form.emailType}  onChange={e=>setForm(f=>({...f,emailType:e.target.value}))}>
+                          <option>직접입력</option><option>gmail.com</option><option>naver.com</option><option>kakao.com</option><option>daum.net</option><option>hanmail.net</option>
                         </select>
                       </div>
                     </div>
                     <div className="sm-field">
                       <label className="sm-label">팩스번호</label>
-                      <input className="sm-input" value={form.fax} readOnly={!editing} placeholder="예: 02-1234-5678" onChange={e=>setForm(f=>({...f,fax:e.target.value}))} />
+                      <input className="sm-input" value={form.fax}  placeholder="예: 02-1234-5678" onChange={e=>setForm(f=>({...f,fax:e.target.value}))} />
                     </div>
                   </div>
                   <div className="sm-row">
                     <div className="sm-field" style={{flex:2}}>
                       <label className="sm-label">주소</label>
                       <div style={{display:'flex',gap:6,marginBottom:6}}>
-                        <input className="sm-input" style={{width:120}} value={form.zip} readOnly={!editing} placeholder="우편번호" onChange={e=>setForm(f=>({...f,zip:e.target.value}))} />
-                        <button className="sm-zip-btn" disabled={!editing}>우편번호 찾기</button>
+                        <input className="sm-input" style={{width:120}} value={form.zip}  placeholder="우편번호" onChange={e=>setForm(f=>({...f,zip:e.target.value}))} />
+                        <button className="sm-zip-btn" >우편번호 찾기</button>
                       </div>
-                      <input className="sm-input" style={{width:'100%',marginBottom:6}} value={form.addr} readOnly={!editing} onChange={e=>setForm(f=>({...f,addr:e.target.value}))} />
-                      <input className="sm-input" style={{width:'100%'}} value={form.addrDetail} readOnly={!editing} placeholder="상세주소를 입력해 주세요." onChange={e=>setForm(f=>({...f,addrDetail:e.target.value}))} />
+                      <input className="sm-input" style={{width:'100%',marginBottom:6}} value={form.addr}  onChange={e=>setForm(f=>({...f,addr:e.target.value}))} />
+                      <input className="sm-input" style={{width:'100%'}} value={form.addrDetail}  placeholder="상세주소를 입력해 주세요." onChange={e=>setForm(f=>({...f,addrDetail:e.target.value}))} />
                     </div>
                   </div>
                 </div>
@@ -270,14 +275,14 @@ export default function Settings() {
                   <div className="sm-row">
                     <div className="sm-field">
                       <label className="sm-label required">대표자명</label>
-                      <input className="sm-input" value={form.ownerName} readOnly={!editing} onChange={e=>setForm(f=>({...f,ownerName:e.target.value}))} />
+                      <input className="sm-input" value={form.ownerName}  onChange={e=>setForm(f=>({...f,ownerName:e.target.value}))} />
                     </div>
                     <div className="sm-field">
                       <label className="sm-label required">내/외국인선택</label>
                       <div style={{display:'flex',gap:16,alignItems:'center',padding:'8px 0'}}>
                         {['내국인','외국인'].map(n=>(
-                          <label key={n} style={{display:'flex',alignItems:'center',gap:4,fontSize:13,cursor:'pointer'}}>
-                            <input type="radio" name="nationality" value={n} checked={form.nationality===n} disabled={!editing} onChange={e=>setForm(f=>({...f,nationality:e.target.value}))} />{n}
+                          <label key={n} style={{display:'flex',alignItems:'center',gap:4,fontSize:14,cursor:'pointer'}}>
+                            <input type="radio" name="nationality" value={n} checked={form.nationality===n}  onChange={e=>setForm(f=>({...f,nationality:e.target.value}))} />{n}
                           </label>
                         ))}
                       </div>
@@ -287,9 +292,9 @@ export default function Settings() {
                     <div className="sm-field">
                       <label className="sm-label required">주민등록번호</label>
                       <div style={{display:'flex',gap:6,alignItems:'center'}}>
-                        <input className="sm-input" style={{width:110}} value={form.resId1} readOnly={!editing} maxLength={6} onChange={e=>setForm(f=>({...f,resId1:e.target.value}))} />
+                        <input className="sm-input" style={{width:110}} value={form.resId1}  maxLength={6} onChange={e=>setForm(f=>({...f,resId1:e.target.value}))} />
                         <span>-</span>
-                        <input className="sm-input" style={{width:110}} value={form.resId2} readOnly={!editing} maxLength={7} type="password" onChange={e=>setForm(f=>({...f,resId2:e.target.value}))} />
+                        <input className="sm-input" style={{width:110}} value={form.resId2}  maxLength={7} type="password" onChange={e=>setForm(f=>({...f,resId2:e.target.value}))} />
                       </div>
                     </div>
                   </div>
@@ -305,8 +310,8 @@ export default function Settings() {
                       <div style={{display:'flex',flexDirection:'column',gap:6}}>
                         {[{l:'강의실',k:'classroom',unit:'㎡'},{l:'사무실',k:'office',unit:'㎡'},{l:'휴게실외',k:'lounge',unit:'㎡'}].map(({l,k,unit})=>(
                           <div key={k} style={{display:'flex',alignItems:'center',gap:6}}>
-                            <span style={{width:50,fontSize:13,color:'#555'}}>{l}</span>
-                            <input className="sm-input" style={{width:80}} value={form[k]} readOnly={!editing} onChange={e=>setForm(f=>({...f,[k]:e.target.value}))} />
+                            <span style={{width:50,fontSize:14,color:'#555'}}>{l}</span>
+                            <input className="sm-input" style={{width:60}} value={form[k]}  onChange={e=>setForm(f=>({...f,[k]:e.target.value}))} />
                             <span style={{fontSize:13}}>{unit}</span>
                           </div>
                         ))}
@@ -317,9 +322,9 @@ export default function Settings() {
                       <div style={{display:'flex',flexDirection:'column',gap:6}}>
                         {[{l:'강의실수',k:'classroomCnt',unit:'개'},{l:'책상수',k:'deskCnt',unit:'개'},{l:'통학 버스',k:'bus',unit:'대'}].map(({l,k,unit})=>(
                           <div key={k} style={{display:'flex',alignItems:'center',gap:6}}>
-                            <span style={{width:60,fontSize:13,color:'#555'}}>{l}</span>
-                            <input className="sm-input" style={{width:80}} value={form[k]} readOnly={!editing} onChange={e=>setForm(f=>({...f,[k]:e.target.value}))} />
-                            <span style={{fontSize:13}}>{unit}</span>
+                            <span style={{width:60,fontSize:14,color:'#555'}}>{l}</span>
+                            <input className="sm-input" style={{width:60}} value={form[k]}  onChange={e=>setForm(f=>({...f,[k]:e.target.value}))} />
+                            <span style={{fontSize:14}}>{unit}</span>
                           </div>
                         ))}
                       </div>
@@ -335,10 +340,11 @@ export default function Settings() {
                     <div className="sm-field">
                       <label className="sm-label">자동 청구 생성일</label>
                       <div style={{display:'flex',alignItems:'center',gap:10}}>
-                        <select className="sm-input" style={{width:120}} value={form.billDay} disabled={!editing} onChange={e=>setForm(f=>({...f,billDay:e.target.value}))}>
-                          {Array.from({length:28},(_,i)=>`${i+1}`).map(d=><option key={d} value={d}>매월 {d}일</option>)}
+                        <select className="sm-input" style={{width:150}} value={form.billDay}  onChange={e=>setForm(f=>({...f,billDay:e.target.value}))}>
+                          <option value="">자동청구생성없음</option>
+                          {Array.from({length:31},(_,i)=>`${i+1}`).map(d=><option key={d} value={d}>매월 {d}일</option>)}
                         </select>
-                        <span style={{fontSize:12,color:'#555'}}>* 자동청구 생성일에 <strong>다음 달 수강할 청구서</strong>가 생성됩니다.</span>
+                        <span style={{fontSize:14,color:'#555'}}>* 자동청구 생성일에 <strong>다음 달 수강할 청구서</strong>가 생성됩니다.</span>
                       </div>
                     </div>
                   </div>
@@ -351,16 +357,18 @@ export default function Settings() {
                   <div className="sm-row">
                     <div className="sm-field">
                       <label className="sm-label">최초수업시간</label>
-                      <select className="sm-input" style={{width:100}} value={form.lessonStart} disabled={!editing} onChange={e=>setForm(f=>({...f,lessonStart:e.target.value}))}>
-                        {Array.from({length:18},(_,i)=>`${i+1}`).map(h=><option key={h} value={h}>{h}시</option>)}
+                      <select className="sm-input" style={{width:100}} value={form.lessonStart}  onChange={e=>setForm(f=>({...f,lessonStart:e.target.value}))}>
+                        <option value="">선택</option>
+                        {Array.from({length:24},(_,i)=>`${i+1}`).map(h=><option key={h} value={h}>{h}시</option>)}
                       </select>
                     </div>
                   </div>
                   <div className="sm-row">
                     <div className="sm-field">
                       <label className="sm-label">수업시간표 간격</label>
-                      <select className="sm-input" style={{width:100}} value={form.lessonInterval} disabled={!editing} onChange={e=>setForm(f=>({...f,lessonInterval:e.target.value}))}>
-                        {['1','2','3','4'].map(h=><option key={h} value={h}>{h}시간</option>)}
+                      <select className="sm-input" style={{width:100}} value={form.lessonInterval}  onChange={e=>setForm(f=>({...f,lessonInterval:e.target.value}))}>
+                        <option value="">선택</option>
+                        {Array.from({length:24},(_,i)=>i+1).map(h=><option key={h} value={h}>{h}시간</option>)}
                       </select>
                     </div>
                   </div>
@@ -375,8 +383,8 @@ export default function Settings() {
                       <label className="sm-label">즉시 전송</label>
                       <div style={{display:'flex',gap:16,alignItems:'center',flexWrap:'wrap'}}>
                         {[{k:'notifyEnroll',l:'등원'},{k:'notifyLeave',l:'하원'},{k:'notifyDuplicate',l:'등원중복'},{k:'notifyUpgrade',l:'승차'},{k:'notifyDowngrade',l:'하차'}].map(({k,l})=>(
-                          <label key={k} style={{display:'flex',alignItems:'center',gap:4,fontSize:13,cursor:'pointer'}}>
-                            <input type="checkbox" checked={form[k]} disabled={!editing} onChange={e=>setForm(f=>({...f,[k]:e.target.checked}))} />{l}
+                          <label key={k} style={{display:'flex',alignItems:'center',gap:4,fontSize:14,cursor:'pointer'}}>
+                            <input type="checkbox" checked={form[k]}  onChange={e=>setForm(f=>({...f,[k]:e.target.checked}))} />{l}
                           </label>
                         ))}
                       </div>
@@ -388,13 +396,14 @@ export default function Settings() {
                       <div style={{display:'flex',gap:24,flexWrap:'wrap'}}>
                         {[{ek:'preBillEnabled',dk:'preBillDay',tk:'preBillTime',l:'청구'},{ek:'preConsultEnabled',dk:'preConsultDay',tk:'preConsultTime',l:'상담예약'}].map(({ek,dk,tk,l})=>(
                           <div key={ek} style={{display:'flex',alignItems:'center',gap:6}}>
-                            <input type="checkbox" checked={form[ek]} disabled={!editing} onChange={e=>setForm(f=>({...f,[ek]:e.target.checked}))} />
-                            <span style={{fontSize:13,minWidth:36}}>{l}</span>
-                            <select className="sm-input" style={{width:80}} value={form[dk]} disabled={!editing} onChange={e=>setForm(f=>({...f,[dk]:e.target.value}))}>
+                            <input type="checkbox" checked={form[ek]}  onChange={e=>setForm(f=>({...f,[ek]:e.target.checked}))} />
+                            <span style={{fontSize:14,minWidth:36}}>{l}</span>
+                            <select className="sm-input" style={{width:80}} value={form[dk]}  onChange={e=>setForm(f=>({...f,[dk]:e.target.value}))}>
                               {['당일','1일전','2일전','3일전'].map(d=><option key={d}>{d}</option>)}
                             </select>
-                            <select className="sm-input" style={{width:90}} value={form[tk]} disabled={!editing} onChange={e=>setForm(f=>({...f,[tk]:e.target.value}))}>
-                              {['전송시간','08:00','09:00','10:00','11:00','12:00','14:00','16:00','18:00'].map(t=><option key={t}>{t}</option>)}
+                            <select className="sm-input" style={{width:90}} value={form[tk]}  onChange={e=>setForm(f=>({...f,[tk]:e.target.value}))}>
+                              <option>전송시간</option>
+                              {Array.from({length:13},(_,i)=>i+8).map(t=><option key={t}>{t}시</option>)}
                             </select>
                           </div>
                         ))}
@@ -407,13 +416,14 @@ export default function Settings() {
                       <div style={{display:'flex',gap:16,flexWrap:'wrap'}}>
                         {[{ek:'postPayEnabled',dk:'postPayDay',tk:'postPayTime',l:'수납'},{ek:'postHomeworkEnabled',dk:'postHomeworkDay',tk:'postHomeworkTime',l:'과제/퀴즈'},{ek:'postAlarmEnabled',dk:'postAlarmDay',tk:'postAlarmTime',l:'알림장'}].map(({ek,dk,tk,l})=>(
                           <div key={ek} style={{display:'flex',alignItems:'center',gap:6,marginBottom:4}}>
-                            <input type="checkbox" checked={form[ek]} disabled={!editing} onChange={e=>setForm(f=>({...f,[ek]:e.target.checked}))} />
-                            <span style={{fontSize:13,minWidth:48}}>{l}</span>
-                            <select className="sm-input" style={{width:80}} value={form[dk]} disabled={!editing} onChange={e=>setForm(f=>({...f,[dk]:e.target.value}))}>
+                            <input type="checkbox" checked={form[ek]}  onChange={e=>setForm(f=>({...f,[ek]:e.target.checked}))} />
+                            <span style={{fontSize:14,minWidth:48}}>{l}</span>
+                            <select className="sm-input" style={{width:80}} value={form[dk]}  onChange={e=>setForm(f=>({...f,[dk]:e.target.value}))}>
                               {['당일','1일후','2일후','3일후'].map(d=><option key={d}>{d}</option>)}
                             </select>
-                            <select className="sm-input" style={{width:90}} value={form[tk]} disabled={!editing} onChange={e=>setForm(f=>({...f,[tk]:e.target.value}))}>
-                              {['전송시간','08:00','09:00','10:00','11:00','12:00','14:00','16:00','18:00'].map(t=><option key={t}>{t}</option>)}
+                            <select className="sm-input" style={{width:90}} value={form[tk]}  onChange={e=>setForm(f=>({...f,[tk]:e.target.value}))}>
+                              <option>전송시간</option>
+                              {Array.from({length:13},(_,i)=>i+8).map(t=><option key={t}>{t}시</option>)}
                             </select>
                           </div>
                         ))}
@@ -424,12 +434,12 @@ export default function Settings() {
                     <div className="sm-field" style={{flex:2}}>
                       <label className="sm-label">포인트 부족 알림</label>
                       <div style={{display:'flex',alignItems:'center',gap:8}}>
-                        <input type="checkbox" checked={form.pointAlertEnabled} disabled={!editing} onChange={e=>setForm(f=>({...f,pointAlertEnabled:e.target.checked}))} />
-                        <span style={{fontSize:13}}>포인트부족</span>
-                        <select className="sm-input" style={{width:100}} value={form.pointMin} disabled={!editing} onChange={e=>setForm(f=>({...f,pointMin:e.target.value}))}>
-                          {['1000','2000','3000','5000','10000'].map(p=><option key={p} value={p}>{Number(p).toLocaleString()}</option>)}
+                        <input type="checkbox" checked={form.pointAlertEnabled}  onChange={e=>setForm(f=>({...f,pointAlertEnabled:e.target.checked}))} />
+                        <span style={{fontSize:14}}>포인트부족</span>
+                        <select className="sm-input" style={{width:100}} value={form.pointMin}  onChange={e=>setForm(f=>({...f,pointMin:e.target.value}))}>
+                          {['1000','2000','3000','4000','5000'].map(p=><option key={p} value={p}>{Number(p).toLocaleString()}</option>)}
                         </select>
-                        <span style={{fontSize:12,color:'#555'}}>포인트 미만 시 관리자 휴대폰으로 자동 알림</span>
+                        <span style={{fontSize:14,color:'#555'}}>포인트 미만 시 관리자 휴대폰으로 자동 알림</span>
                       </div>
                     </div>
                   </div>
@@ -437,12 +447,14 @@ export default function Settings() {
                     <div className="sm-field" style={{flex:2}}>
                       <label className="sm-label">미등원 알림</label>
                       <div style={{display:'flex',alignItems:'center',gap:8}}>
-                        <input type="checkbox" checked={form.nonMemberEnabled} disabled={!editing} onChange={e=>setForm(f=>({...f,nonMemberEnabled:e.target.checked}))} />
-                        <span style={{fontSize:13}}>미등원알림</span>
-                        <select className="sm-input" style={{width:90}} value={form.nonMemberTime} disabled={!editing} onChange={e=>setForm(f=>({...f,nonMemberTime:e.target.value}))}>
-                          {['선택','30분후','1시간후','2시간후'].map(t=><option key={t}>{t}</option>)}
+                        <input type="checkbox" checked={form.nonMemberEnabled}  onChange={e=>setForm(f=>({...f,nonMemberEnabled:e.target.checked}))} />
+                        <span style={{fontSize:14}}>미등원알림</span>
+                        <select className="sm-input" style={{width:90}} value={form.nonMemberTime}  onChange={e=>setForm(f=>({...f,nonMemberTime:e.target.value}))}>
+                          <option>선택</option>
+                          <option>5분</option>
+                          <option>10분</option>
                         </select>
-                        <span style={{fontSize:12,color:'#555'}}>반별 시작시간에서 해당 시간 경과 시 미등원 알림 전송</span>
+                        <span style={{fontSize:14,color:'#555'}}>반별 시작시간에서 해당 시간 경과 시 미등원 알림 전송</span>
                       </div>
                     </div>
                   </div>
@@ -457,7 +469,7 @@ export default function Settings() {
                       <div className="sm-field" style={{flex:2}}>
                         <label className="sm-label">{l}</label>
                         <div style={{display:'flex',gap:8,alignItems:'center'}}>
-                          <input className="sm-input" style={{width:360}} value={form[k]} readOnly={!editing} onChange={e=>setForm(f=>({...f,[k]:e.target.value}))} />
+                          <input className="sm-input" style={{width:360}} value={form[k]}  onChange={e=>setForm(f=>({...f,[k]:e.target.value}))} />
                           <button className="sm-preview-btn" onClick={()=>form[k]&&window.open(form[k],'_blank')}>미리보기</button>
                         </div>
                       </div>
@@ -474,8 +486,8 @@ export default function Settings() {
                       <label className="sm-label required">POS 단말기</label>
                       <div style={{display:'flex',gap:16,alignItems:'center'}}>
                         {[{v:'toss',l:'TOSS프론트'},{v:'none',l:'사용안함'}].map(({v,l})=>(
-                          <label key={v} style={{display:'flex',alignItems:'center',gap:4,fontSize:13,cursor:'pointer'}}>
-                            <input type="radio" name="posDevice" value={v} checked={form.posDevice===v} disabled={!editing} onChange={e=>setForm(f=>({...f,posDevice:e.target.value}))} />{l}
+                          <label key={v} style={{display:'flex',alignItems:'center',gap:4,fontSize:14,cursor:'pointer'}}>
+                            <input type="radio" name="posDevice" value={v} checked={form.posDevice===v}  onChange={e=>setForm(f=>({...f,posDevice:e.target.value}))} />{l}
                           </label>
                         ))}
                       </div>
@@ -484,7 +496,7 @@ export default function Settings() {
                   <div className="sm-row">
                     <div className="sm-field">
                       <label className="sm-label required">PG 결제</label>
-                      <span style={{fontSize:13,color:'#e05c2a',fontWeight:500}}>사용안함</span>
+                      <span style={{fontSize:14,color:'#e05c2a',fontWeight:500}}>사용안함</span>
                     </div>
                   </div>
                   <div className="sm-row">
@@ -492,8 +504,8 @@ export default function Settings() {
                       <label className="sm-label">엑셀다운로드</label>
                       <div style={{display:'flex',gap:16,alignItems:'center'}}>
                         {[{v:'allow',l:'허용'},{v:'approve',l:'승인'}].map(({v,l})=>(
-                          <label key={v} style={{display:'flex',alignItems:'center',gap:4,fontSize:13,cursor:'pointer'}}>
-                            <input type="radio" name="excelDownload" value={v} checked={form.excelDownload===v} disabled={!editing} onChange={e=>setForm(f=>({...f,excelDownload:e.target.value}))} />{l}
+                          <label key={v} style={{display:'flex',alignItems:'center',gap:4,fontSize:14,cursor:'pointer'}}>
+                            <input type="radio" name="excelDownload" value={v} checked={form.excelDownload===v}  onChange={e=>setForm(f=>({...f,excelDownload:e.target.value}))} />{l}
                           </label>
                         ))}
                       </div>
@@ -502,8 +514,9 @@ export default function Settings() {
                   <div className="sm-row">
                     <div className="sm-field">
                       <label className="sm-label required">메세지전송방법</label>
-                      <select className="sm-input" style={{width:160}} value={form.msgMethod} disabled={!editing} onChange={e=>setForm(f=>({...f,msgMethod:e.target.value}))}>
-                        {['알림톡 (+메세지)','문자 (SMS/LMS)'].map(m=><option key={m}>{m}</option>)}
+                      <select className="sm-input" style={{width:160}} value={form.msgMethod}  onChange={e=>setForm(f=>({...f,msgMethod:e.target.value}))}>
+                        <option>알림톡만 전송</option>
+                        <option>알림톡 (+메세지)</option>
                       </select>
                     </div>
                   </div>
@@ -512,18 +525,18 @@ export default function Settings() {
                       <label className="sm-label">등하원</label>
                       <div style={{display:'flex',alignItems:'center',gap:32,flexWrap:'wrap'}}>
                         <div style={{display:'flex',alignItems:'center',gap:8}}>
-                          <span style={{fontSize:13,color:'#555',marginRight:4}}>등하원 입력</span>
+                          <span style={{fontSize:14,color:'#555',marginRight:4}}>등하원 입력</span>
                           {[{v:'phone4',l:'휴대폰 4자리'},{v:'exitNo',l:'출결번호'}].map(({v,l})=>(
-                            <label key={v} style={{display:'flex',alignItems:'center',gap:4,fontSize:13,cursor:'pointer'}}>
-                              <input type="radio" name="loginInput" value={v} checked={form.loginInput===v} disabled={!editing} onChange={e=>setForm(f=>({...f,loginInput:e.target.value}))} />{l}
+                            <label key={v} style={{display:'flex',alignItems:'center',gap:4,fontSize:14,cursor:'pointer'}}>
+                              <input type="radio" name="loginInput" value={v} checked={form.loginInput===v}  onChange={e=>setForm(f=>({...f,loginInput:e.target.value}))} />{l}
                             </label>
                           ))}
                         </div>
                         <div style={{display:'flex',alignItems:'center',gap:8}}>
-                          <span style={{fontSize:13,color:'#555',marginRight:4}}>등하원 순서</span>
+                          <span style={{fontSize:14,color:'#555',marginRight:4}}>등하원 순서</span>
                           {[{v:'none',l:'없음'},{v:'enrollOnly',l:'등원해야만 하원 가능'}].map(({v,l})=>(
-                            <label key={v} style={{display:'flex',alignItems:'center',gap:4,fontSize:13,cursor:'pointer'}}>
-                              <input type="radio" name="loginOrder" value={v} checked={form.loginOrder===v} disabled={!editing} onChange={e=>setForm(f=>({...f,loginOrder:e.target.value}))} />{l}
+                            <label key={v} style={{display:'flex',alignItems:'center',gap:4,fontSize:14,cursor:'pointer'}}>
+                              <input type="radio" name="loginOrder" value={v} checked={form.loginOrder===v}  onChange={e=>setForm(f=>({...f,loginOrder:e.target.value}))} />{l}
                             </label>
                           ))}
                         </div>
@@ -538,7 +551,7 @@ export default function Settings() {
           {/* ===== 권한그룹명 변경 ===== */}
           {activeSide === 'auth-group' && (
             <>
-              <div className="sm-page-title"><span className="sm-title-icon">✦</span> 권한그룹명 변경</div>
+              <div className="sm-page-title"><FavStar label="권한그룹명 변경" path="/settings?page=auth-group" /> 권한그룹명 변경</div>
               <div className="sm-section">
                 <div className="sm-form">
                   <table className="auth-table">
@@ -574,7 +587,7 @@ export default function Settings() {
           {/* ===== 사용자별 권한관리 ===== */}
           {activeSide === 'auth-user' && (
             <>
-              <div className="sm-page-title"><span className="sm-title-icon">✦</span> 사용자별 권한관리</div>
+              <div className="sm-page-title"><FavStar label="사용자별 권한관리" path="/settings?page=auth-user" /> 사용자별 권한관리</div>
 
               <div className="sm-section">
                 <div className="sm-sec-head">
@@ -590,8 +603,10 @@ export default function Settings() {
                       <label style={{fontSize:13,color:'#444',minWidth:24}}>부서</label>
                       <select className="sm-input" style={{width:120}}>
                         <option>선택하기</option>
-                        <option>교육 부문</option>
                         <option>관리 부문</option>
+                        <option>행정 부문</option>
+                        <option>교육 부문</option>
+                        <option>기타</option>
                       </select>
                     </div>
                     <div style={{display:'flex',alignItems:'center',gap:8}}>
@@ -642,7 +657,7 @@ export default function Settings() {
           {/* ===== 그룹별 사용자관리 ===== */}
           {activeSide === 'auth-mgmt' && (
             <>
-              <div className="sm-page-title"><span className="sm-title-icon">✦</span> 권한그룹별 사용자</div>
+              <div className="sm-page-title"><FavStar label="권한그룹별 사용자" path="/settings?page=auth-mgmt" /> 권한그룹별 사용자</div>
 
               {/* 조건검색 */}
               <div className="sm-section">
@@ -667,9 +682,9 @@ export default function Settings() {
                     <div style={{display:'flex',alignItems:'center',gap:8}}>
                       <label style={{fontSize:13,color:'#444',minWidth:40}}>사용자구분</label>
                       <select className="sm-input" style={{width:140}}>
+                        <option>전체사용자</option>
                         <option>권한사용자</option>
-                        <option>미사용자</option>
-                        <option>전체</option>
+                        <option>사용권한없음</option>
                       </select>
                     </div>
                   </div>
@@ -713,7 +728,7 @@ export default function Settings() {
           {/* ===== 코드 현황 ===== */}
           {activeSide === 'code-status' && (
             <>
-              <div className="sm-page-title"><span className="sm-title-icon">✦</span> 코드 현황</div>
+              <div className="sm-page-title"><FavStar label="코드 현황" path="/settings?page=code-status" /> 코드 현황</div>
 
               {/* 조건검색 */}
               <div className="sm-section">
@@ -730,19 +745,25 @@ export default function Settings() {
                       <label style={{fontSize:13,color:'#444',minWidth:40}}>코드구분</label>
                       <select className="sm-input" style={{width:130}}>
                         <option>선택하기</option>
-                        <option>수강생</option>
-                        <option>수납</option>
-                        <option>반</option>
-                        <option>직원</option>
-                        <option>상담</option>
+                        <option>강의실</option>
+                        <option>과목</option>
+                        <option>담당부서</option>
+                        <option>담당업무</option>
+                        <option>수납항목</option>
+                        <option>시험그룹</option>
+                        <option>시험종류</option>
+                        <option>입학동기</option>
+                        <option>직급</option>
+                        <option>평가등급</option>
+                        <option>평가항목</option>
                       </select>
                     </div>
                     <div style={{display:'flex',alignItems:'center',gap:8}}>
                       <label style={{fontSize:13,color:'#444',minWidth:40}}>코드상태</label>
                       <select className="sm-input" style={{width:110}}>
+                        <option>전체</option>
                         <option>사용</option>
                         <option>미사용</option>
-                        <option>전체</option>
                       </select>
                     </div>
                     <div style={{display:'flex',alignItems:'center',gap:8}}>
@@ -785,7 +806,7 @@ export default function Settings() {
           {/* ===== 주민번호 예외 현황 ===== */}
           {activeSide === 'resid-status' && (
             <>
-              <div className="sm-page-title"><span className="sm-title-icon">✦</span> 주민번호 예외 현황</div>
+              <div className="sm-page-title"><FavStar label="주민번호 예외 현황" path="/settings?page=resid-status" /> 주민번호 예외 현황</div>
 
               {/* 조건검색 */}
               <div className="sm-section">
@@ -805,7 +826,10 @@ export default function Settings() {
               <div className="sm-section">
                 <div className="sm-sec-head">
                   <div className="sm-sec-title" style={{visibility:'hidden'}}>-</div>
-                  <button className="sm-preview-btn" style={{background:'#29b6f6'}}>주민번호 예외 등록</button>
+                  <button className="sm-preview-btn" style={{background:'#29b6f6'}}
+                    onClick={() => window.open('/resid-add', '_blank', 'width=500,height=600')}>
+                    주민번호 예외 등록
+                  </button>
                 </div>
                 <div style={{padding:0}}>
                   <table className="auth-table">

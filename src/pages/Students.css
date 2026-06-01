@@ -714,3 +714,14 @@
   font-family: inherit;
   white-space: nowrap;
 }
+
+/* 출결 테이블이 달력 위로 올라오지 않게 */
+.att-cal-wrap {
+  position: relative;
+  z-index: 0;
+}
+
+.att-cal-table {
+  position: relative;
+  z-index: 0;
+}

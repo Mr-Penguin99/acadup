@@ -6,6 +6,9 @@ import Settings from './pages/Settings'
 import Students from './pages/Students'
 import Payments from './pages/Payments'
 import Classes from './pages/Classes'
+import MyInfo from './pages/MyInfo'
+import ChangePassword from './pages/ChangePassword'
+import ResidExceptionAdd from './pages/ResidExceptionAdd'
 
 function App() {
   return (
@@ -19,6 +22,9 @@ function App() {
         <Route path="/payments" element={<Payments />} />
         <Route path="/classes" element={<Classes />} />
         <Route path="*" element={<Navigate to="/" />} />
+        <Route path="/myinfo" element={<MyInfo />} />
+        <Route path="/changepassword" element={<ChangePassword />} />
+        <Route path="/resid-add" element={<ResidExceptionAdd />} />
       </Routes>
     </BrowserRouter>
   )
