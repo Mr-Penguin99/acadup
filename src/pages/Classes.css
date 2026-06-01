@@ -184,3 +184,102 @@
 }
 
 .cl-edit-btn:hover { background: #333; }
+
+.order-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0 2px;
+  font-weight: 700;
+}
+
+.order-btn.up   { color: #E8445A; }
+.order-btn.down { color: #29ABE2; }
+
+/* 반편성 */
+.assign-wrap {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.assign-panel {
+  flex: 1;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.assign-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 2px solid #00B5A9;
+  background: #fff;
+}
+
+.assign-head-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #333;
+}
+
+.assign-count {
+  font-size: 12px;
+  font-weight: 400;
+  color: #888;
+  margin-left: 6px;
+}
+
+.assign-filter {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  border-bottom: 1px solid #eee;
+  align-items: flex-end;
+}
+
+.assign-filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 80px;
+}
+
+.assign-label { font-size: 11px; font-weight: 600; color: #888; }
+
+.assign-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.assign-table th {
+  background: #f5f5f5;
+  padding: 8px 10px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #555;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.assign-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #f0f0f0;
+  color: #333;
+  text-align: center;
+}
+
+.assign-empty {
+  text-align: center !important;
+  padding: 40px !important;
+  color: #bbb;
+  font-size: 13px;
+}
+

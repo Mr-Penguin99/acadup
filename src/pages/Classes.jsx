@@ -37,6 +37,19 @@ const SIDE_MENUS = [
   },
 ]
 
+const GROUP_DATA = [
+  { id:1,  code:'GROUP00007', name:'반그룹_02(회차반)', use:'사용' },
+  { id:2,  code:'GROUP00013', name:'to_반그룹',         use:'사용' },
+  { id:3,  code:'GROUP00006', name:'반그룹_01(기간반)', use:'사용' },
+  { id:4,  code:'GROUP00001', name:'그룹01',            use:'사용' },
+  { id:5,  code:'33_02',      name:'고등_BB',           use:'사용' },
+  { id:6,  code:'33_01',      name:'고등_AA',           use:'사용' },
+  { id:7,  code:'33_03',      name:'고등_CC',           use:'사용' },
+  { id:8,  code:'11_A',       name:'초등_A',            use:'사용' },
+  { id:9,  code:'11_B',       name:'초등_B',            use:'사용' },
+  { id:10, code:'11_C',       name:'초등_C',            use:'사용' },
+]
+
 const SAMPLE_DATA = [
   { id:1,  group:'',              name:'수업2_영어',       code:'CLASS00014', status:'개강', type:'국어', teacher:'김일희(강사)',    period:'2015.09.01~2026.12.31', room:'', count:'재원: 0명' },
   { id:2,  group:'',              name:'test02',           code:'CLASS00018', status:'개강', type:'국어', teacher:'',               period:'2016.09.01~2027.09.30', room:'', count:'재원: 1명' },
@@ -57,9 +70,18 @@ export default function Classes() {
   const [expanded, setExpanded] = useState(['class-mgmt'])
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [filter, setFilter] = useState({ group: '전체', status: '개강', name: '' })
+  const [groupFilter, setGroupFilter] = useState({ use:'사용' })
+  const [prospectLeftFilter, setProspectLeftFilter] = useState({ status:'', dateFrom:'', dateTo:'' })
+  const [enrolledLeftFilter, setEnrolledLeftFilter]   = useState({ group:'전체', className:'', name:'' })
+  const [enrolledRightFilter, setEnrolledRightFilter] = useState({ group:'전체', className:'선택', name:'', dateFrom:'', dateTo:'' })
+  const [enrolledSubFilter, setEnrolledSubFilter]     = useState({ type:'', dateFrom:'', dateTo:'' })
+  const [prospectRightFilter, setProspectRightFilter] = useState({ group:'전체', className:'선택', name:'', dateFrom:'', dateTo:'' })
+  const [prospectLeftChecked, setProspectLeftChecked] = useState([])
+  const [prospectRightChecked, setProspectRightChecked] = useState([])
 
-  const toggleGroup = id =>
-    setExpanded(e => e.includes(id) ? e.filter(x => x !== id) : [...e, id])
+  const toggleGroup = id => {
+  setExpanded(e => e.includes(id) ? [] : [id])
+  }
 
   return (
     <div className="classes-wrap">
@@ -119,91 +141,427 @@ export default function Classes() {
 
         {/* 메인 */}
         <div className="classes-main">
-          <div className="cl-page-title">
-            <span style={{color:'#ccc'}}>☆</span> 반 현황
-          </div>
-
-          {/* 조건검색 */}
-          <div className="cl-section">
-            <div className="cl-sec-head">
-              <div className="cl-sec-title">조건검색</div>
-              <div style={{display:'flex', gap:6}}>
-                <button className="cl-search-btn">검색하기</button>
-                <button className="cl-reset-btn">초기화</button>
+          {/* 반 그룹 */}
+          {activeSide === 'class-group' && (
+            <>
+              <div className="cl-page-title">
+                <span style={{color:'#ccc'}}>☆</span> 반 그룹
               </div>
-            </div>
-            <div className="cl-filter">
-              <div className="cl-filter-row">
-                <div className="cl-filter-item">
-                  <label className="cl-filter-label">반 그룹</label>
-                  <select className="cl-input" value={filter.group}
-                    onChange={e => setFilter(f => ({...f, group: e.target.value}))}>
-                    <option>전체</option>
-                  </select>
+
+              <div className="cl-section">
+                <div className="cl-sec-head">
+                  <div className="cl-sec-title">조건검색</div>
+                  <div style={{display:'flex', gap:6}}>
+                    <button className="cl-search-btn">검색하기</button>
+                    <button className="cl-reset-btn">초기화</button>
+                  </div>
                 </div>
-                <div className="cl-filter-item">
-                  <label className="cl-filter-label">반 상태</label>
-                  <select className="cl-input" value={filter.status}
-                    onChange={e => setFilter(f => ({...f, status: e.target.value}))}>
-                    <option>개강</option>
-                    <option>폐강</option>
-                    <option>대기</option>
-                  </select>
-                </div>
-                <div className="cl-filter-item">
-                  <label className="cl-filter-label">반 명</label>
-                  <input className="cl-input" value={filter.name}
-                    onChange={e => setFilter(f => ({...f, name: e.target.value}))} />
+                <div className="cl-filter">
+                  <div className="cl-filter-row">
+                    <div className="cl-filter-item">
+                      <label className="cl-filter-label">사용유무</label>
+                      <select className="cl-input" value={groupFilter.use}
+                        onChange={e => setGroupFilter(f => ({...f, use: e.target.value}))}>
+                        <option>사용</option>
+                        <option>미사용</option>
+                        <option>전체</option>
+                      </select>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* 테이블 */}
-          <div className="cl-section">
-            <div className="cl-table-header">
-              <button className="cl-reg-btn">반 등록</button>
-            </div>
-            <div className="cl-table-wrap">
-              <table className="cl-table">
-                <thead>
-                  <tr>
-                    <th>출력순서</th>
-                    <th>반 그룹</th>
-                    <th>반 명</th>
-                    <th>반 코드</th>
-                    <th>상태</th>
-                    <th>중분류</th>
-                    <th>담임</th>
-                    <th>수강기간</th>
-                    <th>강의실</th>
-                    <th>수강생수</th>
-                    <th>기능</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {SAMPLE_DATA.map(d => (
-                    <tr key={d.id}>
-                      <td className="td-center">{d.id}</td>
-                      <td>{d.group}</td>
-                      <td>{d.name}</td>
-                      <td>{d.code}</td>
-                      <td className="td-center">{d.status}</td>
-                      <td className="td-center">{d.type}</td>
-                      <td>{d.teacher}</td>
-                      <td>{d.period}</td>
-                      <td>{d.room}</td>
-                      <td>{d.count}</td>
-                      <td className="td-center">
-                        <button className="cl-edit-btn">반 수정</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+              <div className="cl-section">
+                <div className="cl-table-header">
+                  <button className="cl-reg-btn">반그룹 등록</button>
+                </div>
+                <div className="cl-table-wrap">
+                  <table className="cl-table">
+                    <thead>
+                      <tr>
+                        <th>출력순서</th>
+                        <th>반그룹 코드</th>
+                        <th>반 그룹 명</th>
+                        <th>사용유무</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {GROUP_DATA.map(d => (
+                        <tr key={d.id}>
+                          <td style={{textAlign:'center'}}>
+                            <div style={{display:'flex', alignItems:'center', justifyContent:'center', gap:4}}>
+                              <span style={{fontSize:12, color:'#666'}}>{d.id}</span>
+                              <button className="order-btn up">↑</button>
+                              <button className="order-btn down">↓</button>
+                            </div>
+                          </td>
+                          <td style={{textAlign:'center'}}>{d.code}</td>
+                          <td style={{textAlign:'center'}}>{d.name}</td>
+                          <td style={{textAlign:'center'}}>{d.use}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
 
+          {/* 재원생 반편성 */}
+          {activeSide === 'assign-enrolled' && (
+            <>
+              <div className="cl-page-title">
+                <span style={{color:'#ccc'}}>☆</span> 재원생 반편성
+              </div>
+
+              <div className="assign-wrap">
+
+                {/* 왼쪽 패널 */}
+                <div className="assign-panel">
+                  <div className="assign-head">
+                    <span className="assign-head-title">반 검색</span>
+                    <button className="cl-search-btn">검색하기</button>
+                  </div>
+                  <div className="assign-filter">
+                    <div className="assign-filter-item">
+                      <label className="assign-label">반 그룹</label>
+                      <select className="cl-input" value={enrolledLeftFilter.group}
+                        onChange={e => setEnrolledLeftFilter(f => ({...f, group: e.target.value}))}>
+                        <option>전체</option>
+                      </select>
+                    </div>
+                    <div className="assign-filter-item">
+                      <label className="assign-label">반명</label>
+                      <select className="cl-input" value={enrolledLeftFilter.className}
+                        onChange={e => setEnrolledLeftFilter(f => ({...f, className: e.target.value}))}>
+                        <option>선택</option>
+                      </select>
+                    </div>
+                    <div className="assign-filter-item">
+                      <label className="assign-label">수강생명</label>
+                      <input className="cl-input" value={enrolledLeftFilter.name}
+                        onChange={e => setEnrolledLeftFilter(f => ({...f, name: e.target.value}))} />
+                    </div>
+                  </div>
+
+                  <div className="assign-head" style={{borderTop:'1px solid #eee', borderBottom:'2px solid #00B5A9'}}>
+                    <span className="assign-head-title">수강생목록 <span className="assign-count">재원:0명</span></span>
+                    <button className="cl-reg-btn">반편성처리</button>
+                  </div>
+                  <div className="assign-filter" style={{flexDirection:'column', gap:4}}>
+                    <div style={{display:'flex', gap:8, flexWrap:'wrap', alignItems:'flex-end'}}>
+                      <div className="assign-filter-item">
+                        <label className="assign-label">반편성 유형</label>
+                        <select className="cl-input" value={enrolledSubFilter.type}
+                          onChange={e => setEnrolledSubFilter(f => ({...f, type: e.target.value}))}>
+                          <option>선택</option>
+                          <option>배정</option>
+                          <option>이동</option>
+                        </select>
+                      </div>
+                      <div className="assign-filter-item" style={{flex:2}}>
+                        <label className="assign-label">반편성 수강기간</label>
+                        <div style={{display:'flex', gap:6, alignItems:'center'}}>
+                          <input type="date" className="cl-input" value={enrolledSubFilter.dateFrom}
+                            onChange={e => setEnrolledSubFilter(f => ({...f, dateFrom: e.target.value}))} />
+                          <span>~</span>
+                          <input type="date" className="cl-input" value={enrolledSubFilter.dateTo}
+                            onChange={e => setEnrolledSubFilter(f => ({...f, dateTo: e.target.value}))} />
+                        </div>
+                      </div>
+                    </div>
+                    <span style={{fontSize:11, color:'#888'}}>반배정, 반이동을 정확하게 확인해서 작업해 주세요.</span>
+                  </div>
+                  <table className="assign-table">
+                    <thead>
+                      <tr>
+                        <th><input type="checkbox" /></th>
+                        <th>성명</th>
+                        <th>생년월일</th>
+                        <th>수강기간</th>
+                        <th>전화번호</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td colSpan={5} className="assign-empty">검색된 데이터가 없습니다.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* 오른쪽 패널 */}
+                <div className="assign-panel">
+                  <div className="assign-head">
+                    <span className="assign-head-title">배정/이동 대상반</span>
+                    <button className="cl-search-btn">검색하기</button>
+                  </div>
+                  <div className="assign-filter">
+                    <div className="assign-filter-item">
+                      <label className="assign-label">반 그룹</label>
+                      <select className="cl-input" value={enrolledRightFilter.group}
+                        onChange={e => setEnrolledRightFilter(f => ({...f, group: e.target.value}))}>
+                        <option>전체</option>
+                      </select>
+                    </div>
+                    <div className="assign-filter-item">
+                      <label className="assign-label">반명</label>
+                      <select className="cl-input" value={enrolledRightFilter.className}
+                        onChange={e => setEnrolledRightFilter(f => ({...f, className: e.target.value}))}>
+                        <option>선택</option>
+                      </select>
+                    </div>
+                    <div className="assign-filter-item">
+                      <label className="assign-label">수강생명</label>
+                      <input className="cl-input" value={enrolledRightFilter.name}
+                        onChange={e => setEnrolledRightFilter(f => ({...f, name: e.target.value}))} />
+                    </div>
+                  </div>
+
+                  <div className="assign-head" style={{borderTop:'1px solid #eee', borderBottom:'2px solid #00B5A9'}}>
+                    <span className="assign-head-title">수강생목록 <span className="assign-count">배정/이동:0명 (재원:0명)</span></span>
+                    <button className="pm-red-btn">반편성취소</button>
+                  </div>
+                  <div className="assign-filter" style={{flexDirection:'column', gap:4}}>
+                    <div style={{display:'flex', gap:8, alignItems:'flex-end'}}>
+                      <div className="assign-filter-item" style={{flex:2}}>
+                        <label className="assign-label">수강시작일</label>
+                        <div style={{display:'flex', gap:6, alignItems:'center'}}>
+                          <input type="date" className="cl-input" value={enrolledRightFilter.dateFrom}
+                            onChange={e => setEnrolledRightFilter(f => ({...f, dateFrom: e.target.value}))} />
+                          <span>~</span>
+                          <input type="date" className="cl-input" value={enrolledRightFilter.dateTo}
+                            onChange={e => setEnrolledRightFilter(f => ({...f, dateTo: e.target.value}))} />
+                        </div>
+                      </div>
+                    </div>
+                    <span style={{fontSize:11, color:'#F5841F'}}>
+                      반배정 취소하면 <span style={{color:'#E8445A', fontWeight:700}}>배정된 반에서만 수강취소</span>되고 반이동 취소하면 <span style={{color:'#E8445A', fontWeight:700}}>배정된 반에서 수강취소, 이전 반으로 복원</span>됩니다.
+                    </span>
+                  </div>
+                  <table className="assign-table">
+                    <thead>
+                      <tr>
+                        <th><input type="checkbox" /></th>
+                        <th>구분</th>
+                        <th>성명</th>
+                        <th>생년월일</th>
+                        <th>수강기간</th>
+                        <th>전화번호</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td colSpan={6} className="assign-empty">검색된 데이터가 없습니다.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+              </div>
+            </>
+          )}
+
+          {/* 예비생 반배정 */}
+          {activeSide === 'assign-prospect' && (
+            <>
+              <div className="cl-page-title">
+                <span style={{color:'#ccc'}}>☆</span> 예비생 반배정
+              </div>
+
+              <div className="assign-wrap">
+
+                {/* 왼쪽 패널 */}
+                <div className="assign-panel">
+                  <div className="assign-head">
+                    <span className="assign-head-title">수강생목록 <span className="assign-count">인원:0명</span></span>
+                    <button className="cl-reg-btn">반배정처리</button>
+                  </div>
+                  <div className="assign-filter">
+                    <div className="assign-filter-item">
+                      <label className="assign-label">수강생 상태</label>
+                      <select className="cl-input" value={prospectLeftFilter.status}
+                        onChange={e => setProspectLeftFilter(f => ({...f, status: e.target.value}))}>
+                        <option>선택</option>
+                        <option>예비</option>
+                        <option>재원</option>
+                      </select>
+                    </div>
+                    <div className="assign-filter-item" style={{flex:2}}>
+                      <label className="assign-label">반편성 수강기간</label>
+                      <div style={{display:'flex', gap:6, alignItems:'center'}}>
+                        <input type="date" className="cl-input" value={prospectLeftFilter.dateFrom}
+                          onChange={e => setProspectLeftFilter(f => ({...f, dateFrom: e.target.value}))} />
+                        <span>~</span>
+                        <input type="date" className="cl-input" value={prospectLeftFilter.dateTo}
+                          onChange={e => setProspectLeftFilter(f => ({...f, dateTo: e.target.value}))} />
+                      </div>
+                    </div>
+                  </div>
+                  <table className="assign-table">
+                    <thead>
+                      <tr>
+                        <th><input type="checkbox" /></th>
+                        <th>성명</th>
+                        <th>생년월일</th>
+                        <th>전화번호</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td colSpan={4} className="assign-empty">검색된 데이터가 없습니다.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* 오른쪽 패널 */}
+                <div className="assign-panel">
+                  <div className="assign-head">
+                    <span className="assign-head-title">수강생목록 <span className="assign-count">배정:0명 (재원:0명)</span></span>
+                    <div style={{display:'flex', gap:6}}>
+                      <button className="cl-search-btn">검색하기</button>
+                      <button className="pm-red-btn">반배정취소</button>
+                    </div>
+                  </div>
+                  <div className="assign-filter">
+                    <div className="assign-filter-item">
+                      <label className="assign-label">반 그룹</label>
+                      <select className="cl-input" value={prospectRightFilter.group}
+                        onChange={e => setProspectRightFilter(f => ({...f, group: e.target.value}))}>
+                        <option>전체</option>
+                      </select>
+                    </div>
+                    <div className="assign-filter-item">
+                      <label className="assign-label">반명</label>
+                      <select className="cl-input" value={prospectRightFilter.className}
+                        onChange={e => setProspectRightFilter(f => ({...f, className: e.target.value}))}>
+                        <option>선택</option>
+                      </select>
+                    </div>
+                    <div className="assign-filter-item">
+                      <label className="assign-label">수강생명</label>
+                      <input className="cl-input" value={prospectRightFilter.name}
+                        onChange={e => setProspectRightFilter(f => ({...f, name: e.target.value}))} />
+                    </div>
+                    <div className="assign-filter-item" style={{flex:2}}>
+                      <label className="assign-label">수강시작일</label>
+                      <div style={{display:'flex', gap:6, alignItems:'center'}}>
+                        <input type="date" className="cl-input" value={prospectRightFilter.dateFrom}
+                          onChange={e => setProspectRightFilter(f => ({...f, dateFrom: e.target.value}))} />
+                        <span>~</span>
+                        <input type="date" className="cl-input" value={prospectRightFilter.dateTo}
+                          onChange={e => setProspectRightFilter(f => ({...f, dateTo: e.target.value}))} />
+                      </div>
+                    </div>
+                  </div>
+                  <table className="assign-table">
+                    <thead>
+                      <tr>
+                        <th><input type="checkbox" /></th>
+                        <th>성명</th>
+                        <th>생년월일</th>
+                        <th>수강기간</th>
+                        <th>전화번호</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td colSpan={5} className="assign-empty">검색된 데이터가 없습니다.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+              </div>
+            </>
+          )}
+
+          {/* 반 현황 */}
+          {activeSide === 'class-status' && (
+            <>
+              <div className="cl-page-title">
+                <span style={{color:'#F5C518'}}>⭐</span> 반 현황
+              </div>
+              <div className="cl-section">
+                <div className="cl-sec-head">
+                  <div className="cl-sec-title">조건검색</div>
+                  <div style={{display:'flex', gap:6}}>
+                    <button className="cl-search-btn">검색하기</button>
+                    <button className="cl-reset-btn">초기화</button>
+                  </div>
+                </div>
+                <div className="cl-filter">
+                  <div className="cl-filter-row">
+                    <div className="cl-filter-item">
+                      <label className="cl-filter-label">반 그룹</label>
+                      <select className="cl-input" value={filter.group}
+                        onChange={e => setFilter(f => ({...f, group: e.target.value}))}>
+                        <option>전체</option>
+                      </select>
+                    </div>
+                    <div className="cl-filter-item">
+                      <label className="cl-filter-label">반 상태</label>
+                      <select className="cl-input" value={filter.status}
+                        onChange={e => setFilter(f => ({...f, status: e.target.value}))}>
+                        <option>개강</option>
+                        <option>폐강</option>
+                        <option>대기</option>
+                      </select>
+                    </div>
+                    <div className="cl-filter-item">
+                      <label className="cl-filter-label">반 명</label>
+                      <input className="cl-input" value={filter.name}
+                        onChange={e => setFilter(f => ({...f, name: e.target.value}))} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="cl-section">
+                <div className="cl-table-header">
+                  <button className="cl-reg-btn">반 등록</button>
+                </div>
+                <div className="cl-table-wrap">
+                  <table className="cl-table">
+                    <thead>
+                      <tr>
+                        <th>출력순서</th>
+                        <th>반 그룹</th>
+                        <th>반 명</th>
+                        <th>반 코드</th>
+                        <th>상태</th>
+                        <th>중분류</th>
+                        <th>담임</th>
+                        <th>수강기간</th>
+                        <th>강의실</th>
+                        <th>수강생수</th>
+                        <th>기능</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {SAMPLE_DATA.map(d => (
+                        <tr key={d.id}>
+                          <td className="td-center">{d.id}</td>
+                          <td>{d.group}</td>
+                          <td>{d.name}</td>
+                          <td>{d.code}</td>
+                          <td className="td-center">{d.status}</td>
+                          <td className="td-center">{d.type}</td>
+                          <td>{d.teacher}</td>
+                          <td>{d.period}</td>
+                          <td>{d.room}</td>
+                          <td>{d.count}</td>
+                          <td className="td-center">
+                            <button className="cl-edit-btn">반 수정</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

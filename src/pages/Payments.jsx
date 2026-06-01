@@ -141,8 +141,9 @@ export default function Payments() {
     month: '2026-05', group: '전체', className: '', type: '수강생-성명', keyword: ''
   })
 
-  const toggleGroup = id =>
-    setExpanded(e => e.includes(id) ? e.filter(x => x !== id) : [...e, id])
+  const toggleGroup = id => {
+  setExpanded(e => e.includes(id) ? [] : [id])
+  }
 
   const toggleCheck = id =>
     setChecked(c => c.includes(id) ? c.filter(x => x !== id) : [...c, id])

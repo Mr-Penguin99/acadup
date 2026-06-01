@@ -210,10 +210,11 @@ button { cursor: pointer; font-family: inherit; }
 .ss-item:hover .ss-arrow { color: #F5841F; }
 .ss-item.active .ss-arrow { color: #F5841F; }
 .ss-item:hover { background: #eee; color: #ff9000; }
-.ss-item.active { color: #444; font-weight: 500; background: #fff4ec; }
+.ss-item.active { color: #444; font-weight: 500; background: #fff; }
 
 .ss-footer {
   margin-top: auto;
   padding: 16px;
   border-top: 1px solid #eee;
 }
+

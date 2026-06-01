@@ -146,7 +146,7 @@ const toggleStatusAll = () =>
   })
 
   const toggleGroup = id => {
-    setExpanded(e => e.includes(id) ? e.filter(x => x !== id) : [...e, id])
+  setExpanded(e => e.includes(id) ? [] : [id])
   }
 
   return (
