@@ -25,6 +25,8 @@ export function MonthPicker({ value, onChange, style }) {
       showMonthYearPicker
       showFourColumnMonthYearPicker
       locale="ko"
+      portalId="datepicker-portal"
+      popperPlacement="bottom-start"
       renderCustomHeader={({ date, changeYear, decreaseYear, increaseYear }) => (
         <div style={{
           display: 'flex', alignItems: 'center',
@@ -45,7 +47,7 @@ export function MonthPicker({ value, onChange, style }) {
        <input
          className="sm-input pm-input sts-input cl-input"
          style={{ width: 120, cursor: 'pointer', ...style }}
-          placeholder="YYYY-MM"
+         placeholder="YYYY-MM"
          readOnly
        />
       }
@@ -70,6 +72,8 @@ export function DatePicker({ value, onChange, style }) {
       }}
       dateFormat="yyyy-MM-dd"
       locale="ko"
+      portalId="datepicker-portal"
+      popperPlacement="bottom-start"
       renderCustomHeader={({ date, changeYear, changeMonth, decreaseMonth, increaseMonth }) => (
         <div style={{
           display: 'flex', alignItems: 'center',

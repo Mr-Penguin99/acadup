@@ -231,7 +231,7 @@ export default function Students() {
                           </div>
                           <div className="if-field">
                             <label className="if-label">상태</label>
-                            <select className="if-input" style={{width:120}}><option>재원</option><option>휴원</option><option>퇴원</option></select>
+                            <select className="if-input" style={{width:120}}><option>선택하기</option><option>재원</option><option>예비</option><option>휴원</option><option>퇴원</option><option>예비+휴원+퇴원</option></select>
                           </div>
                         </div>
                         <div className="if-row">
@@ -342,11 +342,11 @@ export default function Students() {
                     <div className="sts-filter-item"><label className="sts-filter-label">강사</label><select className="sts-input" value={statusFilter.teacher} onChange={e=>setStatusFilter(f=>({...f,teacher:e.target.value}))}><option>전체</option></select></div>
                     <div className="sts-filter-item"><label className="sts-filter-label">반 그룹</label><select className="sts-input" value={statusFilter.group} onChange={e=>setStatusFilter(f=>({...f,group:e.target.value}))}><option>전체</option></select></div>
                     <div className="sts-filter-item"><label className="sts-filter-label">반명</label><select className="sts-input" value={statusFilter.className} onChange={e=>setStatusFilter(f=>({...f,className:e.target.value}))}><option>전체</option></select></div>
-                    <div className="sts-filter-item"><label className="sts-filter-label">수강생상태</label><select className="sts-input" value={statusFilter.studentStatus} onChange={e=>setStatusFilter(f=>({...f,studentStatus:e.target.value}))}><option>재원</option><option>휴원</option><option>퇴원</option><option>예비</option></select></div>
+                    <div className="sts-filter-item"><label className="sts-filter-label">수강생상태</label><select className="sts-input" value={statusFilter.studentStatus} onChange={e=>setStatusFilter(f=>({...f,studentStatus:e.target.value}))}><option>선택하기</option><option>재원</option><option>예비</option><option>휴원</option><option>퇴원</option><option>예비+휴원+퇴원</option></select></div>
                     <div className="sts-filter-item" style={{flex:2}}>
                       <label className="sts-filter-label">검색</label>
                       <div style={{display:'flex',gap:6}}>
-                        <select className="sts-input" style={{width:120}} value={statusFilter.searchType} onChange={e=>setStatusFilter(f=>({...f,searchType:e.target.value}))}><option>수강생-성명</option><option>수강생-전화</option><option>보호자-성명</option></select>
+                        <select className="sts-input" style={{width:120}} value={statusFilter.searchType} onChange={e=>setStatusFilter(f=>({...f,searchType:e.target.value}))}><option>수강생-성명</option><option>수강생-휴대폰</option><option>수강생-집전화</option></select>
                         <input className="sts-input" style={{flex:1}} value={statusFilter.keyword} onChange={e=>setStatusFilter(f=>({...f,keyword:e.target.value}))}/>
                       </div>
                     </div>
@@ -432,10 +432,10 @@ export default function Students() {
                       <label className="sts-filter-label">수강월</label>
                       <MonthPicker value={attendFilter.month} onChange={v=>setAttendFilter(f=>({...f,month:v}))}/>
                     </div>
-                    <div className="sts-filter-item"><label className="sts-filter-label">검색유형</label><select className="sts-input" value={attendFilter.searchType} onChange={e=>setAttendFilter(f=>({...f,searchType:e.target.value}))}><option>반그룹</option><option>반명</option><option>수강생명</option></select></div>
+                    <div className="sts-filter-item"><label className="sts-filter-label">검색유형</label><select className="sts-input" value={attendFilter.searchType} onChange={e=>setAttendFilter(f=>({...f,searchType:e.target.value}))}><option>반그룹</option><option>강사</option></select></div>
                     <div className="sts-filter-item"><label className="sts-filter-label">반 그룹</label><select className="sts-input" value={attendFilter.group} onChange={e=>setAttendFilter(f=>({...f,group:e.target.value}))}><option>전체</option></select></div>
                     <div className="sts-filter-item"><label className="sts-filter-label">반명</label><select className="sts-input" value={attendFilter.className} onChange={e=>setAttendFilter(f=>({...f,className:e.target.value}))}><option>선택하기</option></select></div>
-                    <div className="sts-filter-item"><label className="sts-filter-label">수강생상태</label><select className="sts-input" value={attendFilter.studentStatus} onChange={e=>setAttendFilter(f=>({...f,studentStatus:e.target.value}))}><option>전체</option><option>재원</option><option>휴원</option><option>퇴원</option></select></div>
+                    <div className="sts-filter-item"><label className="sts-filter-label">수강생상태</label><select className="sts-input" value={attendFilter.studentStatus} onChange={e=>setAttendFilter(f=>({...f,studentStatus:e.target.value}))}><option>전체</option><option>재원</option></select></div>
                     <div className="sts-filter-item"><label className="sts-filter-label">수강생 성명</label><input className="sts-input" value={attendFilter.name} onChange={e=>setAttendFilter(f=>({...f,name:e.target.value}))}/></div>
                   </div>
                 </div>
@@ -488,7 +488,7 @@ export default function Students() {
                     </div>
                     <div className="sts-filter-item"><label className="sts-filter-label">반 그룹</label><select className="sts-input" value={rideFilter.group} onChange={e=>setRideFilter(f=>({...f,group:e.target.value}))}><option>전체</option></select></div>
                     <div className="sts-filter-item"><label className="sts-filter-label">반명</label><select className="sts-input" value={rideFilter.className} onChange={e=>setRideFilter(f=>({...f,className:e.target.value}))}><option>선택하기</option></select></div>
-                    <div className="sts-filter-item"><label className="sts-filter-label">수강생상태</label><select className="sts-input" value={rideFilter.studentStatus} onChange={e=>setRideFilter(f=>({...f,studentStatus:e.target.value}))}><option>전체</option><option>재원</option><option>휴원</option><option>퇴원</option></select></div>
+                    <div className="sts-filter-item"><label className="sts-filter-label">수강생상태</label><select className="sts-input" value={rideFilter.studentStatus} onChange={e=>setRideFilter(f=>({...f,studentStatus:e.target.value}))}><option>전체</option><option>재원</option></select></div>
                     <div className="sts-filter-item"><label className="sts-filter-label">수강생 성명</label><input className="sts-input" value={rideFilter.name} onChange={e=>setRideFilter(f=>({...f,name:e.target.value}))}/></div>
                   </div>
                 </div>

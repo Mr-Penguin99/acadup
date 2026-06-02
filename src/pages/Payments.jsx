@@ -216,7 +216,7 @@ export default function Payments() {
                     <div className="pm-filter-item"><label className="pm-filter-label">조회구분</label><select className="pm-input" value={classBillFilter.searchType} onChange={e=>setClassBillFilter(f=>({...f,searchType:e.target.value}))}><option>반별</option><option>수강생별</option></select></div>
                     <div className="pm-filter-item"><label className="pm-filter-label">반 그룹</label><select className="pm-input" value={classBillFilter.group} onChange={e=>setClassBillFilter(f=>({...f,group:e.target.value}))}><option>전체</option></select></div>
                     <div className="pm-filter-item"><label className="pm-filter-label">반명</label><select className="pm-input" value={classBillFilter.className} onChange={e=>setClassBillFilter(f=>({...f,className:e.target.value}))}><option>선택하기</option></select></div>
-                    <div className="pm-filter-item"><label className="pm-filter-label">잔여횟수</label><select className="pm-input" value={classBillFilter.remaining} onChange={e=>setClassBillFilter(f=>({...f,remaining:e.target.value}))}><option>3회 이하</option><option>5회 이하</option><option>10회 이하</option></select></div>
+                    <div className="pm-filter-item"><label className="pm-filter-label">잔여횟수</label><select className="pm-input" value={classBillFilter.remaining} onChange={e=>setClassBillFilter(f=>({...f,remaining:e.target.value}))}><option>전체</option><option>5회 이하</option><option>4회 이하</option><option>3회 이하</option><option>2회 이하</option><option>1회 이하</option><option>0회 이하</option></select></div>
                     <div className="pm-filter-item"><label className="pm-filter-label">수강생</label><input className="pm-input" value={classBillFilter.student} onChange={e=>setClassBillFilter(f=>({...f,student:e.target.value}))}/></div>
                   </div>
                 </div>
@@ -253,7 +253,7 @@ export default function Payments() {
                     <div className="pm-filter-item" style={{flex:2}}>
                       <label className="pm-filter-label">검색</label>
                       <div style={{display:'flex',gap:6}}>
-                        <select className="pm-input" style={{width:130}} value={filter.type} onChange={e=>setFilter(f=>({...f,type:e.target.value}))}><option>수강생-성명</option><option>수강생-전화</option><option>보호자-성명</option></select>
+                        <select className="pm-input" style={{width:130}} value={filter.type} onChange={e=>setFilter(f=>({...f,type:e.target.value}))}><option>수강생-성명</option><option>수강생-휴대폰</option><option>수강생-집전화</option><option>주결제방법</option></select>
                         <input className="pm-input" style={{flex:1}} value={filter.keyword} onChange={e=>setFilter(f=>({...f,keyword:e.target.value}))}/>
                         <button className="pm-dark-btn">검색</button><button className="pm-teal-btn">알림톡전송</button><button className="pm-orange-btn">알림톡전체전송</button>
                       </div>
@@ -318,7 +318,7 @@ export default function Payments() {
                     <div className="pm-filter-item" style={{flex:2}}>
                       <label className="pm-filter-label">검색</label>
                       <div style={{display:'flex',gap:6}}>
-                        <select className="pm-input" style={{width:130}} value={monthlyPayFilter.searchType} onChange={e=>setMonthlyPayFilter(f=>({...f,searchType:e.target.value}))}><option>수강생-성명</option><option>수강생-전화</option></select>
+                        <select className="pm-input" style={{width:130}} value={monthlyPayFilter.searchType} onChange={e=>setMonthlyPayFilter(f=>({...f,searchType:e.target.value}))}><option>수강생-성명</option><option>수강생-휴대폰</option><option>수강생-집전화</option></select>
                         <input className="pm-input" style={{flex:1}} value={monthlyPayFilter.keyword} onChange={e=>setMonthlyPayFilter(f=>({...f,keyword:e.target.value}))}/>
                         <button className="pm-dark-btn">검색</button>
                       </div>
@@ -378,7 +378,7 @@ export default function Payments() {
                     <div className="pm-filter-item" style={{flex:2}}>
                       <label className="pm-filter-label">검색</label>
                       <div style={{display:'flex',gap:6}}>
-                        <select className="pm-input" style={{width:130}} value={payHistoryFilter.searchType} onChange={e=>setPayHistoryFilter(f=>({...f,searchType:e.target.value}))}><option>수강생-성명</option><option>수강생-전화</option></select>
+                        <select className="pm-input" style={{width:130}} value={payHistoryFilter.searchType} onChange={e=>setPayHistoryFilter(f=>({...f,searchType:e.target.value}))}><option>수강생-성명</option><option>수강생-휴대폰</option><option>수강생-집전화</option></select>
                         <input className="pm-input" style={{flex:1}} value={payHistoryFilter.keyword} onChange={e=>setPayHistoryFilter(f=>({...f,keyword:e.target.value}))}/>
                       </div>
                     </div>
@@ -425,7 +425,7 @@ export default function Payments() {
                     <div className="pm-filter-item" style={{flex:2}}>
                       <label className="pm-filter-label">검색</label>
                       <div style={{display:'flex',gap:6}}>
-                        <select className="pm-input" style={{width:130}} value={dailyFilter.searchType} onChange={e=>setDailyFilter(f=>({...f,searchType:e.target.value}))}><option>수강생-성명</option><option>수강생-전화</option></select>
+                        <select className="pm-input" style={{width:130}} value={dailyFilter.searchType} onChange={e=>setDailyFilter(f=>({...f,searchType:e.target.value}))}><option>수강생-성명</option><option>수강생-휴대폰</option><option>수강생-집전화</option></select>
                         <input className="pm-input" style={{flex:1}} value={dailyFilter.keyword} onChange={e=>setDailyFilter(f=>({...f,keyword:e.target.value}))}/>
                       </div>
                     </div>

@@ -258,7 +258,7 @@ export default function Classes() {
 
                 {/* 왼쪽 패널 */}
                 <div className="assign-panel">
-                  <div className="assign-head">
+                  <div className="assign-head" style={{borderBottom:'2px solid #333'}}>
                     <span className="assign-head-title" style={{fontWeight:700,fontSize:14,paddingLeft:8,borderLeft:'3px solid #333'}}>수강생목록 <span style={{fontWeight:400,fontSize:12,color:'#888'}}>인원 : 0명</span></span>
                     <button className="cl-reg-btn">반배정처리</button>
                   </div>
@@ -282,29 +282,27 @@ export default function Classes() {
 
                 {/* 오른쪽 패널 */}
                 <div className="assign-panel">
-                  <div className="assign-head">
+                  <div className="assign-head" style={{borderBottom:'2px solid #333'}}>
                     <span className="assign-head-title" style={{fontWeight:700,fontSize:14,paddingLeft:8,borderLeft:'3px solid #333'}}>수강생목록 <span style={{fontWeight:400,fontSize:12,color:'#888'}}>배정 : 0명 (재원 : 0명)</span></span>
                     <div style={{display:'flex',gap:6}}>
-                      <button className="cl-search-btn">검색하기</button>
+                      <button className="cl-search-gray-btn">검색하기</button>
                       <button className="pm-red-btn">반배정취소</button>
                     </div>
                   </div>
-                  <div style={{padding:'10px 14px',borderBottom:'1px solid #eee'}}>
-                    <div style={{display:'flex',gap:12,alignItems:'center',flexWrap:'wrap',marginBottom:8}}>
-                      <div style={{display:'flex',alignItems:'center',gap:6}}>
-                        <label style={{fontSize:12,color:'#666',whiteSpace:'nowrap'}}>반 그룹</label>
-                        <select className="cl-input" value={prospectRightFilter.group} onChange={e=>setProspectRightFilter(f=>({...f,group:e.target.value}))}><option>전체</option></select>
-                      </div>
-                      <div style={{display:'flex',alignItems:'center',gap:6}}>
-                        <label style={{fontSize:12,color:'#666',whiteSpace:'nowrap'}}>반명</label>
-                        <select className="cl-input" value={prospectRightFilter.className} onChange={e=>setProspectRightFilter(f=>({...f,className:e.target.value}))}><option>선택</option></select>
-                      </div>
-                      <div style={{display:'flex',alignItems:'center',gap:6}}>
-                        <label style={{fontSize:12,color:'#666',whiteSpace:'nowrap'}}>수강생명</label>
-                        <input className="cl-input" value={prospectRightFilter.name} onChange={e=>setProspectRightFilter(f=>({...f,name:e.target.value}))}/>
-                      </div>
+                  <div style={{padding:'10px 14px',borderBottom:'1px solid #eee',display:'flex',gap:12,alignItems:'center',flexWrap:'nowrap'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}>
+                      <label style={{fontSize:12,color:'#666',whiteSpace:'nowrap'}}>반 그룹</label>
+                      <select className="cl-input" value={prospectRightFilter.group} onChange={e=>setProspectRightFilter(f=>({...f,group:e.target.value}))}><option>전체</option></select>
                     </div>
-                    <div style={{display:'flex',gap:6,alignItems:'center'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}>
+                      <label style={{fontSize:12,color:'#666',whiteSpace:'nowrap'}}>반명</label>
+                      <select className="cl-input" value={prospectRightFilter.className} onChange={e=>setProspectRightFilter(f=>({...f,className:e.target.value}))}><option>선택</option></select>
+                    </div>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}>
+                      <label style={{fontSize:12,color:'#666',whiteSpace:'nowrap'}}>수강생명</label>
+                      <input className="cl-input" value={prospectRightFilter.name} onChange={e=>setProspectRightFilter(f=>({...f,name:e.target.value}))}/>
+                    </div>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}>
                       <label style={{fontSize:12,color:'#666',whiteSpace:'nowrap'}}>수강시작일</label>
                       <DatePicker value={prospectRightFilter.dateFrom} onChange={v=>setProspectRightFilter(f=>({...f,dateFrom:v}))}/>
                       <span>~</span>
