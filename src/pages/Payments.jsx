@@ -159,8 +159,8 @@ export default function Payments() {
           {activeSide==='bulk-bill'&&(
             <>
               <div className="pm-page-title"><span style={{color:'#ccc'}}>☆</span> 일괄청구</div>
-              <div className="pm-section">
-                <div className="pm-sec-head">
+              <div className="pm-section" style={{border:'none',background:'#f8f9fb',borderRadius:5}}>
+                <div className="pm-sec-head" style={{borderBottom:'none'}}>
                   <div className="pm-sec-title">조건검색</div>
                   <div style={{display:'flex',gap:6}}>
                     <button className="pm-dark-btn">검색하기</button><button className="pm-reset-btn">초기화</button>
@@ -168,19 +168,28 @@ export default function Payments() {
                   </div>
                 </div>
                 <div className="pm-filter">
-                  <div className="pm-filter-row">
-                    <div className="pm-filter-item">
-                      <label className="pm-filter-label">수강월</label>
+                  <div style={{display:'flex',gap:16,alignItems:'center',flexWrap:'wrap',justifyContent:'flex-start'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}>
+                      <label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>수강월</label>
                       <MonthPicker value={bulkFilter.month} onChange={v=>setBulkFilter(f=>({...f,month:v}))}/>
                     </div>
-                    <div className="pm-filter-item"><label className="pm-filter-label">반 그룹</label><select className="pm-input" value={bulkFilter.group} onChange={e=>setBulkFilter(f=>({...f,group:e.target.value}))}><option>전체</option></select></div>
-                    <div className="pm-filter-item"><label className="pm-filter-label">반 상태</label><select className="pm-input" value={bulkFilter.status} onChange={e=>setBulkFilter(f=>({...f,status:e.target.value}))}><option>개강</option><option>폐강</option><option>대기</option></select></div>
-                    <div className="pm-filter-item"><label className="pm-filter-label">반 명</label><input className="pm-input" value={bulkFilter.name} onChange={e=>setBulkFilter(f=>({...f,name:e.target.value}))}/></div>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}>
+                      <label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>반 그룹</label>
+                      <select className="pm-input" style={{width:90}} value={bulkFilter.group} onChange={e=>setBulkFilter(f=>({...f,group:e.target.value}))}><option>전체</option></select>
+                    </div>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}>
+                      <label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>반 상태</label>
+                      <select className="pm-input" style={{width:90}} value={bulkFilter.status} onChange={e=>setBulkFilter(f=>({...f,status:e.target.value}))}><option>개강</option><option>폐강</option><option>대기</option></select>
+                    </div>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}>
+                      <label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>반 명</label>
+                      <input className="pm-input" style={{width:120}} value={bulkFilter.name} onChange={e=>setBulkFilter(f=>({...f,name:e.target.value}))}/>
+                    </div>
                   </div>
                 </div>
               </div>
-              <div className="pm-section">
-                <div className="pm-sec-head"><div className="pm-sec-title">반현황</div></div>
+              <div className="pm-section" style={{border:'none'}}>
+                <div className="pm-sec-head" style={{borderBottom:'none'}}><div className="pm-sec-title">반현황</div></div>
                 <div className="pm-table-wrap">
                   <table className="pm-table">
                     <thead><tr><th><input type="checkbox" checked={bulkChecked.length===BULK_DATA.length} onChange={toggleBulkAll}/></th><th>반 그룹</th><th>반 명</th><th>반 코드</th><th>상태</th><th>수강생수</th><th>일괄청구차수</th><th>청구건수</th><th>청구금액</th><th>미납금액</th><th>수강기간</th></tr></thead>
@@ -206,23 +215,23 @@ export default function Payments() {
           {activeSide==='class-bill'&&(
             <>
               <div className="pm-page-title"><span style={{color:'#ccc'}}>☆</span> 회차반 일괄청구</div>
-              <div className="pm-section">
-                <div className="pm-sec-head">
+              <div className="pm-section" style={{border:'none',background:'#f8f9fb',borderRadius:5}}>
+                <div className="pm-sec-head" style={{borderBottom:'none'}}>
                   <div className="pm-sec-title">조건검색</div>
                   <div style={{display:'flex',gap:6}}><button className="pm-dark-btn">검색하기</button><button className="pm-reset-btn">초기화</button><button className="pm-orange-btn">선택청구</button><button className="pm-red-btn">선택청구삭제</button></div>
                 </div>
                 <div className="pm-filter">
-                  <div className="pm-filter-row">
-                    <div className="pm-filter-item"><label className="pm-filter-label">조회구분</label><select className="pm-input" value={classBillFilter.searchType} onChange={e=>setClassBillFilter(f=>({...f,searchType:e.target.value}))}><option>반별</option><option>수강생별</option></select></div>
-                    <div className="pm-filter-item"><label className="pm-filter-label">반 그룹</label><select className="pm-input" value={classBillFilter.group} onChange={e=>setClassBillFilter(f=>({...f,group:e.target.value}))}><option>전체</option></select></div>
-                    <div className="pm-filter-item"><label className="pm-filter-label">반명</label><select className="pm-input" value={classBillFilter.className} onChange={e=>setClassBillFilter(f=>({...f,className:e.target.value}))}><option>선택하기</option></select></div>
-                    <div className="pm-filter-item"><label className="pm-filter-label">잔여횟수</label><select className="pm-input" value={classBillFilter.remaining} onChange={e=>setClassBillFilter(f=>({...f,remaining:e.target.value}))}><option>전체</option><option>5회 이하</option><option>4회 이하</option><option>3회 이하</option><option>2회 이하</option><option>1회 이하</option><option>0회 이하</option></select></div>
-                    <div className="pm-filter-item"><label className="pm-filter-label">수강생</label><input className="pm-input" value={classBillFilter.student} onChange={e=>setClassBillFilter(f=>({...f,student:e.target.value}))}/></div>
+                  <div style={{display:'flex',gap:16,alignItems:'center',flexWrap:'wrap',justifyContent:'flex-start'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}><label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>조회구분</label><select className="pm-input" style={{width:90}} value={classBillFilter.searchType} onChange={e=>setClassBillFilter(f=>({...f,searchType:e.target.value}))}><option>반별</option><option>수강생별</option></select></div>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}><label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>반 그룹</label><select className="pm-input" style={{width:90}} value={classBillFilter.group} onChange={e=>setClassBillFilter(f=>({...f,group:e.target.value}))}><option>전체</option></select></div>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}><label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>반명</label><select className="pm-input" style={{width:90}} value={classBillFilter.className} onChange={e=>setClassBillFilter(f=>({...f,className:e.target.value}))}><option>선택하기</option></select></div>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}><label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>잔여횟수</label><select className="pm-input" style={{width:100}} value={classBillFilter.remaining} onChange={e=>setClassBillFilter(f=>({...f,remaining:e.target.value}))}><option>전체</option><option>5회 이하</option><option>4회 이하</option><option>3회 이하</option><option>2회 이하</option><option>1회 이하</option><option>0회 이하</option></select></div>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}><label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>수강생</label><input className="pm-input" style={{width:120}} value={classBillFilter.student} onChange={e=>setClassBillFilter(f=>({...f,student:e.target.value}))}/></div>
                   </div>
                 </div>
               </div>
-              <div className="pm-section">
-                <div className="pm-sec-head"><div className="pm-sec-title">반현황</div></div>
+              <div className="pm-section" style={{border:'none'}}>
+                <div className="pm-sec-head" style={{borderBottom:'none'}}><div className="pm-sec-title">반현황</div></div>
                 <div className="pm-table-wrap">
                   <table className="pm-table">
                     <thead><tr><th>반 그룹</th><th>반 명</th><th>반 코드</th><th>상태</th><th>수강생수</th><th>수강기간</th></tr></thead>
@@ -237,32 +246,27 @@ export default function Payments() {
           {activeSide==='unpaid'&&(
             <>
               <div className="pm-page-title"><span style={{color:'#F5C518'}}>⭐</span> 청구/미납내역</div>
-              <div className="pm-section">
-                <div className="pm-sec-head">
+              <div className="pm-section" style={{border:'none',background:'#f8f9fb',borderRadius:5}}>
+                <div className="pm-sec-head" style={{borderBottom:'none'}}>
                   <div className="pm-sec-title">조건검색</div>
                   <div style={{display:'flex',gap:6}}><button className="pm-search-btn">검색하기</button><button className="pm-reset-btn">초기화</button></div>
                 </div>
                 <div className="pm-filter">
-                  <div className="pm-filter-row">
-                    <div className="pm-filter-item">
-                      <label className="pm-filter-label">수강월</label>
-                      <MonthPicker value={filter.month} onChange={v=>setFilter(f=>({...f,month:v}))}/>
-                    </div>
-                    <div className="pm-filter-item"><label className="pm-filter-label">반 그룹</label><select className="pm-input" value={filter.group} onChange={e=>setFilter(f=>({...f,group:e.target.value}))}><option>전체</option></select></div>
-                    <div className="pm-filter-item"><label className="pm-filter-label">반명</label><select className="pm-input" value={filter.className} onChange={e=>setFilter(f=>({...f,className:e.target.value}))}><option>선택하기</option></select></div>
-                    <div className="pm-filter-item" style={{flex:2}}>
-                      <label className="pm-filter-label">검색</label>
-                      <div style={{display:'flex',gap:6}}>
-                        <select className="pm-input" style={{width:130}} value={filter.type} onChange={e=>setFilter(f=>({...f,type:e.target.value}))}><option>수강생-성명</option><option>수강생-휴대폰</option><option>수강생-집전화</option><option>주결제방법</option></select>
-                        <input className="pm-input" style={{flex:1}} value={filter.keyword} onChange={e=>setFilter(f=>({...f,keyword:e.target.value}))}/>
-                        <button className="pm-dark-btn">검색</button><button className="pm-teal-btn">알림톡전송</button><button className="pm-orange-btn">알림톡전체전송</button>
-                      </div>
+                  <div style={{display:'flex',gap:16,alignItems:'center',flexWrap:'wrap',justifyContent:'flex-start'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}><label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>수강월</label><MonthPicker value={filter.month} onChange={v=>setFilter(f=>({...f,month:v}))}/></div>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}><label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>반 그룹</label><select className="pm-input" style={{width:90}} value={filter.group} onChange={e=>setFilter(f=>({...f,group:e.target.value}))}><option>전체</option></select></div>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}><label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>반명</label><select className="pm-input" style={{width:90}} value={filter.className} onChange={e=>setFilter(f=>({...f,className:e.target.value}))}><option>선택하기</option></select></div>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}>
+                      <label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>검색</label>
+                      <select className="pm-input" style={{width:130}} value={filter.type} onChange={e=>setFilter(f=>({...f,type:e.target.value}))}><option>수강생-성명</option><option>수강생-휴대폰</option><option>수강생-집전화</option><option>주결제방법</option></select>
+                      <input className="pm-input" style={{width:120}} value={filter.keyword} onChange={e=>setFilter(f=>({...f,keyword:e.target.value}))}/>
+                      <button className="pm-dark-btn">검색</button><button className="pm-teal-btn">알림톡전송</button><button className="pm-orange-btn">알림톡전체전송</button>
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="pm-section">
-                <div className="pm-sec-head">
+              <div className="pm-section" style={{border:'none'}}>
+                <div className="pm-sec-head" style={{borderBottom:'none'}}>
                   <div className="pm-sec-title">수강생 목록</div>
                   <div style={{display:'flex',alignItems:'center',gap:6}}>
                     <span style={{fontSize:12,color:'#666'}}>페이지당 조회</span>
@@ -302,32 +306,27 @@ export default function Payments() {
           {activeSide==='monthly-pay'&&(
             <>
               <div className="pm-page-title"><span style={{color:'#ccc'}}>☆</span> 수강월별 청구/수납</div>
-              <div className="pm-section">
-                <div className="pm-sec-head">
+              <div className="pm-section" style={{border:'none',background:'#f8f9fb',borderRadius:5}}>
+                <div className="pm-sec-head" style={{borderBottom:'none'}}>
                   <div className="pm-sec-title">조건검색</div>
                   <div style={{display:'flex',gap:6}}><button className="pm-teal-btn">수납내역출력</button><button className="pm-reset-btn">초기화</button></div>
                 </div>
                 <div className="pm-filter">
-                  <div className="pm-filter-row">
-                    <div className="pm-filter-item">
-                      <label className="pm-filter-label">수강월</label>
-                      <MonthPicker value={monthlyPayFilter.month} onChange={v=>setMonthlyPayFilter(f=>({...f,month:v}))}/>
-                    </div>
-                    <div className="pm-filter-item"><label className="pm-filter-label">반 그룹</label><select className="pm-input" value={monthlyPayFilter.group} onChange={e=>setMonthlyPayFilter(f=>({...f,group:e.target.value}))}><option>전체</option></select></div>
-                    <div className="pm-filter-item"><label className="pm-filter-label">반명</label><select className="pm-input" value={monthlyPayFilter.className} onChange={e=>setMonthlyPayFilter(f=>({...f,className:e.target.value}))}><option>선택하기</option></select></div>
-                    <div className="pm-filter-item" style={{flex:2}}>
-                      <label className="pm-filter-label">검색</label>
-                      <div style={{display:'flex',gap:6}}>
-                        <select className="pm-input" style={{width:130}} value={monthlyPayFilter.searchType} onChange={e=>setMonthlyPayFilter(f=>({...f,searchType:e.target.value}))}><option>수강생-성명</option><option>수강생-휴대폰</option><option>수강생-집전화</option></select>
-                        <input className="pm-input" style={{flex:1}} value={monthlyPayFilter.keyword} onChange={e=>setMonthlyPayFilter(f=>({...f,keyword:e.target.value}))}/>
-                        <button className="pm-dark-btn">검색</button>
-                      </div>
+                  <div style={{display:'flex',gap:16,alignItems:'center',flexWrap:'wrap',justifyContent:'flex-start'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}><label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>수강월</label><MonthPicker value={monthlyPayFilter.month} onChange={v=>setMonthlyPayFilter(f=>({...f,month:v}))}/></div>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}><label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>반 그룹</label><select className="pm-input" style={{width:90}} value={monthlyPayFilter.group} onChange={e=>setMonthlyPayFilter(f=>({...f,group:e.target.value}))}><option>전체</option></select></div>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}><label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>반명</label><select className="pm-input" style={{width:90}} value={monthlyPayFilter.className} onChange={e=>setMonthlyPayFilter(f=>({...f,className:e.target.value}))}><option>선택하기</option></select></div>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}>
+                      <label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>검색</label>
+                      <select className="pm-input" style={{width:130}} value={monthlyPayFilter.searchType} onChange={e=>setMonthlyPayFilter(f=>({...f,searchType:e.target.value}))}><option>수강생-성명</option><option>수강생-휴대폰</option><option>수강생-집전화</option></select>
+                      <input className="pm-input" style={{width:120}} value={monthlyPayFilter.keyword} onChange={e=>setMonthlyPayFilter(f=>({...f,keyword:e.target.value}))}/>
+                      <button className="pm-dark-btn">검색</button>
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="pm-section">
-                <div className="pm-sec-head"><div className="pm-sec-title">수강생 목록</div></div>
+              <div className="pm-section" style={{border:'none'}}>
+                <div className="pm-sec-head" style={{borderBottom:'none'}}><div className="pm-sec-title">수강생 목록</div></div>
                 <div className="pm-table-wrap">
                   <table className="pm-table">
                     <thead><tr><th>번호</th><th>성명</th><th>반명</th><th>청구금액</th><th>거래일</th><th>수납방법</th><th>상태</th><th>수납금액</th><th>미납금액</th><th>생성</th><th>기능</th></tr></thead>
@@ -335,11 +334,11 @@ export default function Payments() {
                       {MONTHLY_PAY_DATA.map(d=>(
                         <tr key={d.id}>
                           <td style={{textAlign:'center'}}>{d.id}</td>
-                          <td><div style={{display:'flex',alignItems:'center',gap:4}}><span>👤</span><span>{d.name}</span></div></td>
-                          <td>{d.cls}</td><td style={{textAlign:'right'}}>{d.billAmt}</td><td>{d.tradeDate}</td><td>{d.payMethod}</td>
+                          <td style={{textAlign:'center'}}><div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:4}}><span>👤</span><span>{d.name}</span></div></td>
+                          <td style={{textAlign:'center'}}>{d.cls}</td><td style={{textAlign:'center'}}>{d.billAmt}</td><td style={{textAlign:'center'}}>{d.tradeDate}</td><td style={{textAlign:'center'}}>{d.payMethod}</td>
                           <td style={{textAlign:'center'}}><span style={{color:d.status==='미납'?'#29ABE2':'#333',cursor:d.status==='미납'?'pointer':'default'}}>{d.status}</span></td>
-                          <td style={{textAlign:'right'}}>{d.payAmt}</td><td style={{textAlign:'right'}}>{d.unpaid}</td>
-                          <td style={{textAlign:'center',fontSize:11}}>{d.created}</td>
+                          <td style={{textAlign:'center'}}>{d.payAmt}</td><td style={{textAlign:'center'}}>{d.unpaid}</td>
+                          <td style={{textAlign:'center',fontSize:13}}>{d.created}</td>
                           <td style={{textAlign:'center'}}><button className="monthly-reg-btn">+수기등록</button></td>
                         </tr>
                       ))}
@@ -358,35 +357,31 @@ export default function Payments() {
           {activeSide==='pay-history'&&(
             <>
               <div className="pm-page-title"><span style={{color:'#ccc'}}>☆</span> 결제 내역</div>
-              <div className="pm-section">
-                <div className="pm-sec-head">
+              <div className="pm-section" style={{border:'none',background:'#f8f9fb',borderRadius:5}}>
+                <div className="pm-sec-head" style={{borderBottom:'none'}}>
                   <div className="pm-sec-title">조건검색</div>
                   <div style={{display:'flex',gap:6}}><button className="pm-search-btn">검색하기</button><button className="pm-reset-btn">초기화</button></div>
                 </div>
                 <div className="pm-filter">
-                  <div className="pm-filter-row">
-                    <div className="pm-filter-item" style={{flex:2}}>
-                      <label className="pm-filter-label">결제일</label>
-                      <div style={{display:'flex',gap:6,alignItems:'center'}}>
-                        <DatePicker value={payHistoryFilter.dateFrom} onChange={v=>setPayHistoryFilter(f=>({...f,dateFrom:v}))}/>
-                        <span>~</span>
-                        <DatePicker value={payHistoryFilter.dateTo} onChange={v=>setPayHistoryFilter(f=>({...f,dateTo:v}))}/>
-                      </div>
+                  <div style={{display:'flex',gap:16,alignItems:'center',flexWrap:'wrap',justifyContent:'flex-start'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}>
+                      <label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>결제일</label>
+                      <DatePicker value={payHistoryFilter.dateFrom} onChange={v=>setPayHistoryFilter(f=>({...f,dateFrom:v}))}/>
+                      <span>~</span>
+                      <DatePicker value={payHistoryFilter.dateTo} onChange={v=>setPayHistoryFilter(f=>({...f,dateTo:v}))}/>
                     </div>
-                    <div className="pm-filter-item"><label className="pm-filter-label">반 그룹</label><select className="pm-input" value={payHistoryFilter.group} onChange={e=>setPayHistoryFilter(f=>({...f,group:e.target.value}))}><option>전체</option></select></div>
-                    <div className="pm-filter-item"><label className="pm-filter-label">반명</label><select className="pm-input" value={payHistoryFilter.className} onChange={e=>setPayHistoryFilter(f=>({...f,className:e.target.value}))}><option>선택하기</option></select></div>
-                    <div className="pm-filter-item" style={{flex:2}}>
-                      <label className="pm-filter-label">검색</label>
-                      <div style={{display:'flex',gap:6}}>
-                        <select className="pm-input" style={{width:130}} value={payHistoryFilter.searchType} onChange={e=>setPayHistoryFilter(f=>({...f,searchType:e.target.value}))}><option>수강생-성명</option><option>수강생-휴대폰</option><option>수강생-집전화</option></select>
-                        <input className="pm-input" style={{flex:1}} value={payHistoryFilter.keyword} onChange={e=>setPayHistoryFilter(f=>({...f,keyword:e.target.value}))}/>
-                      </div>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}><label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>반 그룹</label><select className="pm-input" style={{width:90}} value={payHistoryFilter.group} onChange={e=>setPayHistoryFilter(f=>({...f,group:e.target.value}))}><option>전체</option></select></div>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}><label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>반명</label><select className="pm-input" style={{width:90}} value={payHistoryFilter.className} onChange={e=>setPayHistoryFilter(f=>({...f,className:e.target.value}))}><option>선택하기</option></select></div>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}>
+                      <label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>검색</label>
+                      <select className="pm-input" style={{width:130}} value={payHistoryFilter.searchType} onChange={e=>setPayHistoryFilter(f=>({...f,searchType:e.target.value}))}><option>수강생-성명</option><option>수강생-휴대폰</option><option>수강생-집전화</option></select>
+                      <input className="pm-input" style={{width:120}} value={payHistoryFilter.keyword} onChange={e=>setPayHistoryFilter(f=>({...f,keyword:e.target.value}))}/>
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="pm-section">
-                <div className="pm-sec-head"><div className="pm-sec-title">수강생 목록</div></div>
+              <div className="pm-section" style={{border:'none'}}>
+                <div className="pm-sec-head" style={{borderBottom:'none'}}><div className="pm-sec-title">수강생 목록</div></div>
                 <div className="pm-table-wrap">
                   <table className="pm-table">
                     <thead><tr><th>번호</th><th>성명</th><th>반명</th><th>결제금액</th><th>환불금액</th><th>수강생휴대폰</th><th>보호자관계</th><th>보호자휴대폰</th></tr></thead>
@@ -394,11 +389,11 @@ export default function Payments() {
                       {PAY_HISTORY_DATA.map(d=>(
                         <tr key={d.id}>
                           <td style={{textAlign:'center'}}>{d.id}</td>
-                          <td><div style={{display:'flex',alignItems:'center',gap:4}}><span>👤</span><span>{d.name}</span></div></td>
-                          <td>{d.classes.map((c,i)=><div key={i} style={{fontSize:11,color:'#444',lineHeight:'1.6'}}>{c}</div>)}</td>
-                          <td style={{textAlign:'right',color:'#29ABE2',fontWeight:700}}>{d.payAmt}</td>
-                          <td style={{textAlign:'right'}}>{d.refund}</td>
-                          <td>{d.phone}</td><td style={{textAlign:'center'}}>{d.guardRel}</td><td>{d.guardPhone}</td>
+                          <td style={{textAlign:'center'}}><div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:4}}><span>👤</span><span>{d.name}</span></div></td>
+                          <td style={{textAlign:'center'}}>{d.classes.map((c,i)=><div key={i} style={{fontSize:13,color:'#444',lineHeight:'1.6'}}>{c}</div>)}</td>
+                          <td style={{textAlign:'center',color:'#29ABE2',fontWeight:700}}>{d.payAmt}</td>
+                          <td style={{textAlign:'center'}}>{d.refund}</td>
+                          <td style={{textAlign:'center'}}>{d.phone}</td><td style={{textAlign:'center'}}>{d.guardRel}</td><td style={{textAlign:'center'}}>{d.guardPhone}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -412,33 +407,28 @@ export default function Payments() {
           {activeSide==='daily-status'&&(
             <>
               <div className="pm-page-title"><span style={{color:'#ccc'}}>☆</span> 일별 수납 현황</div>
-              <div className="pm-section">
-                <div className="pm-sec-head"><div className="pm-sec-title">일별 수납현황 검색</div></div>
+              <div className="pm-section" style={{border:'none',background:'#f8f9fb',borderRadius:5}}>
+                <div className="pm-sec-head" style={{borderBottom:'none'}}><div className="pm-sec-title">일별 수납현황 검색</div></div>
                 <div className="pm-filter">
-                  <div className="pm-filter-row">
-                    <div className="pm-filter-item">
-                      <label className="pm-filter-label">수납일</label>
-                      <DatePicker value={dailyFilter.date} onChange={v=>setDailyFilter(f=>({...f,date:v}))}/>
-                    </div>
-                    <div className="pm-filter-item"><label className="pm-filter-label">반 그룹</label><select className="pm-input" value={dailyFilter.group} onChange={e=>setDailyFilter(f=>({...f,group:e.target.value}))}><option>전체</option></select></div>
-                    <div className="pm-filter-item"><label className="pm-filter-label">반명</label><select className="pm-input" value={dailyFilter.className} onChange={e=>setDailyFilter(f=>({...f,className:e.target.value}))}><option>선택하기</option></select></div>
-                    <div className="pm-filter-item" style={{flex:2}}>
-                      <label className="pm-filter-label">검색</label>
-                      <div style={{display:'flex',gap:6}}>
-                        <select className="pm-input" style={{width:130}} value={dailyFilter.searchType} onChange={e=>setDailyFilter(f=>({...f,searchType:e.target.value}))}><option>수강생-성명</option><option>수강생-휴대폰</option><option>수강생-집전화</option></select>
-                        <input className="pm-input" style={{flex:1}} value={dailyFilter.keyword} onChange={e=>setDailyFilter(f=>({...f,keyword:e.target.value}))}/>
-                      </div>
+                  <div style={{display:'flex',gap:16,alignItems:'center',flexWrap:'wrap',justifyContent:'flex-start'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}><label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>수납일</label><DatePicker value={dailyFilter.date} onChange={v=>setDailyFilter(f=>({...f,date:v}))}/></div>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}><label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>반 그룹</label><select className="pm-input" style={{width:90}} value={dailyFilter.group} onChange={e=>setDailyFilter(f=>({...f,group:e.target.value}))}><option>전체</option></select></div>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}><label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>반명</label><select className="pm-input" style={{width:90}} value={dailyFilter.className} onChange={e=>setDailyFilter(f=>({...f,className:e.target.value}))}><option>선택하기</option></select></div>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}>
+                      <label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>검색</label>
+                      <select className="pm-input" style={{width:130}} value={dailyFilter.searchType} onChange={e=>setDailyFilter(f=>({...f,searchType:e.target.value}))}><option>수강생-성명</option><option>수강생-휴대폰</option><option>수강생-집전화</option></select>
+                      <input className="pm-input" style={{width:120}} value={dailyFilter.keyword} onChange={e=>setDailyFilter(f=>({...f,keyword:e.target.value}))}/>
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="pm-section">
-                <div className="pm-sec-head"><div className="pm-sec-title">일별 수납현황 목록</div></div>
+              <div className="pm-section" style={{border:'none'}}>
+                <div className="pm-sec-head" style={{borderBottom:'none'}}><div className="pm-sec-title">일별 수납현황 목록</div></div>
                 <div className="pm-table-wrap">
                   <table className="pm-table">
                     <thead><tr><th>번호</th><th>성명</th><th>수강월</th><th>반명</th><th>항목</th><th>청구금액</th><th>거래일</th><th>수납방법</th><th>상태</th><th>수납금액</th><th>환불금액</th><th>미납금액</th></tr></thead>
                     <tbody><tr><td colSpan={12} style={{textAlign:'center',padding:'30px',color:'#bbb',fontSize:13}}>수납 내역이 없습니다.</td></tr></tbody>
-                    <tfoot><tr className="pm-table-foot"><td colSpan={2}></td><td style={{textAlign:'center',fontWeight:700}}>합계</td><td colSpan={2}></td><td style={{textAlign:'right',fontWeight:700}}>0</td><td colSpan={3}></td><td style={{textAlign:'right',fontWeight:700}}>0</td><td style={{textAlign:'right',fontWeight:700}}>0</td><td style={{textAlign:'right',fontWeight:700}}>0</td></tr></tfoot>
+                    <tfoot><tr className="pm-table-foot"><td colSpan={2}></td><td style={{textAlign:'center',fontWeight:700}}>합계</td><td colSpan={2}></td><td style={{textAlign:'center',fontWeight:700}}>0</td><td colSpan={3}></td><td style={{textAlign:'center',fontWeight:700}}>0</td><td style={{textAlign:'center',fontWeight:700}}>0</td><td style={{textAlign:'center',fontWeight:700}}>0</td></tr></tfoot>
                   </table>
                 </div>
               </div>
@@ -449,27 +439,24 @@ export default function Payments() {
           {activeSide==='monthly-status'&&(
             <>
               <div className="pm-page-title"><span style={{color:'#ccc'}}>☆</span> 월별 수납 현황</div>
-              <div className="pm-section">
-                <div className="pm-sec-head"><div className="pm-sec-title">월별 수납현황 검색</div></div>
+              <div className="pm-section" style={{border:'none',background:'#f8f9fb',borderRadius:5}}>
+                <div className="pm-sec-head" style={{borderBottom:'none'}}><div className="pm-sec-title">월별 수납현황 검색</div></div>
                 <div className="pm-filter">
-                  <div className="pm-filter-row">
-                    <div className="pm-filter-item"><label className="pm-filter-label">구분</label><select className="pm-input" style={{width:80}} value={monthlyFilter.searchType} onChange={e=>setMonthlyFilter(f=>({...f,searchType:e.target.value}))}><option>수납월</option><option>수강월</option></select></div>
-                    <div className="pm-filter-item">
-                      <label className="pm-filter-label">월</label>
-                      <MonthPicker value={monthlyFilter.month} onChange={v=>setMonthlyFilter(f=>({...f,month:v}))}/>
-                    </div>
-                    <div className="pm-filter-item"><label className="pm-filter-label">반 그룹</label><select className="pm-input" value={monthlyFilter.group} onChange={e=>setMonthlyFilter(f=>({...f,group:e.target.value}))}><option>전체</option></select></div>
-                    <div className="pm-filter-item"><label className="pm-filter-label">반명</label><select className="pm-input" value={monthlyFilter.className} onChange={e=>setMonthlyFilter(f=>({...f,className:e.target.value}))}><option>선택하기</option></select></div>
+                  <div style={{display:'flex',gap:16,alignItems:'center',flexWrap:'wrap',justifyContent:'flex-start'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}><label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>구분</label><select className="pm-input" style={{width:80}} value={monthlyFilter.searchType} onChange={e=>setMonthlyFilter(f=>({...f,searchType:e.target.value}))}><option>수납월</option><option>수강월</option></select></div>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}><label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>월</label><MonthPicker value={monthlyFilter.month} onChange={v=>setMonthlyFilter(f=>({...f,month:v}))}/></div>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}><label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>반 그룹</label><select className="pm-input" style={{width:90}} value={monthlyFilter.group} onChange={e=>setMonthlyFilter(f=>({...f,group:e.target.value}))}><option>전체</option></select></div>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}><label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>반명</label><select className="pm-input" style={{width:90}} value={monthlyFilter.className} onChange={e=>setMonthlyFilter(f=>({...f,className:e.target.value}))}><option>선택하기</option></select></div>
                   </div>
                 </div>
               </div>
-              <div className="pm-section">
-                <div className="pm-sec-head"><div className="pm-sec-title">월별 수납현황 목록</div></div>
+              <div className="pm-section" style={{border:'none'}}>
+                <div className="pm-sec-head" style={{borderBottom:'none'}}><div className="pm-sec-title">월별 수납현황 목록</div></div>
                 <div className="pm-table-wrap">
                   <table className="pm-table">
                     <thead><tr><th>번호</th><th>성명</th><th>수강월</th><th>반명</th><th>항목</th><th>청구금액</th><th>거래일</th><th>수납방법</th><th>상태</th><th>수납금액</th><th>환불금액</th><th>미납금액</th></tr></thead>
                     <tbody><tr><td colSpan={12} style={{textAlign:'center',padding:'30px',color:'#bbb',fontSize:13}}>수납 내역이 없습니다.</td></tr></tbody>
-                    <tfoot><tr className="pm-table-foot"><td colSpan={2}></td><td style={{textAlign:'center',fontWeight:700}}>합계</td><td colSpan={2}></td><td style={{textAlign:'right',fontWeight:700}}>0</td><td colSpan={3}></td><td style={{textAlign:'right',fontWeight:700}}>0</td><td style={{textAlign:'right',fontWeight:700}}>0</td><td style={{textAlign:'right',fontWeight:700}}>0</td></tr></tfoot>
+                    <tfoot><tr className="pm-table-foot"><td colSpan={2}></td><td style={{textAlign:'center',fontWeight:700}}>합계</td><td colSpan={2}></td><td style={{textAlign:'center',fontWeight:700}}>0</td><td colSpan={3}></td><td style={{textAlign:'center',fontWeight:700}}>0</td><td style={{textAlign:'center',fontWeight:700}}>0</td><td style={{textAlign:'center',fontWeight:700}}>0</td></tr></tfoot>
                   </table>
                 </div>
               </div>
@@ -480,24 +467,21 @@ export default function Payments() {
           {activeSide==='class-status'&&(
             <>
               <div className="pm-page-title"><span style={{color:'#ccc'}}>☆</span> 반별 수납 현황</div>
-              <div className="pm-section">
-                <div className="pm-sec-head">
+              <div className="pm-section" style={{border:'none',background:'#f8f9fb',borderRadius:5}}>
+                <div className="pm-sec-head" style={{borderBottom:'none'}}>
                   <div className="pm-sec-title">반별 수납현황 검색</div>
                   <div style={{display:'flex',gap:6}}><button className="pm-search-btn">검색하기</button><button className="pm-reset-btn">초기화</button></div>
                 </div>
                 <div className="pm-filter">
-                  <div className="pm-filter-row">
-                    <div className="pm-filter-item">
-                      <label className="pm-filter-label">수강월</label>
-                      <MonthPicker value={classStatusFilter.month} onChange={v=>setClassStatusFilter(f=>({...f,month:v}))}/>
-                    </div>
-                    <div className="pm-filter-item"><label className="pm-filter-label">반 그룹</label><select className="pm-input" value={classStatusFilter.group} onChange={e=>setClassStatusFilter(f=>({...f,group:e.target.value}))}><option>전체</option></select></div>
-                    <div className="pm-filter-item"><label className="pm-filter-label">반명</label><select className="pm-input" value={classStatusFilter.className} onChange={e=>setClassStatusFilter(f=>({...f,className:e.target.value}))}><option>선택하기</option></select></div>
+                  <div style={{display:'flex',gap:16,alignItems:'center',flexWrap:'wrap',justifyContent:'flex-start'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}><label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>수강월</label><MonthPicker value={classStatusFilter.month} onChange={v=>setClassStatusFilter(f=>({...f,month:v}))}/></div>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}><label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>반 그룹</label><select className="pm-input" style={{width:90}} value={classStatusFilter.group} onChange={e=>setClassStatusFilter(f=>({...f,group:e.target.value}))}><option>전체</option></select></div>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}><label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>반명</label><select className="pm-input" style={{width:90}} value={classStatusFilter.className} onChange={e=>setClassStatusFilter(f=>({...f,className:e.target.value}))}><option>선택하기</option></select></div>
                   </div>
                 </div>
               </div>
-              <div className="pm-section">
-                <div className="pm-sec-head"><div className="pm-sec-title">반별 수납현황</div></div>
+              <div className="pm-section" style={{border:'none'}}>
+                <div className="pm-sec-head" style={{borderBottom:'none'}}><div className="pm-sec-title">반별 수납현황</div></div>
                 <div className="pm-table-wrap">
                   <table className="pm-table">
                     <thead><tr><th>번호</th><th>반명</th><th>수강월</th><th>청구건수</th><th>청구금액</th><th>수납건수</th><th>수납금액</th><th>환불건수</th><th>환불금액</th><th>미납건수</th><th>미납금액</th></tr></thead>
@@ -506,14 +490,14 @@ export default function Payments() {
                         <tr key={d.id}>
                           <td style={{textAlign:'center'}}>{d.id}</td><td style={{textAlign:'center'}}>{d.cls}</td>
                           <td style={{textAlign:'center'}}>{d.month}</td><td style={{textAlign:'center'}}>{d.billCnt}</td>
-                          <td style={{textAlign:'right'}}>{d.billAmt}</td><td style={{textAlign:'center'}}>{d.payCnt}</td>
-                          <td style={{textAlign:'right'}}>{d.payAmt}</td><td style={{textAlign:'center'}}>{d.refundCnt}</td>
-                          <td style={{textAlign:'right'}}>{d.refundAmt}</td><td style={{textAlign:'center'}}>{d.unpaidCnt}</td>
-                          <td style={{textAlign:'right'}}>{d.unpaidAmt}</td>
+                          <td style={{textAlign:'center'}}>{d.billAmt}</td><td style={{textAlign:'center'}}>{d.payCnt}</td>
+                          <td style={{textAlign:'center'}}>{d.payAmt}</td><td style={{textAlign:'center'}}>{d.refundCnt}</td>
+                          <td style={{textAlign:'center'}}>{d.refundAmt}</td><td style={{textAlign:'center'}}>{d.unpaidCnt}</td>
+                          <td style={{textAlign:'center'}}>{d.unpaidAmt}</td>
                         </tr>
                       ))}
                     </tbody>
-                    <tfoot><tr className="pm-table-foot"><td colSpan={2}></td><td style={{textAlign:'center',fontWeight:700}}>합계</td><td style={{textAlign:'center',fontWeight:700}}>14</td><td style={{textAlign:'right',fontWeight:700}}>544,766</td><td style={{textAlign:'center',fontWeight:700}}>0</td><td style={{textAlign:'right',fontWeight:700}}>0</td><td style={{textAlign:'center',fontWeight:700}}>0</td><td style={{textAlign:'right',fontWeight:700}}>0</td><td style={{textAlign:'center',fontWeight:700}}>14</td><td style={{textAlign:'right',fontWeight:700}}>544,766</td></tr></tfoot>
+                    <tfoot><tr className="pm-table-foot"><td colSpan={2}></td><td style={{textAlign:'center',fontWeight:700}}>합계</td><td style={{textAlign:'center',fontWeight:700}}>14</td><td style={{textAlign:'center',fontWeight:700}}>544,766</td><td style={{textAlign:'center',fontWeight:700}}>0</td><td style={{textAlign:'center',fontWeight:700}}>0</td><td style={{textAlign:'center',fontWeight:700}}>0</td><td style={{textAlign:'center',fontWeight:700}}>0</td><td style={{textAlign:'center',fontWeight:700}}>14</td><td style={{textAlign:'center',fontWeight:700}}>544,766</td></tr></tfoot>
                   </table>
                 </div>
               </div>

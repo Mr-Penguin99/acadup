@@ -342,12 +342,12 @@ export default function Settings() {
                         {l:'휴게실외',k:'lounge',u:'㎡',l2:'통학 버스',k2:'bus',u2:'대'},
                       ].map(({l,k,u,l2,k2,u2},i)=>(
                         <div key={k} style={{display:'grid',gridTemplateColumns:'110px 1fr 110px 1fr',minHeight:38,borderBottom:i<2?'1px solid #f0f0f0':'none'}}>
-                          <div style={{fontSize:12,color:'#555',display:'flex',alignItems:'center',justifyContent:'center',background:'#f7f9fa',borderRight:'1px solid #eee',padding:'6px 8px'}}>{l}</div>
+                          <div style={{fontSize:12,color:'#555',display:'flex',alignItems:'center',justifyContent:'center',background:'#f8f9fb',borderRight:'1px solid #eee',padding:'6px 8px'}}>{l}</div>
                           <div style={{padding:'6px 10px',display:'flex',alignItems:'center',gap:6,borderRight:'1px solid #eee'}}>
                             <input className="sm-input" style={{width:60}} value={form[k]} onChange={e=>setForm(f=>({...f,[k]:e.target.value}))} />
                             <span style={{fontSize:13}}>{u}</span>
                           </div>
-                          <div style={{fontSize:12,color:'#555',display:'flex',alignItems:'center',justifyContent:'center',background:'#f7f9fa',borderRight:'1px solid #eee',padding:'6px 8px'}}>{l2}</div>
+                          <div style={{fontSize:12,color:'#555',display:'flex',alignItems:'center',justifyContent:'center',background:'#f8f9fb',borderRight:'1px solid #eee',padding:'6px 8px'}}>{l2}</div>
                           <div style={{padding:'6px 10px',display:'flex',alignItems:'center',gap:6}}>
                             <input className="sm-input" style={{width:60}} value={form[k2]} onChange={e=>setForm(f=>({...f,[k2]:e.target.value}))} />
                             <span style={{fontSize:13}}>{u2}</span>

@@ -94,7 +94,7 @@ export default function MyInfo() {
                     <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                       <input style={{ ...inputStyle, width: 110 }} value={form.resId1} onChange={e => setForm(f => ({ ...f, resId1: e.target.value }))} />
                       <span>-</span>
-                      <input style={{ ...inputStyle, width: 110 }} value={form.resId2} type="password" onChange={e => setForm(f => ({ ...f, resId2: e.target.value }))} />
+                      <input style={{ ...inputStyle, width: 110 }} value={form.resId2} onChange={e => setForm(f => ({ ...f, resId2: e.target.value }))} />
                       <span style={{ color: '#aaa', fontSize: 12 }}>예) 901230-12...</span>
                     </div>
                   </td>

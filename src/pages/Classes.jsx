@@ -113,8 +113,8 @@ export default function Classes() {
           {activeSide==='class-group'&&(
             <>
               <div className="cl-page-title"><span style={{color:'#ccc'}}>☆</span> 반 그룹</div>
-              <div className="cl-section">
-                <div className="cl-sec-head">
+              <div className="cl-section" style={{borderBottom:'none',background:'#f8f9fb',borderRadius:5}}>
+                <div className="cl-sec-head" style={{borderBottom:'none'}}>
                   <div className="cl-sec-title">조건검색</div>
                   <div style={{display:'flex',gap:6}}><button className="cl-search-btn">검색하기</button><button className="cl-reset-btn">초기화</button></div>
                 </div>
@@ -127,7 +127,7 @@ export default function Classes() {
                   </div>
                 </div>
               </div>
-              <div className="cl-section">
+              <div className="cl-section" style={{borderTop:'none'}}>
                 <div className="cl-table-header"><button className="cl-reg-btn">반그룹 등록</button></div>
                 <div className="cl-table-wrap">
                   <table className="cl-table">
@@ -166,32 +166,32 @@ export default function Classes() {
                     <span className="assign-head-title" style={{fontWeight:700,fontSize:14,paddingLeft:8,borderLeft:'3px solid #333'}}>반 검색</span>
                     <button className="cl-search-btn">검색하기</button>
                   </div>
-                  <div style={{padding:'10px 14px',borderBottom:'1px solid #eee',display:'flex',gap:12,alignItems:'center',flexWrap:'wrap'}}>
+                  <div style={{padding:'10px 14px',display:'flex',gap:12,alignItems:'center',flexWrap:'wrap',background:'#f8f9fb',borderRadius:5}}>
                     <div style={{display:'flex',alignItems:'center',gap:6}}>
-                      <label style={{fontSize:12,color:'#666',whiteSpace:'nowrap'}}>반 그룹</label>
+                      <label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>반 그룹</label>
                       <select className="cl-input" value={enrolledLeftFilter.group} onChange={e=>setEnrolledLeftFilter(f=>({...f,group:e.target.value}))}><option>전체</option></select>
                     </div>
                     <div style={{display:'flex',alignItems:'center',gap:6}}>
-                      <label style={{fontSize:12,color:'#666',whiteSpace:'nowrap'}}>반명</label>
+                      <label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>반명</label>
                       <select className="cl-input" value={enrolledLeftFilter.className} onChange={e=>setEnrolledLeftFilter(f=>({...f,className:e.target.value}))}><option>선택</option></select>
                     </div>
                     <div style={{display:'flex',alignItems:'center',gap:6}}>
-                      <label style={{fontSize:12,color:'#666',whiteSpace:'nowrap'}}>수강생명</label>
+                      <label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>수강생명</label>
                       <input className="cl-input" value={enrolledLeftFilter.name} onChange={e=>setEnrolledLeftFilter(f=>({...f,name:e.target.value}))}/>
                     </div>
                   </div>
-                  <div className="assign-head" style={{borderBottom:'2px solid #00B5A9'}}>
+                  <div className="assign-head" style={{marginTop:60}}>
                     <span className="assign-head-title" style={{fontWeight:700,fontSize:14,paddingLeft:8,borderLeft:'3px solid #333'}}>수강생목록 <span style={{fontWeight:400,fontSize:12,color:'#888'}}>재원 : 0명</span></span>
                     <button className="cl-reg-btn">반편성처리</button>
                   </div>
-                  <div style={{padding:'10px 14px',borderBottom:'1px solid #eee'}}>
+                  <div style={{padding:'10px 14px',background:'#f8f9fb',borderRadius:5}}>
                     <div style={{display:'flex',gap:12,alignItems:'center',flexWrap:'wrap'}}>
                       <div style={{display:'flex',alignItems:'center',gap:6}}>
-                        <label style={{fontSize:12,color:'#666',whiteSpace:'nowrap'}}>반편성 유형</label>
+                        <label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>반편성 유형</label>
                         <select className="cl-input" value={enrolledSubFilter.type} onChange={e=>setEnrolledSubFilter(f=>({...f,type:e.target.value}))}><option>선택</option><option>반배정</option><option>반이동</option></select>
                       </div>
                       <div style={{display:'flex',alignItems:'center',gap:6}}>
-                        <label style={{fontSize:12,color:'#666',whiteSpace:'nowrap'}}>반편성 수강기간</label>
+                        <label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>반편성 수강기간</label>
                         <DatePicker value={enrolledSubFilter.dateFrom} onChange={v=>setEnrolledSubFilter(f=>({...f,dateFrom:v}))}/>
                         <span>~</span>
                         <DatePicker value={enrolledSubFilter.dateTo} onChange={v=>setEnrolledSubFilter(f=>({...f,dateTo:v}))}/>
@@ -199,7 +199,7 @@ export default function Classes() {
                     </div>
                     <div style={{fontSize:11,color:'#888',marginTop:6}}>반배정, 반이동을 정확하게 확인해서 작업해 주세요.</div>
                   </div>
-                  <table className="assign-table">
+                  <table className="assign-table" style={{marginTop:20}}>
                     <thead><tr><th><input type="checkbox"/></th><th>성명</th><th>생년월일</th><th>수강기간</th><th>전화번호</th></tr></thead>
                     <tbody><tr><td colSpan={5} className="assign-empty">검색된 데이터가 없습니다.</td></tr></tbody>
                   </table>
@@ -211,27 +211,27 @@ export default function Classes() {
                     <span className="assign-head-title" style={{fontWeight:700,fontSize:14,paddingLeft:8,borderLeft:'3px solid #333'}}>배정/이동 대상반</span>
                     <button className="cl-search-btn">검색하기</button>
                   </div>
-                  <div style={{padding:'10px 14px',borderBottom:'1px solid #eee',display:'flex',gap:12,alignItems:'center',flexWrap:'wrap'}}>
+                  <div style={{padding:'10px 14px',display:'flex',gap:12,alignItems:'center',flexWrap:'wrap',background:'#f8f9fb',borderRadius:5}}>
                     <div style={{display:'flex',alignItems:'center',gap:6}}>
-                      <label style={{fontSize:12,color:'#666',whiteSpace:'nowrap'}}>반 그룹</label>
+                      <label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>반 그룹</label>
                       <select className="cl-input" value={enrolledRightFilter.group} onChange={e=>setEnrolledRightFilter(f=>({...f,group:e.target.value}))}><option>전체</option></select>
                     </div>
                     <div style={{display:'flex',alignItems:'center',gap:6}}>
-                      <label style={{fontSize:12,color:'#666',whiteSpace:'nowrap'}}>반명</label>
+                      <label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>반명</label>
                       <select className="cl-input" value={enrolledRightFilter.className} onChange={e=>setEnrolledRightFilter(f=>({...f,className:e.target.value}))}><option>선택</option></select>
                     </div>
                     <div style={{display:'flex',alignItems:'center',gap:6}}>
-                      <label style={{fontSize:12,color:'#666',whiteSpace:'nowrap'}}>수강생명</label>
+                      <label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>수강생명</label>
                       <input className="cl-input" value={enrolledRightFilter.name} onChange={e=>setEnrolledRightFilter(f=>({...f,name:e.target.value}))}/>
                     </div>
                   </div>
-                  <div className="assign-head" style={{borderBottom:'2px solid #00B5A9'}}>
+                  <div className="assign-head" style={{marginTop:60}}>
                     <span className="assign-head-title" style={{fontWeight:700,fontSize:14,paddingLeft:8,borderLeft:'3px solid #333'}}>수강생목록 <span style={{fontWeight:400,fontSize:12,color:'#888'}}>배정/이동 : 0명 (재원 : 0명)</span></span>
                     <button className="pm-red-btn">반편성취소</button>
                   </div>
-                  <div style={{padding:'10px 14px',borderBottom:'1px solid #eee'}}>
+                  <div style={{padding:'10px 14px',background:'#f8f9fb',borderRadius:5}}>
                     <div style={{display:'flex',gap:6,alignItems:'center'}}>
-                      <label style={{fontSize:12,color:'#666',whiteSpace:'nowrap'}}>수강시작일</label>
+                      <label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>수강시작일</label>
                       <DatePicker value={enrolledRightFilter.dateFrom} onChange={v=>setEnrolledRightFilter(f=>({...f,dateFrom:v}))}/>
                       <span>~</span>
                       <DatePicker value={enrolledRightFilter.dateTo} onChange={v=>setEnrolledRightFilter(f=>({...f,dateTo:v}))}/>
@@ -240,7 +240,7 @@ export default function Classes() {
                       반배정 취소하면 <span style={{color:'#E8445A',fontWeight:700}}>배정된 반에서만 수강취소</span>되고 반이동 취소하면 <span style={{color:'#E8445A',fontWeight:700}}>배정된 반에서 수강취소, 이전 반으로 복원</span>됩니다.
                     </div>
                   </div>
-                  <table className="assign-table">
+                  <table className="assign-table" style={{marginTop:20}}>
                     <thead><tr><th><input type="checkbox"/></th><th>구분</th><th>성명</th><th>생년월일</th><th>수강기간</th><th>전화번호</th></tr></thead>
                     <tbody><tr><td colSpan={6} className="assign-empty">검색된 데이터가 없습니다.</td></tr></tbody>
                   </table>
@@ -258,23 +258,23 @@ export default function Classes() {
 
                 {/* 왼쪽 패널 */}
                 <div className="assign-panel">
-                  <div className="assign-head" style={{borderBottom:'2px solid #333'}}>
+                  <div className="assign-head">
                     <span className="assign-head-title" style={{fontWeight:700,fontSize:14,paddingLeft:8,borderLeft:'3px solid #333'}}>수강생목록 <span style={{fontWeight:400,fontSize:12,color:'#888'}}>인원 : 0명</span></span>
                     <button className="cl-reg-btn">반배정처리</button>
                   </div>
-                  <div style={{padding:'10px 14px',borderBottom:'1px solid #eee',display:'flex',gap:12,alignItems:'center',flexWrap:'wrap'}}>
+                  <div style={{padding:'10px 14px',display:'flex',gap:12,alignItems:'center',flexWrap:'wrap',background:'#f8f9fb',borderRadius:5}}>
                     <div style={{display:'flex',alignItems:'center',gap:6}}>
-                      <label style={{fontSize:12,color:'#666',whiteSpace:'nowrap'}}>수강생 상태</label>
-                      <select className="cl-input" value={prospectLeftFilter.status} onChange={e=>setProspectLeftFilter(f=>({...f,status:e.target.value}))}><option>선택</option><option>예비</option><option>퇴원</option></select>
+                      <label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>수강생 상태</label>
+                      <select className="cl-input" style={{width:90}} value={prospectLeftFilter.status} onChange={e=>setProspectLeftFilter(f=>({...f,status:e.target.value}))}><option>선택</option><option>예비</option><option>퇴원</option></select>
                     </div>
                     <div style={{display:'flex',alignItems:'center',gap:6}}>
-                      <label style={{fontSize:12,color:'#666',whiteSpace:'nowrap'}}>반편성 수강기간</label>
+                      <label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>반편성 수강기간</label>
                       <DatePicker value={prospectLeftFilter.dateFrom} onChange={v=>setProspectLeftFilter(f=>({...f,dateFrom:v}))}/>
                       <span>~</span>
                       <DatePicker value={prospectLeftFilter.dateTo} onChange={v=>setProspectLeftFilter(f=>({...f,dateTo:v}))}/>
                     </div>
                   </div>
-                  <table className="assign-table">
+                  <table className="assign-table" style={{marginTop:20}}>
                     <thead><tr><th><input type="checkbox"/></th><th>성명</th><th>생년월일</th><th>전화번호</th></tr></thead>
                     <tbody><tr><td colSpan={4} className="assign-empty">검색된 데이터가 없습니다.</td></tr></tbody>
                   </table>
@@ -282,34 +282,34 @@ export default function Classes() {
 
                 {/* 오른쪽 패널 */}
                 <div className="assign-panel">
-                  <div className="assign-head" style={{borderBottom:'2px solid #333'}}>
+                  <div className="assign-head">
                     <span className="assign-head-title" style={{fontWeight:700,fontSize:14,paddingLeft:8,borderLeft:'3px solid #333'}}>수강생목록 <span style={{fontWeight:400,fontSize:12,color:'#888'}}>배정 : 0명 (재원 : 0명)</span></span>
                     <div style={{display:'flex',gap:6}}>
                       <button className="cl-search-gray-btn">검색하기</button>
                       <button className="pm-red-btn">반배정취소</button>
                     </div>
                   </div>
-                  <div style={{padding:'10px 14px',borderBottom:'1px solid #eee',display:'flex',gap:12,alignItems:'center',flexWrap:'nowrap'}}>
-                    <div style={{display:'flex',alignItems:'center',gap:6}}>
-                      <label style={{fontSize:12,color:'#666',whiteSpace:'nowrap'}}>반 그룹</label>
-                      <select className="cl-input" value={prospectRightFilter.group} onChange={e=>setProspectRightFilter(f=>({...f,group:e.target.value}))}><option>전체</option></select>
+                  <div style={{padding:'10px 14px',display:'flex',gap:8,alignItems:'center',flexWrap:'nowrap',background:'#f8f9fb',borderRadius:5}}>
+                    <div style={{display:'flex',alignItems:'center',gap:4}}>
+                      <label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>반 그룹</label>
+                      <select className="cl-input" style={{width:70}} value={prospectRightFilter.group} onChange={e=>setProspectRightFilter(f=>({...f,group:e.target.value}))}><option>전체</option></select>
+                    </div>
+                    <div style={{display:'flex',alignItems:'center',gap:4}}>
+                      <label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>반명</label>
+                      <select className="cl-input" style={{width:70}} value={prospectRightFilter.className} onChange={e=>setProspectRightFilter(f=>({...f,className:e.target.value}))}><option>선택</option></select>
+                    </div>
+                    <div style={{display:'flex',alignItems:'center',gap:4}}>
+                      <label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>수강생명</label>
+                      <input className="cl-input" style={{width:70}} value={prospectRightFilter.name} onChange={e=>setProspectRightFilter(f=>({...f,name:e.target.value}))}/>
                     </div>
                     <div style={{display:'flex',alignItems:'center',gap:6}}>
-                      <label style={{fontSize:12,color:'#666',whiteSpace:'nowrap'}}>반명</label>
-                      <select className="cl-input" value={prospectRightFilter.className} onChange={e=>setProspectRightFilter(f=>({...f,className:e.target.value}))}><option>선택</option></select>
-                    </div>
-                    <div style={{display:'flex',alignItems:'center',gap:6}}>
-                      <label style={{fontSize:12,color:'#666',whiteSpace:'nowrap'}}>수강생명</label>
-                      <input className="cl-input" value={prospectRightFilter.name} onChange={e=>setProspectRightFilter(f=>({...f,name:e.target.value}))}/>
-                    </div>
-                    <div style={{display:'flex',alignItems:'center',gap:6}}>
-                      <label style={{fontSize:12,color:'#666',whiteSpace:'nowrap'}}>수강시작일</label>
+                      <label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>수강시작일</label>
                       <DatePicker value={prospectRightFilter.dateFrom} onChange={v=>setProspectRightFilter(f=>({...f,dateFrom:v}))}/>
                       <span>~</span>
                       <DatePicker value={prospectRightFilter.dateTo} onChange={v=>setProspectRightFilter(f=>({...f,dateTo:v}))}/>
                     </div>
                   </div>
-                  <table className="assign-table">
+                  <table className="assign-table" style={{marginTop:20}}>
                     <thead><tr><th><input type="checkbox"/></th><th>성명</th><th>생년월일</th><th>수강기간</th><th>전화번호</th></tr></thead>
                     <tbody><tr><td colSpan={5} className="assign-empty">검색된 데이터가 없습니다.</td></tr></tbody>
                   </table>
@@ -323,8 +323,8 @@ export default function Classes() {
           {activeSide==='class-status'&&(
             <>
               <div className="cl-page-title"><span style={{color:'#F5C518'}}>⭐</span> 반 현황</div>
-              <div className="cl-section">
-                <div className="cl-sec-head">
+              <div className="cl-section" style={{borderBottom:'none',background:'#f8f9fb',borderRadius:5}}>
+                <div className="cl-sec-head" style={{borderBottom:'none'}}>
                   <div className="cl-sec-title">조건검색</div>
                   <div style={{display:'flex',gap:6}}><button className="cl-search-btn">검색하기</button><button className="cl-reset-btn">초기화</button></div>
                 </div>
@@ -336,7 +336,7 @@ export default function Classes() {
                   </div>
                 </div>
               </div>
-              <div className="cl-section">
+              <div className="cl-section" style={{borderTop:'none'}}>
                 <div className="cl-table-header"><button className="cl-reg-btn">반 등록</button></div>
                 <div className="cl-table-wrap">
                   <table className="cl-table">

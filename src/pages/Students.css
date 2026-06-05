@@ -115,7 +115,7 @@
   border: none;
   border-radius: 4px;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
   font-family: inherit;
   margin-bottom: 10px;
@@ -181,7 +181,7 @@
   border: none;
   border-radius: 4px;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
   font-family: inherit;
 }
@@ -193,7 +193,7 @@
   border: none;
   border-radius: 4px;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
   font-family: inherit;
 }
@@ -412,7 +412,7 @@
   border: none;
   border-radius: 4px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
   font-family: inherit;
   white-space: nowrap;
@@ -425,7 +425,7 @@
   border: none;
   border-radius: 4px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
   font-family: inherit;
   white-space: nowrap;
@@ -438,7 +438,7 @@
   border: none;
   border-radius: 4px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
   font-family: inherit;
   white-space: nowrap;
@@ -451,7 +451,7 @@
   border: none;
   border-radius: 4px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
   font-family: inherit;
   white-space: nowrap;
@@ -709,7 +709,7 @@
   border: none;
   border-radius: 4px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
   font-family: inherit;
   white-space: nowrap;
