@@ -21,10 +21,10 @@ function App() {
         <Route path="/students" element={<Students />} />
         <Route path="/payments" element={<Payments />} />
         <Route path="/classes" element={<Classes />} />
-        <Route path="*" element={<Navigate to="/" />} />
         <Route path="/myinfo" element={<MyInfo />} />
         <Route path="/changepassword" element={<ChangePassword />} />
         <Route path="/resid-add" element={<ResidExceptionAdd />} />
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>
   )
