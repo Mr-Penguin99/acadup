@@ -35,7 +35,9 @@
   font-size: 17px;
   font-weight: 700;
   color: #333;
-  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 20px;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -56,46 +58,51 @@
   border: 1px solid #e0e0e0;
   border-radius: 4px;
   overflow: hidden;
+  min-height: 600px;
 }
 
 .sp-tabs {
   display: flex;
-  border-bottom: 1px solid #e0e0e0;
 }
 
 .sp-tab {
   flex: 1;
   padding: 10px;
   border: none;
-  background: #f5f5f5;
+  background: #818181;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
-  color: #888;
-  border-bottom: 2px solid transparent;
+  color: #fff;
 }
 
 .sp-tab.active {
-  background: #fff;
-  color: #F5841F;
-  border-bottom-color: #F5841F;
+  background: #F5841F;
+  color: #fff;
 }
 
 .sp-form { padding: 14px; }
 
-.sp-field { margin-bottom: 10px; }
+.sp-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
 
 .sp-label {
-  display: block;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
-  color: #888;
-  margin-bottom: 4px;
+  color: #555;
+  white-space: nowrap;
+  width: 40px;
+  flex-shrink: 0;
 }
 
 .sp-input {
-  width: 100%;
+  width: 150px;
+  flex-shrink: 0;
   padding: 7px 10px;
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -106,11 +113,12 @@
 }
 
 .sp-input:focus { border-color: #F5841F; }
+.sp-input::placeholder { font-size: 11px; }
 
 .sp-search-btn {
   width: 100%;
   padding: 9px;
-  background: #555;
+  background: #818181;
   color: #fff;
   border: none;
   border-radius: 4px;
@@ -152,8 +160,6 @@
 .info-panel {
   flex: 1;
   background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
   overflow: hidden;
 }
 
@@ -162,8 +168,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 10px 16px;
-  border-bottom: 1px solid #eee;
-  background: #fafafa;
+  border-bottom: none;
+  background: transparent;
 }
 
 .info-title {
@@ -198,12 +204,36 @@
   font-family: inherit;
 }
 
-.info-body { padding: 16px; }
+/* 수강생 액션 버튼 */
+.st-btn {
+  padding: 6px 14px;
+  color: #fff;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+}
+.st-btn-blue   { background: #29ABE2; }
+.st-btn-red    { background: #E8445A; }
+.st-btn-orange { background: #F5841F; }
+.st-btn-dark   { background: #555; }
+.st-btn-teal   { background: #00B5A9; }
+
+.st-btn-blue:hover   { background: #fff; color: #000; border: 1px solid #29ABE2; }
+.st-btn-red:hover    { background: #fff; color: #000; border: 1px solid #E8445A; }
+.st-btn-orange:hover { background: #fff; color: #000; border: 1px solid #F5841F; }
+.st-btn-dark:hover   { background: #fff; color: #000; border: 1px solid #555; }
+.st-btn-teal:hover   { background: #fff; color: #000; border: 1px solid #00B5A9; }
+
+.info-body { padding: 0; }
 
 .info-form-wrap {
   display: flex;
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: 0;
+  margin-bottom: 0;
+  border: 1px solid #eeeeee;
 }
 
 /* 사진 */
@@ -211,13 +241,14 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex-shrink: 0;
+  padding: 28px;
 }
 
 .photo-box {
-  width: 100px;
-  height: 120px;
+  width: 120px;
+  height: 150px;
   border: 1px solid #ddd;
   border-radius: 4px;
   display: flex;
@@ -232,27 +263,50 @@
   background: #fff;
   border: 1px solid #ccc;
   border-radius: 4px;
-  font-size: 11px;
+  font-size: 13px;
   cursor: pointer;
+  width: 120px;
   font-family: inherit;
   color: #555;
   white-space: nowrap;
 }
 
 /* 폼 */
-.info-form { flex: 1; }
+.info-form { flex: 1; border-left: 1px solid #eeeeee; }
 
 .if-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 10px;
+  grid-template-columns: 160px 1fr 160px 1fr;
+  align-items: stretch;
+  border-bottom: 1px solid #eeeeee;
+  min-height: 38px;
 }
+.if-row:last-child { border-bottom: none; }
 
-.if-field { display: flex; flex-direction: column; gap: 4px; }
-
-.if-label { font-size: 11px; font-weight: 600; color: #666; }
+.if-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+  background: #f8f9fb;
+  border-right: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 8px;
+  text-align: center;
+  white-space: nowrap;
+}
 .if-label.required::before { content: '* '; color: #F5841F; }
+
+.if-cell {
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-right: 1px solid #eee;
+  flex-wrap: wrap;
+}
+.if-cell:last-child { border-right: none; }
 
 .if-input {
   padding: 6px 10px;
@@ -262,7 +316,7 @@
   font-family: inherit;
   outline: none;
   color: #333;
-  width: 100%;
+  width: 150px;
 }
 
 .if-input:focus { border-color: #F5841F; }
@@ -289,33 +343,64 @@
 
 .info-tabs {
   display: flex;
-  background: #f5f5f5;
-  border-bottom: 1px solid #e0e0e0;
-  overflow-x: auto;
+  background: #818181;
+  border-bottom: none;
 }
 
 .info-tabs::-webkit-scrollbar { display: none; }
 
 .info-tab-v {
-  padding: 8px 12px;
+  padding: 0 12px;
+  height: 40px;
+  display: flex;
+  align-items: center;
   font-size: 12px;
   font-weight: 700;
-  color: #555;
-  border-right: 1px solid #e0e0e0;
+  color: #fff;
+  border-right: none;
   flex-shrink: 0;
+  position: relative;
+}
+
+.info-tab-v::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 20px; /* 구분선 길이 */
+  background: #b0b0b0;
 }
 
 .info-tab {
-  padding: 8px 14px;
+  padding: 0 14px;
+  height: 40px;
   border: none;
-  background: #f5f5f5;
-  font-size: 12px;
+  background: #818181;
+  font-size: 13px;
   cursor: pointer;
   font-family: inherit;
-  color: #555;
-  border-right: 1px solid #e0e0e0;
+  color: #fff;
+  border-right: none;
   white-space: nowrap;
-  flex-shrink: 0;
+  flex: 1;
+  position: relative;
+}
+
+.info-tab::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 20px; /* 구분선 길이 */
+  background: #b0b0b0;
+}
+.info-tab:last-child::after {
+  display: none;
+  text-align: center;
 }
 
 .info-tab.active {
@@ -324,14 +409,11 @@
   font-weight: 700;
 }
 
-.info-tab:hover:not(.active) { background: #eee; }
+.info-tab:hover:not(.active) { background: #818181; color: #F5841F; }
 
 .info-tab-content {
-  padding: 20px;
+  margin-top: 10px;
   min-height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .empty-msg { font-size: 13px; color: #bbb; }
@@ -339,7 +421,6 @@
 /* 수강생현황 */
 .sts-section {
   background: #fff;
-  border: 1px solid #e0e0e0;
   border-radius: 4px;
   margin-bottom: 14px;
   overflow: hidden;
@@ -350,7 +431,6 @@
   align-items: center;
   justify-content: space-between;
   padding: 8px 16px;
-  border-bottom: 2px solid #00B5A9;
 }
 
 .sts-list-head {
@@ -373,24 +453,29 @@
 
 .sts-count-info { font-size: 12px; color: #555; }
 
-.sts-filter { padding: 12px 16px; }
-
-.sts-filter-row {
-  display: flex;
-  gap: 10px;
-  align-items: flex-end;
-  flex-wrap: wrap;
+.sts-filter {
+  padding: 12px 16px;
+  background: #f8f9fb;
+  border-radius: 5px;
+  display: grid;
+  grid-template-columns: max-content 120px max-content 120px max-content 120px max-content 120px 120px 150px max-content 120px;
+  column-gap: 8px;
+  row-gap: 6px;
+  align-items: center;
 }
 
-.sts-filter-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1;
-  min-width: 100px;
-}
+.sts-filter-row { display: contents; }
 
-.sts-filter-label { font-size: 11px; font-weight: 600; color: #888; }
+.sts-filter-item { display: contents; }
+
+.sts-filter-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #444;
+  white-space: nowrap;
+  margin-left: 14px;
+}
+.sts-filter-label.first { margin-left: 0; }
 
 .sts-input {
   padding: 6px 8px;
@@ -400,7 +485,7 @@
   font-family: inherit;
   outline: none;
   color: #333;
-  width: 100%;
+  width: 120px;
 }
 
 .sts-input:focus { border-color: #F5841F; }
@@ -478,12 +563,13 @@
 }
 
 .sts-table th {
-  background: #f5f5f5;
+  background: #f8f9fb;
   padding: 9px 10px;
   text-align: center;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   color: #555;
+  border-top: 2px solid #666;
   border-bottom: 1px solid #e0e0e0;
   white-space: nowrap;
 }
@@ -493,6 +579,8 @@
   border-bottom: 1px solid #f0f0f0;
   color: #333;
   vertical-align: middle;
+  font-size: 13px;
+  text-align: center;
 }
 
 .sts-table tr:hover td { background: #fafafa; }

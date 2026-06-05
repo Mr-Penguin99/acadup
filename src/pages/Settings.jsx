@@ -4,6 +4,8 @@ import './Settings.css'
 import TopNav from '../components/TopNav'
 import FavStar from '../components/FavStar'
 
+const UNLOCKED_MENUS = ['students','payments','classes']
+
 const MENUS = [
   { id: 'students',    icon: '/icons/students.svg',    label: '수강생관리' },
   { id: 'payments',   icon: '/icons/payments.svg',    label: '수납관리' },
@@ -121,6 +123,9 @@ export default function Settings() {
     loginInput: 'phone4', loginOrder: 'enrollOnly',
   })
 
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [menuLockedClickCount, setMenuLockedClickCount] = useState(0)
+
   const toggleGroup = id => setExpanded(e => e.includes(id) ? [] : [id])
 
   return (
@@ -131,22 +136,52 @@ export default function Settings() {
       <div className="menu-bar">
         <button className="hamburger-btn" onClick={() => setSidebarOpen(s => !s)}>☰</button>
         <div className="menu-list">
-          {MENUS.map(m => (
-            <div key={m.id}
-              className={`menu-item ${activeMenu === m.id ? 'active' : ''}`}
-              onClick={() => {
-                setActiveMenu(m.id)
-                if (m.id === 'students') navigate('/students')
-                if (m.id === 'payments') navigate('/payments')
-                if (m.id === 'classes') navigate('/classes')
-              }}>
-              <img src={m.icon} alt={m.label} className="menu-icon" />
-              <span className="menu-label">{m.label}</span>
-            </div>
-          ))}
+          {MENUS.map(m => {
+            const isLocked = !UNLOCKED_MENUS.includes(m.id)
+            return (
+              <div key={m.id}
+                className={`menu-item ${activeMenu === m.id ? 'active' : ''} ${isLocked ? 'locked' : ''}`}
+                style={{position:'relative'}}
+                onClick={() => {
+                  if(isLocked){
+                    const next = menuLockedClickCount + 1
+                    if(next >= 2){ setShowUpgradeModal(true); setMenuLockedClickCount(0) }
+                    else { setMenuLockedClickCount(next) }
+                  } else {
+                    setActiveMenu(m.id)
+                    if(m.id === 'students') navigate('/students')
+                    if(m.id === 'payments') navigate('/payments')
+                    if(m.id === 'classes') navigate('/classes')
+                  }
+                }}>
+                <img src={m.icon} alt={m.label} className="menu-icon"/>
+                <span className="menu-label">{m.label}</span>
+                {isLocked && (
+                  <span style={{position:'absolute',inset:0,background:'rgba(200,200,200,0.75)',display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}>
+                    <svg width="22" height="27" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect x="1" y="7" width="12" height="9" rx="1.5" fill="#fff"/>
+                      <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 5V7" stroke="#fff" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                      <circle cx="7" cy="11.5" r="1.5" fill="rgba(200,200,200,0.75)"/>
+                      <rect x="6.25" y="12.5" width="1.5" height="2" rx="0.75" fill="rgba(200,200,200,0.75)"/>
+                    </svg>
+                  </span>
+                )}
+              </div>
+            )
+          })}
         </div>
         <button className="menu-charge-btn">전송충전관리</button>
       </div>
+
+      {showUpgradeModal && (
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.45)',zIndex:2000,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={()=>setShowUpgradeModal(false)}>
+          <div style={{background:'#fff',borderRadius:8,padding:'36px 40px',textAlign:'center',boxShadow:'0 8px 32px rgba(0,0,0,0.2)',maxWidth:360,width:'90%'}} onClick={e=>e.stopPropagation()}>
+            <div style={{fontSize:36,marginBottom:16}}>🔒</div>
+            <p style={{fontSize:15,color:'#333',lineHeight:1.7,marginBottom:24}}>정식 계정으로 전환 시 기능을<br/>제한 없이 이용하실 수 있습니다.</p>
+            <button style={{padding:'10px 24px',background:'#F5841F',color:'#fff',border:'none',borderRadius:6,fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:'inherit'}} onClick={()=>setShowUpgradeModal(false)}>정식 전환하러 가기</button>
+          </div>
+        </div>
+      )}
 
       {/* 바디 */}
       <div className="settings-body">
@@ -185,7 +220,7 @@ export default function Settings() {
             <>
               <div className="sm-page-title"><FavStar label="학원 기본정보" path="/settings?page=basic" /> 학원 기본정보</div>
 
-              <div className="sm-section-flat" style={{marginTop:0}}>
+              <div className="sm-section-flat" style={{marginTop:40}}>
                 <div className="sm-sec-head" style={{borderBottomColor:'#00B5A9'}}>
                   <div className="sm-sec-title">기본정보</div>
                   <button className="sm-edit-btn" onClick={() => setEditing(!editing)}> 수정 </button>
@@ -558,7 +593,7 @@ export default function Settings() {
           {activeSide === 'auth-group' && (
             <>
               <div className="sm-page-title"><FavStar label="권한그룹명 변경" path="/settings?page=auth-group" /> 권한그룹명 변경</div>
-              <div className="sm-section-flat" style={{marginTop:0, borderBottom:'none', paddingBottom:60}}>
+              <div className="sm-section-flat" style={{marginTop:40, borderBottom:'none', paddingBottom:60}}>
                 <div className="sm-form">
                   <table className="auth-table">
                     <thead>
@@ -595,7 +630,7 @@ export default function Settings() {
             <>
               <div className="sm-page-title"><FavStar label="사용자별 권한관리" path="/settings?page=auth-user" /> 사용자별 권한관리</div>
 
-              <div className="sm-section-flat" style={{marginTop:0}}>
+              <div className="sm-section-flat" style={{marginTop:40}}>
                 <div className="sm-sec-head">
                   <div className="sm-sec-title">조건검색</div>
                   <div style={{display:'flex',gap:6}}>
@@ -666,7 +701,7 @@ export default function Settings() {
               <div className="sm-page-title"><FavStar label="권한그룹별 사용자" path="/settings?page=auth-mgmt" /> 권한그룹별 사용자</div>
 
               {/* 조건검색 */}
-              <div className="sm-section">
+              <div className="sm-section" style={{borderTop:'none', marginTop:40}}>
                 <div className="sm-sec-head">
                   <div className="sm-sec-title">조건검색</div>
                   <div style={{display:'flex',gap:6}}>
@@ -737,7 +772,7 @@ export default function Settings() {
               <div className="sm-page-title"><FavStar label="코드 현황" path="/settings?page=code-status" /> 코드 현황</div>
 
               {/* 조건검색 */}
-              <div className="sm-section">
+              <div className="sm-section" style={{borderTop:'none', marginTop:40}}>
                 <div className="sm-sec-head">
                   <div className="sm-sec-title">조건검색</div>
                   <div style={{display:'flex',gap:6}}>
@@ -815,7 +850,7 @@ export default function Settings() {
               <div className="sm-page-title"><FavStar label="주민번호 예외 현황" path="/settings?page=resid-status" /> 주민번호 예외 현황</div>
 
               {/* 조건검색 */}
-              <div className="sm-section">
+              <div className="sm-section" style={{borderTop:'none', marginTop:40}}>
                 <div className="sm-sec-head">
                   <div className="sm-sec-title">조건검색</div>
                   <button className="sm-edit-btn">검색하기</button>

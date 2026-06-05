@@ -4,6 +4,8 @@ import './Payments.css'
 import TopNav from '../components/TopNav'
 import { MonthPicker, DatePicker } from '../components/DatePicker'
 
+const UNLOCKED_MENUS = ['students','payments','classes']
+
 const MENUS = [
   { id: 'students',    icon: '/icons/students.svg',    label: '수강생관리' },
   { id: 'payments',   icon: '/icons/payments.svg',    label: '수납관리' },
@@ -111,6 +113,9 @@ export default function Payments() {
   const [pageSize, setPageSize] = useState('20')
   const [filter, setFilter] = useState({ month:'2026-05', group:'전체', className:'', type:'수강생-성명', keyword:'' })
 
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [menuLockedClickCount, setMenuLockedClickCount] = useState(0)
+
   const toggleGroup   = id => setExpanded(e=>e.includes(id)?[]:  [id])
   const toggleBulkCheck = id => setBulkChecked(c=>c.includes(id)?c.filter(x=>x!==id):[...c,id])
   const toggleBulkAll   = () => setBulkChecked(bulkChecked.length===BULK_DATA.length?[]:BULK_DATA.map(d=>d.id))
@@ -123,15 +128,51 @@ export default function Payments() {
       <div className="menu-bar">
         <button className="hamburger-btn" onClick={()=>setSidebarOpen(s=>!s)}>☰</button>
         <div className="menu-list">
-          {MENUS.map(m=>(
-            <div key={m.id} className={`menu-item ${activeMenu===m.id?'active':''}`}
-              onClick={()=>{setActiveMenu(m.id);if(m.id==='students')navigate('/students');if(m.id==='settings')navigate('/settings');if(m.id==='dashboard')navigate('/dashboard');if(m.id==='classes')navigate('/classes')}}>
-              <img src={m.icon} alt={m.label} className="menu-icon"/><span className="menu-label">{m.label}</span>
-            </div>
-          ))}
+          {MENUS.map(m=>{
+            const isLocked = !UNLOCKED_MENUS.includes(m.id)
+            return (
+              <div key={m.id} className={`menu-item ${activeMenu===m.id?'active':''} ${isLocked?'locked':''}`}
+                style={{position:'relative'}}
+                onClick={()=>{
+                  if(isLocked){
+                    const next = menuLockedClickCount + 1
+                    if(next >= 2){ setShowUpgradeModal(true); setMenuLockedClickCount(0) }
+                    else { setMenuLockedClickCount(next) }
+                  } else {
+                    setActiveMenu(m.id)
+                    if(m.id==='students')navigate('/students')
+                    if(m.id==='settings')navigate('/settings')
+                    if(m.id==='dashboard')navigate('/dashboard')
+                    if(m.id==='classes')navigate('/classes')
+                  }
+                }}>
+                <img src={m.icon} alt={m.label} className="menu-icon"/><span className="menu-label">{m.label}</span>
+                {isLocked && (
+                  <span style={{position:'absolute',inset:0,background:'rgba(200,200,200,0.75)',display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}>
+                    <svg width="22" height="27" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect x="1" y="7" width="12" height="9" rx="1.5" fill="#fff"/>
+                      <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 5V7" stroke="#fff" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                      <circle cx="7" cy="11.5" r="1.5" fill="rgba(200,200,200,0.75)"/>
+                      <rect x="6.25" y="12.5" width="1.5" height="2" rx="0.75" fill="rgba(200,200,200,0.75)"/>
+                    </svg>
+                  </span>
+                )}
+              </div>
+            )
+          })}
         </div>
         <button className="menu-charge-btn">전송충전관리</button>
       </div>
+
+      {showUpgradeModal && (
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.45)',zIndex:2000,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={()=>setShowUpgradeModal(false)}>
+          <div style={{background:'#fff',borderRadius:8,padding:'36px 40px',textAlign:'center',boxShadow:'0 8px 32px rgba(0,0,0,0.2)',maxWidth:360,width:'90%'}} onClick={e=>e.stopPropagation()}>
+            <div style={{fontSize:36,marginBottom:16}}>🔒</div>
+            <p style={{fontSize:15,color:'#333',lineHeight:1.7,marginBottom:24}}>정식 계정으로 전환 시 기능을<br/>제한 없이 이용하실 수 있습니다.</p>
+            <button style={{padding:'10px 24px',background:'#F5841F',color:'#fff',border:'none',borderRadius:6,fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:'inherit'}} onClick={()=>setShowUpgradeModal(false)}>정식 전환하러 가기</button>
+          </div>
+        </div>
+      )}
 
       <div className="payments-body">
         {sidebarOpen&&(
@@ -159,7 +200,7 @@ export default function Payments() {
           {activeSide==='bulk-bill'&&(
             <>
               <div className="pm-page-title"><span style={{color:'#ccc'}}>☆</span> 일괄청구</div>
-              <div className="pm-section" style={{border:'none',background:'#f8f9fb',borderRadius:5}}>
+              <div className="pm-section" style={{border:'none',background:'#f8f9fb',borderRadius:5,marginTop:40}}>
                 <div className="pm-sec-head" style={{borderBottom:'none'}}>
                   <div className="pm-sec-title">조건검색</div>
                   <div style={{display:'flex',gap:6}}>
@@ -215,7 +256,7 @@ export default function Payments() {
           {activeSide==='class-bill'&&(
             <>
               <div className="pm-page-title"><span style={{color:'#ccc'}}>☆</span> 회차반 일괄청구</div>
-              <div className="pm-section" style={{border:'none',background:'#f8f9fb',borderRadius:5}}>
+              <div className="pm-section" style={{border:'none',background:'#f8f9fb',borderRadius:5,marginTop:40}}>
                 <div className="pm-sec-head" style={{borderBottom:'none'}}>
                   <div className="pm-sec-title">조건검색</div>
                   <div style={{display:'flex',gap:6}}><button className="pm-dark-btn">검색하기</button><button className="pm-reset-btn">초기화</button><button className="pm-orange-btn">선택청구</button><button className="pm-red-btn">선택청구삭제</button></div>
@@ -246,7 +287,7 @@ export default function Payments() {
           {activeSide==='unpaid'&&(
             <>
               <div className="pm-page-title"><span style={{color:'#F5C518'}}>⭐</span> 청구/미납내역</div>
-              <div className="pm-section" style={{border:'none',background:'#f8f9fb',borderRadius:5}}>
+              <div className="pm-section" style={{border:'none',background:'#f8f9fb',borderRadius:5,marginTop:40}}>
                 <div className="pm-sec-head" style={{borderBottom:'none'}}>
                   <div className="pm-sec-title">조건검색</div>
                   <div style={{display:'flex',gap:6}}><button className="pm-search-btn">검색하기</button><button className="pm-reset-btn">초기화</button></div>
@@ -306,7 +347,7 @@ export default function Payments() {
           {activeSide==='monthly-pay'&&(
             <>
               <div className="pm-page-title"><span style={{color:'#ccc'}}>☆</span> 수강월별 청구/수납</div>
-              <div className="pm-section" style={{border:'none',background:'#f8f9fb',borderRadius:5}}>
+              <div className="pm-section" style={{border:'none',background:'#f8f9fb',borderRadius:5,marginTop:40}}>
                 <div className="pm-sec-head" style={{borderBottom:'none'}}>
                   <div className="pm-sec-title">조건검색</div>
                   <div style={{display:'flex',gap:6}}><button className="pm-teal-btn">수납내역출력</button><button className="pm-reset-btn">초기화</button></div>
@@ -357,7 +398,7 @@ export default function Payments() {
           {activeSide==='pay-history'&&(
             <>
               <div className="pm-page-title"><span style={{color:'#ccc'}}>☆</span> 결제 내역</div>
-              <div className="pm-section" style={{border:'none',background:'#f8f9fb',borderRadius:5}}>
+              <div className="pm-section" style={{border:'none',background:'#f8f9fb',borderRadius:5,marginTop:40}}>
                 <div className="pm-sec-head" style={{borderBottom:'none'}}>
                   <div className="pm-sec-title">조건검색</div>
                   <div style={{display:'flex',gap:6}}><button className="pm-search-btn">검색하기</button><button className="pm-reset-btn">초기화</button></div>
@@ -407,7 +448,7 @@ export default function Payments() {
           {activeSide==='daily-status'&&(
             <>
               <div className="pm-page-title"><span style={{color:'#ccc'}}>☆</span> 일별 수납 현황</div>
-              <div className="pm-section" style={{border:'none',background:'#f8f9fb',borderRadius:5}}>
+              <div className="pm-section" style={{border:'none',background:'#f8f9fb',borderRadius:5,marginTop:40}}>
                 <div className="pm-sec-head" style={{borderBottom:'none'}}><div className="pm-sec-title">일별 수납현황 검색</div></div>
                 <div className="pm-filter">
                   <div style={{display:'flex',gap:16,alignItems:'center',flexWrap:'wrap',justifyContent:'flex-start'}}>
@@ -439,7 +480,7 @@ export default function Payments() {
           {activeSide==='monthly-status'&&(
             <>
               <div className="pm-page-title"><span style={{color:'#ccc'}}>☆</span> 월별 수납 현황</div>
-              <div className="pm-section" style={{border:'none',background:'#f8f9fb',borderRadius:5}}>
+              <div className="pm-section" style={{border:'none',background:'#f8f9fb',borderRadius:5,marginTop:40}}>
                 <div className="pm-sec-head" style={{borderBottom:'none'}}><div className="pm-sec-title">월별 수납현황 검색</div></div>
                 <div className="pm-filter">
                   <div style={{display:'flex',gap:16,alignItems:'center',flexWrap:'wrap',justifyContent:'flex-start'}}>
@@ -467,7 +508,7 @@ export default function Payments() {
           {activeSide==='class-status'&&(
             <>
               <div className="pm-page-title"><span style={{color:'#ccc'}}>☆</span> 반별 수납 현황</div>
-              <div className="pm-section" style={{border:'none',background:'#f8f9fb',borderRadius:5}}>
+              <div className="pm-section" style={{border:'none',background:'#f8f9fb',borderRadius:5,marginTop:40}}>
                 <div className="pm-sec-head" style={{borderBottom:'none'}}>
                   <div className="pm-sec-title">반별 수납현황 검색</div>
                   <div style={{display:'flex',gap:6}}><button className="pm-search-btn">검색하기</button><button className="pm-reset-btn">초기화</button></div>

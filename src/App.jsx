@@ -9,6 +9,10 @@ import Classes from './pages/Classes'
 import MyInfo from './pages/MyInfo'
 import ChangePassword from './pages/ChangePassword'
 import ResidExceptionAdd from './pages/ResidExceptionAdd'
+import ClassRegister from './pages/ClassRegister'
+import ManualRegister from './pages/ManualRegister'
+import PaymentRegister from './pages/PaymentRegister'
+import PaymentMemo from './pages/PaymentMemo'
 
 function App() {
   return (
@@ -24,6 +28,10 @@ function App() {
         <Route path="/myinfo" element={<MyInfo />} />
         <Route path="/changepassword" element={<ChangePassword />} />
         <Route path="/resid-add" element={<ResidExceptionAdd />} />
+        <Route path="/class-register" element={<ClassRegister />} />
+        <Route path="/manual-register" element={<ManualRegister />} />
+        <Route path="/payment-register" element={<PaymentRegister />} />
+        <Route path="/payment-memo" element={<PaymentMemo />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>

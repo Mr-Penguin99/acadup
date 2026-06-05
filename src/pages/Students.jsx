@@ -3,6 +3,18 @@ import { useNavigate } from 'react-router-dom'
 import './Students.css'
 import TopNav from '../components/TopNav'
 import { MonthPicker, DatePicker } from '../components/DatePicker'
+import FamilyTab from '../components/student/FamilyTab'
+import ClassTab from '../components/student/ClassTab'
+import PaymentTab from '../components/student/PaymentTab'
+import BillingTab from '../components/student/BillingTab'
+import ConsultTab from '../components/student/ConsultTab'
+import AttendTab from '../components/student/AttendTab'
+import AcademyScoreTab from '../components/student/AcademyScoreTab'
+import SchoolScoreTab from '../components/student/SchoolScoreTab'
+import NoticeTab from '../components/student/NoticeTab'
+import MemoTab from '../components/student/MemoTab'
+import ProgressTab from '../components/student/ProgressTab'
+import VehicleTab from '../components/student/VehicleTab'
 
 const MENUS = [
   { id: 'students',    icon: '/icons/students.svg',    label: '수강생관리' },
@@ -81,6 +93,8 @@ const STUDENT_STATUS_DATA = [
   { id:9, name:'학생1',    birth:'20.01.01', photo:'X', status:'재원', classes:['반그룹 수업1 > 수업1 영어(월화목토)'], keypad:'1234', dept:'고등학교', school:'', grade:'1' },
 ]
 const INFO_TABS = ['가족','수강','수납','결제','상담','출결','학원성적','학교성적','알림내역','메모','진도','차량']
+const LOCKED_TABS = ['상담','학원성적','학교성적','알림내역','메모','진도','차량']
+const UNLOCKED_MENUS = ['students','payments','classes']
 
 export default function Students() {
   const navigate = useNavigate()
@@ -94,7 +108,7 @@ export default function Students() {
   const [statusFilter, setStatusFilter] = useState({
     teacher:'전체', group:'전체', className:'전체', studentStatus:'재원',
     searchType:'수강생-성명', keyword:'', motive:'',
-    dept:'', grade:'', school:'', gender:'', birthFrom:'', birthTo:''
+    dept:'', grade:'', school:'', gender:'', birthType:'생년월일', birthFrom:'', birthTo:''
   })
   const [statusChecked, setStatusChecked] = useState([])
   const [statusPageSize, setStatusPageSize] = useState('20')
@@ -112,6 +126,10 @@ export default function Students() {
   const [replaceChecked, setReplaceChecked] = useState([])
   const [talkChecked, setTalkChecked] = useState([])
   const [noticeChecked, setNoticeChecked] = useState([])
+  const [selectedStudent, setSelectedStudent] = useState(true)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [lockedClickCount, setLockedClickCount] = useState(0)
+  const [menuLockedClickCount, setMenuLockedClickCount] = useState(0)
   const [form, setForm] = useState({
     studentNo:'', status:'', name:'', birth:'', gender:'남자',
     id:'', pw:'', enrollDate:'', payMethod:'',
@@ -132,20 +150,45 @@ export default function Students() {
       <div className="menu-bar">
         <button className="hamburger-btn" onClick={()=>setSidebarOpen(s=>!s)}>☰</button>
         <div className="menu-list">
-          {MENUS.map(m=>(
-            <div key={m.id} className={`menu-item ${activeMenu===m.id?'active':''}`}
-              onClick={()=>{
-                setActiveMenu(m.id)
-                if(m.id==='students'){setActiveSide('class-students');setExpanded(['students'])}
-                if(m.id==='settings') navigate('/settings')
-                if(m.id==='dashboard') navigate('/dashboard')
-                if(m.id==='payments') navigate('/payments')
-                if(m.id==='classes') navigate('/classes')
-              }}>
-              <img src={m.icon} alt={m.label} className="menu-icon"/>
-              <span className="menu-label">{m.label}</span>
-            </div>
-          ))}
+          {MENUS.map(m=>{
+            const isLocked = !UNLOCKED_MENUS.includes(m.id)
+            return (
+              <div key={m.id} className={`menu-item ${activeMenu===m.id?'active':''} ${isLocked?'locked':''}`}
+                style={{position:'relative'}}
+                onClick={()=>{
+                  if(isLocked){
+                    const next = menuLockedClickCount + 1
+                    if(next >= 2){ setShowUpgradeModal(true); setMenuLockedClickCount(0) }
+                    else { setMenuLockedClickCount(next) }
+                  } else {
+                    setActiveMenu(m.id)
+                    if(m.id==='students'){setActiveSide('class-students');setExpanded(['students'])}
+                    if(m.id==='settings') navigate('/settings')
+                    if(m.id==='dashboard') navigate('/dashboard')
+                    if(m.id==='payments') navigate('/payments')
+                    if(m.id==='classes') navigate('/classes')
+                  }
+                }}>
+                <img src={m.icon} alt={m.label} className="menu-icon"/>
+                <span className="menu-label">{m.label}</span>
+                {isLocked && (
+                  <span style={{
+                    position:'absolute', inset:0,
+                    background:'rgba(200,200,200,0.75)',
+                    display:'flex', alignItems:'center', justifyContent:'center',
+                    pointerEvents:'none',
+                  }}>
+                    <svg width="22" height="27" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect x="1" y="7" width="12" height="9" rx="1.5" fill="#fff"/>
+                      <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 5V7" stroke="#fff" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                      <circle cx="7" cy="11.5" r="1.5" fill="rgba(200,200,200,0.75)"/>
+                      <rect x="6.25" y="12.5" width="1.5" height="2" rx="0.75" fill="rgba(200,200,200,0.75)"/>
+                    </svg>
+                  </span>
+                )}
+              </div>
+            )
+          })}
         </div>
         <button className="menu-charge-btn">전송충전관리</button>
       </div>
@@ -175,6 +218,31 @@ export default function Students() {
           </div>
         )}
 
+        {showUpgradeModal && (
+          <div style={{
+            position:'fixed', inset:0, background:'rgba(0,0,0,0.45)',
+            zIndex:2000, display:'flex', alignItems:'center', justifyContent:'center',
+          }} onClick={()=>setShowUpgradeModal(false)}>
+            <div style={{
+              background:'#fff', borderRadius:8, padding:'36px 40px',
+              textAlign:'center', boxShadow:'0 8px 32px rgba(0,0,0,0.2)',
+              maxWidth:360, width:'90%',
+            }} onClick={e=>e.stopPropagation()}>
+              <div style={{fontSize:36, marginBottom:16}}>🔒</div>
+              <p style={{fontSize:15, color:'#333', lineHeight:1.7, marginBottom:24}}>
+                정식 계정으로 전환 시 기능을<br/>제한 없이 이용하실 수 있습니다.
+              </p>
+              <button style={{
+                padding:'10px 24px', background:'#F5841F', color:'#fff',
+                border:'none', borderRadius:6, fontSize:14, fontWeight:700,
+                cursor:'pointer', fontFamily:'inherit',
+              }} onClick={()=>setShowUpgradeModal(false)}>
+                정식 전환하러 가기
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="students-main">
 
           {/* 반별 수강생 */}
@@ -190,7 +258,11 @@ export default function Students() {
                     ))}
                   </div>
                   <div className="sp-form">
-                    <div className="sp-field"><label className="sp-label">반그룹</label><select className="sp-input"><option>선택하기</option></select></div>
+                    {searchTab==='반' ? <>
+                      <div className="sp-field"><label className="sp-label">반그룹</label><select className="sp-input"><option>선택하기</option></select></div>
+                    </> : <>
+                      <div className="sp-field"><label className="sp-label">강사</label><select className="sp-input"><option>선택하기</option></select></div>
+                    </>}
                     <div className="sp-field"><label className="sp-label">반명</label><select className="sp-input"><option>선택하기</option></select></div>
                     <div className="sp-field">
                       <label className="sp-label">수강생</label>
@@ -221,90 +293,82 @@ export default function Students() {
                       </div>
                       <div className="info-form">
                         <div className="if-row">
-                          <div className="if-field">
-                            <label className="if-label required">수강생번호</label>
-                            <div style={{display:'flex',gap:6,alignItems:'center'}}>
-                              <input className="if-input" placeholder="미입력시 자동부여" value={form.studentNo} onChange={e=>setForm(f=>({...f,studentNo:e.target.value}))}/>
-                              <button className="if-small-btn">중복체크</button>
-                              <span className="if-hint">예) 년도(2)+순번(4)</span>
-                            </div>
+                          <label className="if-label required">수강생번호</label>
+                          <div className="if-cell">
+                            <input className="if-input" placeholder="미입력시 자동부여" value={form.studentNo} onChange={e=>setForm(f=>({...f,studentNo:e.target.value}))}/>
+                            <button className="if-small-btn">중복체크</button>
+                            <span className="if-hint">예) 년도(2)+순번(4)</span>
                           </div>
-                          <div className="if-field">
-                            <label className="if-label">상태</label>
+                          <label className="if-label">상태</label>
+                          <div className="if-cell">
                             <select className="if-input" style={{width:120}}><option>선택하기</option><option>재원</option><option>예비</option><option>휴원</option><option>퇴원</option><option>예비+휴원+퇴원</option></select>
                           </div>
                         </div>
                         <div className="if-row">
-                          <div className="if-field">
-                            <label className="if-label required">성명</label>
+                          <label className="if-label required">성명</label>
+                          <div className="if-cell">
                             <input className="if-input" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))}/>
                           </div>
-                          <div className="if-field">
-                            <label className="if-label required">생년월일</label>
-                            <div style={{display:'flex',gap:6,alignItems:'center'}}>
-                              <input className="if-input" placeholder="예) 901230" style={{width:120}} value={form.birth} onChange={e=>setForm(f=>({...f,birth:e.target.value}))}/>
-                              <select className="if-input" style={{width:80}} value={form.gender} onChange={e=>setForm(f=>({...f,gender:e.target.value}))}>
-                                <option>남자</option><option>여자</option>
-                              </select>
-                            </div>
+                          <label className="if-label required">생년월일</label>
+                          <div className="if-cell">
+                            <input className="if-input" placeholder="예) 901230" style={{width:120}} value={form.birth} onChange={e=>setForm(f=>({...f,birth:e.target.value}))}/>
+                            <select className="if-input" style={{width:80}} value={form.gender} onChange={e=>setForm(f=>({...f,gender:e.target.value}))}>
+                              <option>남자</option><option>여자</option>
+                            </select>
                           </div>
                         </div>
                         <div className="if-row">
-                          <div className="if-field">
-                            <label className="if-label">아이디</label>
-                            <div style={{display:'flex',gap:6,alignItems:'center'}}>
-                              <input className="if-input" value={form.id} onChange={e=>setForm(f=>({...f,id:e.target.value}))}/>
-                              <button className="if-small-btn">중복체크</button>
-                            </div>
+                          <label className="if-label">아이디</label>
+                          <div className="if-cell">
+                            <input className="if-input" value={form.id} onChange={e=>setForm(f=>({...f,id:e.target.value}))}/>
+                            <button className="if-small-btn">중복체크</button>
                           </div>
-                          <div className="if-field">
-                            <label className="if-label">비밀번호</label>
+                          <label className="if-label">비밀번호</label>
+                          <div className="if-cell">
                             <span className="if-hint">신규 수강생 비밀번호는 생년월일입니다.</span>
                           </div>
                         </div>
                         <div className="if-row">
-                          <div className="if-field">
-                            <label className="if-label required">입학일자</label>
+                          <label className="if-label required">입학일자</label>
+                          <div className="if-cell">
                             <DatePicker value={form.enrollDate} onChange={v=>setForm(f=>({...f,enrollDate:v}))}/>
                           </div>
-                          <div className="if-field">
-                            <label className="if-label">주 결제방법</label>
+                          <label className="if-label">주 결제방법</label>
+                          <div className="if-cell">
                             <select className="if-input"><option>선택</option><option>카드</option><option>현금</option><option>계좌이체</option></select>
                           </div>
                         </div>
                         <div className="if-row">
-                          <div className="if-field">
-                            <label className="if-label required">학생 휴대폰</label>
+                          <label className="if-label required">학생 휴대폰</label>
+                          <div className="if-cell">
                             <input className="if-input" placeholder="예) 010-1234-5678" value={form.phone} onChange={e=>setForm(f=>({...f,phone:e.target.value}))}/>
                           </div>
-                          <div className="if-field">
-                            <label className="if-label">집전화</label>
+                          <label className="if-label">집전화</label>
+                          <div className="if-cell">
                             <input className="if-input" placeholder="예) 010-1234-5678" value={form.homePhone} onChange={e=>setForm(f=>({...f,homePhone:e.target.value}))}/>
                           </div>
                         </div>
                         <div className="if-row">
-                          <div className="if-field">
-                            <label className="if-label">학부/학년</label>
-                            <div style={{display:'flex',gap:6,alignItems:'center'}}>
-                              <select className="if-input" style={{width:80}}><option>선택</option></select>
-                              <input className="if-input" style={{width:80}} value={form.grade2} onChange={e=>setForm(f=>({...f,grade2:e.target.value}))}/>
-                              <span className="if-hint">학년 0</span>
-                            </div>
+                          <label className="if-label">학부/학년</label>
+                          <div className="if-cell">
+                            <select className="if-input" style={{width:80}}><option>선택</option></select>
+                            <input className="if-input" style={{width:80}} value={form.grade2} onChange={e=>setForm(f=>({...f,grade2:e.target.value}))}/>
+                            <input className="if-input" style={{width:40}}/>
+                            <span className="if-hint">학년 0</span>
                           </div>
-                          <div className="if-field">
-                            <label className="if-label">출결번호</label>
-                            <input className="if-input" placeholder="숫자 4자리 입력" maxLength={4} value={form.attendNo} onChange={e=>setForm(f=>({...f,attendNo:e.target.value}))}/>
+                          <label className="if-label">출결번호</label>
+                          <div className="if-cell">
+                            <input className="if-input" style={{width:60}} maxLength={4} value={form.attendNo} onChange={e=>setForm(f=>({...f,attendNo:e.target.value}))}/>
+                            <span style={{fontSize:11, color:'#aaa'}}>숫자 4자리 입력</span>
                           </div>
                         </div>
-                        <div className="if-row">
-                          <div className="if-field">
-                            <label className="if-label">이메일</label>
-                            <div style={{display:'flex',gap:6,alignItems:'center'}}>
-                              <input className="if-input" style={{flex:1}} value={form.email1} onChange={e=>setForm(f=>({...f,email1:e.target.value}))}/>
-                              <span>@</span>
-                              <input className="if-input" style={{flex:1}} value={form.email2} onChange={e=>setForm(f=>({...f,email2:e.target.value}))}/>
-                              <select className="if-input" style={{width:90}}><option>직접입력</option><option>gmail.com</option><option>naver.com</option></select>
-                            </div>
+                        <div className="if-row" style={{gridTemplateColumns:'160px 1fr'}}>
+                          <label className="if-label">이메일</label>
+                          <div className="if-cell">
+                            <input className="if-input" style={{width:180}} value={form.email1} onChange={e=>setForm(f=>({...f,email1:e.target.value}))}/>
+                            <span>@</span>
+                            <input className="if-input" style={{width:180}} value={form.email2} onChange={e=>setForm(f=>({...f,email2:e.target.value}))}/>
+                            <select className="if-input" style={{width:90}}><option>직접입력</option><option>gmail.com</option><option>naver.com</option></select>
                           </div>
                         </div>
                       </div>
@@ -313,10 +377,52 @@ export default function Students() {
                       <div className="info-tabs">
                         <div className="info-tab-v">V</div>
                         {INFO_TABS.map(t=>(
-                          <button key={t} className={`info-tab ${infoTab===t?'active':''}`} onClick={()=>setInfoTab(t)}>{t}</button>
+                          <button key={t} className={`info-tab ${infoTab===t?'active':''}`}
+                            onClick={()=>{
+                              if(LOCKED_TABS.includes(t)){
+                                const next = lockedClickCount + 1
+                                if(next >= 2){ setShowUpgradeModal(true); setLockedClickCount(0) }
+                                else { setLockedClickCount(next) }
+                              } else {
+                                setInfoTab(t)
+                              }
+                            }}
+                            style={{position:'relative', ...(LOCKED_TABS.includes(t)?{borderRadius:0}:{})}}>
+                            {t}
+                            {LOCKED_TABS.includes(t) && (
+                              <span style={{
+                                position:'absolute', inset:0,
+                                background:'rgba(100,100,100,0.55)',
+                                display:'flex', alignItems:'center', justifyContent:'center',
+                                pointerEvents:'none', borderRadius:'inherit',
+                              }}>
+                                <svg width="18" height="22" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <rect x="1" y="7" width="12" height="9" rx="1.5" fill="white"/>
+                                  <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 5V7" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                                  <circle cx="7" cy="11.5" r="1.5" fill="rgba(100,100,100,0.55)"/>
+                                  <rect x="6.25" y="12.5" width="1.5" height="2" rx="0.75" fill="rgba(100,100,100,0.55)"/>
+                                </svg>
+                              </span>
+                            )}
+                          </button>
                         ))}
                       </div>
-                      <div className="info-tab-content"><p className="empty-msg">{infoTab} 정보가 없습니다.</p></div>
+                      {selectedStudent && (
+                        <div className="info-tab-content">
+                          {infoTab==='가족'     && <FamilyTab />}
+                          {infoTab==='수강'     && <ClassTab />}
+                          {infoTab==='수납'     && <PaymentTab />}
+                          {infoTab==='결제'     && <BillingTab />}
+                          {infoTab==='상담'     && <ConsultTab />}
+                          {infoTab==='출결'     && <AttendTab />}
+                          {infoTab==='학원성적' && <AcademyScoreTab />}
+                          {infoTab==='학교성적' && <SchoolScoreTab />}
+                          {infoTab==='알림내역' && <NoticeTab />}
+                          {infoTab==='메모'     && <MemoTab />}
+                          {infoTab==='진도'     && <ProgressTab />}
+                          {infoTab==='차량'     && <VehicleTab />}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -339,30 +445,28 @@ export default function Students() {
                 </div>
                 <div className="sts-filter">
                   <div className="sts-filter-row">
-                    <div className="sts-filter-item"><label className="sts-filter-label">강사</label><select className="sts-input" value={statusFilter.teacher} onChange={e=>setStatusFilter(f=>({...f,teacher:e.target.value}))}><option>전체</option></select></div>
+                    <div className="sts-filter-item"><label className="sts-filter-label first">강사</label><select className="sts-input" value={statusFilter.teacher} onChange={e=>setStatusFilter(f=>({...f,teacher:e.target.value}))}><option>전체</option></select></div>
                     <div className="sts-filter-item"><label className="sts-filter-label">반 그룹</label><select className="sts-input" value={statusFilter.group} onChange={e=>setStatusFilter(f=>({...f,group:e.target.value}))}><option>전체</option></select></div>
                     <div className="sts-filter-item"><label className="sts-filter-label">반명</label><select className="sts-input" value={statusFilter.className} onChange={e=>setStatusFilter(f=>({...f,className:e.target.value}))}><option>전체</option></select></div>
                     <div className="sts-filter-item"><label className="sts-filter-label">수강생상태</label><select className="sts-input" value={statusFilter.studentStatus} onChange={e=>setStatusFilter(f=>({...f,studentStatus:e.target.value}))}><option>선택하기</option><option>재원</option><option>예비</option><option>휴원</option><option>퇴원</option><option>예비+휴원+퇴원</option></select></div>
-                    <div className="sts-filter-item" style={{flex:2}}>
-                      <label className="sts-filter-label">검색</label>
-                      <div style={{display:'flex',gap:6}}>
-                        <select className="sts-input" style={{width:120}} value={statusFilter.searchType} onChange={e=>setStatusFilter(f=>({...f,searchType:e.target.value}))}><option>수강생-성명</option><option>수강생-휴대폰</option><option>수강생-집전화</option></select>
-                        <input className="sts-input" style={{flex:1}} value={statusFilter.keyword} onChange={e=>setStatusFilter(f=>({...f,keyword:e.target.value}))}/>
-                      </div>
+                    <div className="sts-filter-item">
+                      <select className="sts-input" style={{width:120,marginLeft:14}} value={statusFilter.searchType} onChange={e=>setStatusFilter(f=>({...f,searchType:e.target.value}))}><option>수강생-성명</option><option>수강생-휴대폰</option><option>수강생-집전화</option></select>
+                      <input className="sts-input" style={{width:150,marginLeft:14}} value={statusFilter.keyword} onChange={e=>setStatusFilter(f=>({...f,keyword:e.target.value}))}/>
+                      <label className="sts-filter-label">수강동기</label>
+                      <select className="sts-input" style={{width:120,marginLeft:14}} value={statusFilter.motive} onChange={e=>setStatusFilter(f=>({...f,motive:e.target.value}))}><option>선택하기</option></select>
                     </div>
-                    <div className="sts-filter-item"><label className="sts-filter-label">수강동기</label><select className="sts-input" value={statusFilter.motive} onChange={e=>setStatusFilter(f=>({...f,motive:e.target.value}))}><option>선택하기</option></select></div>
                   </div>
-                  <div className="sts-filter-row" style={{marginTop:8}}>
-                    <div className="sts-filter-item"><label className="sts-filter-label">학부</label><select className="sts-input" value={statusFilter.dept} onChange={e=>setStatusFilter(f=>({...f,dept:e.target.value}))}><option>선택하기</option></select></div>
+                  <div className="sts-filter-row">
+                    <div className="sts-filter-item"><label className="sts-filter-label first">학부</label><select className="sts-input" value={statusFilter.dept} onChange={e=>setStatusFilter(f=>({...f,dept:e.target.value}))}><option>선택하기</option></select></div>
                     <div className="sts-filter-item"><label className="sts-filter-label">학년</label><input className="sts-input" value={statusFilter.grade} onChange={e=>setStatusFilter(f=>({...f,grade:e.target.value}))}/></div>
                     <div className="sts-filter-item"><label className="sts-filter-label">학교</label><input className="sts-input" value={statusFilter.school} onChange={e=>setStatusFilter(f=>({...f,school:e.target.value}))}/></div>
                     <div className="sts-filter-item"><label className="sts-filter-label">성별</label><select className="sts-input" value={statusFilter.gender} onChange={e=>setStatusFilter(f=>({...f,gender:e.target.value}))}><option>선택하기</option><option>남자</option><option>여자</option></select></div>
-                    <div className="sts-filter-item" style={{flex:2}}>
-                      <label className="sts-filter-label">생년월일</label>
-                      <div style={{display:'flex',gap:6,alignItems:'center'}}>
-                        <DatePicker value={statusFilter.birthFrom} onChange={v=>setStatusFilter(f=>({...f,birthFrom:v}))}/>
+                    <div className="sts-filter-item">
+                      <select className="sts-input" style={{width:120,marginLeft:14}} value={statusFilter.birthType} onChange={e=>setStatusFilter(f=>({...f,birthType:e.target.value}))}><option>생년월일</option><option>입학일자</option><option>퇴원일자</option></select>
+                      <div style={{gridColumn:'span 3',display:'flex',gap:6,alignItems:'center',marginLeft:14}}>
+                        <DatePicker value={statusFilter.birthFrom} onChange={v=>setStatusFilter(f=>({...f,birthFrom:v}))} style={{width:120}}/>
                         <span>~</span>
-                        <DatePicker value={statusFilter.birthTo} onChange={v=>setStatusFilter(f=>({...f,birthTo:v}))}/>
+                        <DatePicker value={statusFilter.birthTo} onChange={v=>setStatusFilter(f=>({...f,birthTo:v}))} style={{width:120}}/>
                       </div>
                     </div>
                   </div>
