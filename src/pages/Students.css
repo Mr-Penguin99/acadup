@@ -156,6 +156,19 @@
   padding: 20px 0;
 }
 
+.sp-table-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 7px 8px;
+  font-size: 12px;
+  color: #333;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.sp-table-row:hover { background: #fff8f3; }
+.sp-table-row.active { background: #FFF0E0; color: #F5841F; font-weight: 700; }
+
 /* 정보 패널 */
 .info-panel {
   flex: 1;
@@ -639,17 +652,17 @@
   min-width: 100%;
 }
 
-.att-th-no  { width: 50px; text-align: center; padding: 8px 6px; background: #f5f5f5; border-bottom: 1px solid #e0e0e0; border-right: 1px solid #eee; white-space: nowrap; font-weight: 700; color: #555; position: sticky; left: 0; z-index: 2; }
-.att-th-name { width: 120px; text-align: center; padding: 8px 10px; background: #f5f5f5; border-bottom: 1px solid #e0e0e0; border-right: 1px solid #eee; white-space: nowrap; font-weight: 700; color: #555; position: sticky; left: 50px; z-index: 2; }
+.att-th-no  { width: 50px; text-align: center; padding: 8px 6px; background: #F8F9FB; border-top: 2px solid #666; border-bottom: 1px solid #e0e0e0; white-space: nowrap; font-weight: 700; color: #555; position: sticky; left: 0; z-index: 2; }
+.att-th-name { width: 120px; text-align: center; padding: 8px 10px; background: #F8F9FB; border-top: 2px solid #666; border-bottom: 1px solid #e0e0e0; white-space: nowrap; font-weight: 700; color: #555; position: sticky; left: 50px; z-index: 2; }
 
 .att-th-day {
   width: 36px;
   min-width: 36px;
   text-align: center;
   padding: 4px 2px;
-  background: #f5f5f5;
+  background: #F8F9FB;
+  border-top: 2px solid #666;
   border-bottom: 1px solid #e0e0e0;
-  border-right: 1px solid #eee;
   font-weight: 700;
   color: #555;
   font-size: 11px;
@@ -663,7 +676,6 @@
   text-align: center;
   padding: 8px 6px;
   border-bottom: 1px solid #f0f0f0;
-  border-right: 1px solid #eee;
   color: #555;
   position: sticky;
   left: 0;
@@ -674,7 +686,6 @@
 .att-td-name {
   padding: 8px 10px;
   border-bottom: 1px solid #f0f0f0;
-  border-right: 1px solid #eee;
   white-space: nowrap;
   position: sticky;
   left: 50px;
@@ -686,7 +697,6 @@
   width: 36px;
   min-width: 36px;
   border-bottom: 1px solid #f0f0f0;
-  border-right: 1px solid #eee;
 }
 
 .att-cal-table tr:hover td { background: #fafafa; }
@@ -696,7 +706,7 @@
 /* 공지사항 */
 .notice-subtitle {
   text-align: center;
-  font-size: 16px;
+  font-size: 22px;
   color: #aaa;
   padding: 24px 0;
 }
@@ -750,12 +760,13 @@
 }
 
 .notice-table th {
-  background: #f5f5f5;
+  background: #F8F9FB;
   padding: 10px;
   text-align: center;
   font-size: 12px;
   font-weight: 700;
   color: #555;
+  border-top: 2px solid #666;
   border-bottom: 1px solid #e0e0e0;
 }
 

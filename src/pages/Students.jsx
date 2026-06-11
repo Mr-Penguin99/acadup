@@ -126,16 +126,45 @@ export default function Students() {
   const [replaceChecked, setReplaceChecked] = useState([])
   const [talkChecked, setTalkChecked] = useState([])
   const [noticeChecked, setNoticeChecked] = useState([])
-  const [selectedStudent, setSelectedStudent] = useState(true)
+  const [students, setStudents] = useState([])
+  const [selectedStudentId, setSelectedStudentId] = useState(null) // null | 'new' | number
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [lockedClickCount, setLockedClickCount] = useState(0)
   const [menuLockedClickCount, setMenuLockedClickCount] = useState(0)
-  const [form, setForm] = useState({
+
+  const emptyForm = {
     studentNo:'', status:'', name:'', birth:'', gender:'남자',
     id:'', pw:'', enrollDate:'', payMethod:'',
     phone:'', homePhone:'', grade1:'', grade2:'', attendNo:'',
-    email1:'', email2:'', emailType:'직접입력',
-  })
+    email1:'', email2:'', emailType:'직접입력', dept:'',
+  }
+  const [form, setForm] = useState(emptyForm)
+
+  const handleNewStudent = () => {
+    setSelectedStudentId('new')
+    setForm(emptyForm)
+    setInfoTab('가족')
+  }
+
+  const handleSelectStudent = (s) => {
+    setSelectedStudentId(s.id)
+    setForm(s)
+    setInfoTab('가족')
+  }
+
+  const handleSave = () => {
+    if (!form.name)       { alert('성명을 입력해주세요.'); return }
+    if (!form.birth)      { alert('생년월일을 입력해주세요.'); return }
+    if (!form.enrollDate) { alert('입학일자를 입력해주세요.'); return }
+    if (!form.phone)      { alert('학생 휴대폰을 입력해주세요.'); return }
+    if (selectedStudentId === 'new') {
+      const newId = Date.now()
+      setStudents(prev => [...prev, { ...form, id: newId }])
+      setSelectedStudentId(newId)
+    } else {
+      setStudents(prev => prev.map(s => s.id === selectedStudentId ? { ...form, id: selectedStudentId } : s))
+    }
+  }
 
   const toggleGroup = id => setExpanded(e => e.includes(id) ? [] : [id])
   const toggleReplaceCheck = id => setReplaceChecked(c => c.includes(id) ? c.filter(x=>x!==id) : [...c,id])
@@ -270,10 +299,19 @@ export default function Students() {
                         onChange={e=>setSearch(s=>({...s,name:e.target.value}))}/>
                     </div>
                     <button className="sp-search-btn">검색</button>
-                    <div className="sp-result">검색결과 : <strong>0명</strong></div>
+                    <div className="sp-result">검색결과 : <strong>{students.length}명</strong></div>
                     <div className="sp-table">
                       <div className="sp-table-head"><span>이름</span><span>생년월일</span></div>
-                      <div className="sp-table-empty">검색 결과가 없습니다.</div>
+                      {students.length === 0
+                        ? <div className="sp-table-empty">검색 결과가 없습니다.</div>
+                        : students.map(s => (
+                            <div key={s.id}
+                              className={`sp-table-row ${selectedStudentId === s.id ? 'active' : ''}`}
+                              onClick={() => handleSelectStudent(s)}>
+                              <span>{s.name}</span><span>{s.birth}</span>
+                            </div>
+                          ))
+                      }
                     </div>
                   </div>
                 </div>
@@ -281,8 +319,8 @@ export default function Students() {
                   <div className="info-header">
                     <span className="info-title">학생 정보자료</span>
                     <div style={{display:'flex',gap:8}}>
-                      <button className="info-save-btn">저장</button>
-                      <button className="info-new-btn">신규 수강생 등록</button>
+                      <button className="info-save-btn" style={{background:'#E8445A'}} onClick={handleSave}>저장</button>
+                      <button className="info-new-btn" onClick={handleNewStudent}>신규 수강생 등록</button>
                     </div>
                   </div>
                   <div className="info-body">
@@ -301,7 +339,7 @@ export default function Students() {
                           </div>
                           <label className="if-label">상태</label>
                           <div className="if-cell">
-                            <select className="if-input" style={{width:120}}><option>선택하기</option><option>재원</option><option>예비</option><option>휴원</option><option>퇴원</option><option>예비+휴원+퇴원</option></select>
+                            <select className="if-input" style={{width:120}} value={form.status} onChange={e=>setForm(f=>({...f,status:e.target.value}))}><option value=''>선택하기</option><option>재원</option><option>예비</option><option>휴원</option><option>퇴원</option><option>예비+휴원+퇴원</option></select>
                           </div>
                         </div>
                         <div className="if-row">
@@ -335,7 +373,7 @@ export default function Students() {
                           </div>
                           <label className="if-label">주 결제방법</label>
                           <div className="if-cell">
-                            <select className="if-input"><option>선택</option><option>카드</option><option>현금</option><option>계좌이체</option></select>
+                            <select className="if-input"><option>선택</option><option>현장결제</option><option>비대면(카드)</option><option>비대면(계좌)</option></select>
                           </div>
                         </div>
                         <div className="if-row">
@@ -351,7 +389,7 @@ export default function Students() {
                         <div className="if-row">
                           <label className="if-label">학부/학년</label>
                           <div className="if-cell">
-                            <select className="if-input" style={{width:80}}><option>선택</option></select>
+                            <select className="if-input" style={{width:80}}><option>선택하기</option><option>초등학교</option><option>중학교</option><option>고등학교</option><option>대학교</option></select>
                             <input className="if-input" style={{width:80}} value={form.grade2} onChange={e=>setForm(f=>({...f,grade2:e.target.value}))}/>
                             <input className="if-input" style={{width:40}}/>
                             <span className="if-hint">학년 0</span>
@@ -407,7 +445,7 @@ export default function Students() {
                           </button>
                         ))}
                       </div>
-                      {selectedStudent && (
+                      {selectedStudentId !== null && selectedStudentId !== 'new' && (
                         <div className="info-tab-content">
                           {infoTab==='가족'     && <FamilyTab />}
                           {infoTab==='수강'     && <ClassTab />}
@@ -457,7 +495,7 @@ export default function Students() {
                     </div>
                   </div>
                   <div className="sts-filter-row">
-                    <div className="sts-filter-item"><label className="sts-filter-label first">학부</label><select className="sts-input" value={statusFilter.dept} onChange={e=>setStatusFilter(f=>({...f,dept:e.target.value}))}><option>선택하기</option></select></div>
+                    <div className="sts-filter-item"><label className="sts-filter-label first">학부</label><select className="sts-input" value={statusFilter.dept} onChange={e=>setStatusFilter(f=>({...f,dept:e.target.value}))}><option>선택하기</option><option>초등학교</option><option>중학교</option><option>고등학교</option><option>대학교</option></select></div>
                     <div className="sts-filter-item"><label className="sts-filter-label">학년</label><input className="sts-input" value={statusFilter.grade} onChange={e=>setStatusFilter(f=>({...f,grade:e.target.value}))}/></div>
                     <div className="sts-filter-item"><label className="sts-filter-label">학교</label><input className="sts-input" value={statusFilter.school} onChange={e=>setStatusFilter(f=>({...f,school:e.target.value}))}/></div>
                     <div className="sts-filter-item"><label className="sts-filter-label">성별</label><select className="sts-input" value={statusFilter.gender} onChange={e=>setStatusFilter(f=>({...f,gender:e.target.value}))}><option>선택하기</option><option>남자</option><option>여자</option></select></div>
@@ -698,7 +736,7 @@ export default function Students() {
               <div className="notice-subtitle" style={{lineHeight:'1.8'}}>
                 문자치환 알림톡은 고객이 신청하거나 계약관계(수강신청 등)가 있을 때만 발송할 수 있습니다.<br/>
                 불특정 다수에게 발송하여 스팸신고가 접수되는 경우, 카카오 채널이 차단될 수 있습니다.&nbsp;
-                <span style={{color:'#F5841F',fontWeight:700,cursor:'pointer'}}>( 카카오 알림톡 방침 )</span>
+                <span style={{color:'#E8445A',fontWeight:400,cursor:'pointer'}}>( 카카오 알림톡 방침 )</span>
               </div>
               <div className="notice-search-wrap">
                 <select className="sts-input" style={{width:120}} value={replaceSearch.type} onChange={e=>setReplaceSearch(f=>({...f,type:e.target.value}))}><option>제목+내용</option><option>제목</option><option>내용</option></select>
