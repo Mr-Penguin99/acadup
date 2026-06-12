@@ -663,6 +663,13 @@ export default function Students() {
             </>
           )}
 
+          {/* 학원공지 미리보기 배너 */}
+          {['notice-board','notice-talk','notice-replace','notice-schedule'].includes(activeSide)&&(
+            <div style={{background:'#FFF8F0',border:'1px solid #F5C49A',borderRadius:4,padding:'9px 16px',marginBottom:12,fontSize:13,color:'#b85c00',textAlign:'center'}}>
+              이 화면은 미리보기입니다. 정식 전환하시면 지금 보이는 기능을 바로 사용하실 수 있어요.
+            </div>
+          )}
+
           {/* 공지사항 */}
           {activeSide==='notice-board'&&(
             <>
