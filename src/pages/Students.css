@@ -652,8 +652,8 @@
   min-width: 100%;
 }
 
-.att-th-no  { width: 50px; text-align: center; padding: 8px 6px; background: #F8F9FB; border-top: 2px solid #666; border-bottom: 1px solid #e0e0e0; white-space: nowrap; font-weight: 700; color: #555; position: sticky; left: 0; z-index: 2; }
-.att-th-name { width: 120px; text-align: center; padding: 8px 10px; background: #F8F9FB; border-top: 2px solid #666; border-bottom: 1px solid #e0e0e0; white-space: nowrap; font-weight: 700; color: #555; position: sticky; left: 50px; z-index: 2; }
+.att-th-no  { width: 50px; text-align: center; padding: 8px 6px; background: #F8F9FB; border-top: 2px solid #666; border-bottom: 1px solid #e0e0e0; border-right: none; border-left: none; white-space: nowrap; font-weight: 700; color: #555; position: sticky; left: 0; z-index: 2; }
+.att-th-name { width: 120px; text-align: center; padding: 8px 10px; background: #F8F9FB; border-top: 2px solid #666; border-bottom: 1px solid #e0e0e0; border-right: none; border-left: none; white-space: nowrap; font-weight: 700; color: #555; position: sticky; left: 50px; z-index: 2; }
 
 .att-th-day {
   width: 36px;
@@ -663,6 +663,8 @@
   background: #F8F9FB;
   border-top: 2px solid #666;
   border-bottom: 1px solid #e0e0e0;
+  border-right: none;
+  border-left: none;
   font-weight: 700;
   color: #555;
   font-size: 11px;
@@ -676,6 +678,8 @@
   text-align: center;
   padding: 8px 6px;
   border-bottom: 1px solid #f0f0f0;
+  border-right: none;
+  border-left: none;
   color: #555;
   position: sticky;
   left: 0;
@@ -686,6 +690,8 @@
 .att-td-name {
   padding: 8px 10px;
   border-bottom: 1px solid #f0f0f0;
+  border-right: none;
+  border-left: none;
   white-space: nowrap;
   position: sticky;
   left: 50px;
@@ -697,6 +703,8 @@
   width: 36px;
   min-width: 36px;
   border-bottom: 1px solid #f0f0f0;
+  border-right: none;
+  border-left: none;
 }
 
 .att-cal-table tr:hover td { background: #fafafa; }
