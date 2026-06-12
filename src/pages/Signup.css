@@ -67,20 +67,20 @@
 .step-label { font-size: 12px; color: #aaa; }
 .step-label.active { color: #F5841F; font-weight: 700; }
 
-.card {
+.signup-card {
   width: 100%;
   max-width: 700px;
   background: #fff;
   border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  padding: 32px;
+  border-radius: 5px;
+  padding: 24px;
 }
 
 .step-content { display: flex; flex-direction: column; }
 
 .section-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
 
-.section-sub { font-size: 13px; color: #888; margin-bottom: 20px; }
+.section-sub { font-size: 13px; color: #888; margin-bottom: 28px; }
 
 .agree-row {
   display: flex;
@@ -89,7 +89,7 @@
   padding: 14px 16px;
   border: 1px solid #e0e0e0;
   border-radius: 4px;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
   cursor: pointer;
   font-size: 14px;
 }
@@ -115,7 +115,7 @@
   border-radius: 4px;
   font-size: 16px;
   font-weight: 500;
-  margin-top: 16px;
+  margin-top: 28px;
 }
 
 .btn-primary.btn-disabled { opacity: 0.5; cursor: not-allowed; }

@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import './Signup.css'
 
 const logo = '/logo.svg'
 
 export default function Signup() {
+  const navigate = useNavigate()
   const [step, setStep] = useState(1)
   const [agreed, setAgreed] = useState({ all: false, terms: false, privacy: false })
 
@@ -16,7 +18,9 @@ export default function Signup() {
   const [timer, setTimer] = useState(180)
   const [timerActive, setTimerActive] = useState(false)
 
+  const [userIdChecked, setUserIdChecked] = useState(false)
   const [form, setForm] = useState({
+    userId: '', password: '', passwordConfirm: '',
     bizName: '', bizNum: '', ownerName: '',
     phone: '', tel: '', email: '',
     address: '', addressDetail: '',
@@ -65,12 +69,15 @@ export default function Signup() {
     setAgreed(next)
   }
 
-  const canSubmit = form.ownerName && form.email && form.address
+  const canSubmit = form.userId && userIdChecked && form.password &&
+    form.password === form.passwordConfirm &&
+    form.ownerName && form.email && form.referral &&
+    (form.referral !== 'referral' || form.referralCode)
 
   const steps = [
     { n: 1, label: '약관동의' },
     { n: 2, label: '정보입력' },
-    { n: 3, label: '신청완료' },
+    { n: 3, label: '가입완료' },
   ]
 
   return (
@@ -78,7 +85,7 @@ export default function Signup() {
 
       <div className="header">
         <img src={logo} alt="아카데미UP" className="logo" />
-        <p className="page-title">이용 가입신청</p>
+        <p className="page-title">이용 회원가입</p>
       </div>
 
       <div className="steps">
@@ -95,7 +102,7 @@ export default function Signup() {
         ))}
       </div>
 
-      <div className="card">
+      <div className="signup-card">
 
         {/* STEP 1 약관동의 */}
         {step === 1 && (
@@ -264,6 +271,55 @@ export default function Signup() {
             </div>
 
             <div className="field-group">
+              <label className="field-label">아이디 <span className="required">*</span></label>
+              <div className="input-row">
+                <input
+                  className="field-input"
+                  placeholder="아이디를 입력해주세요"
+                  value={form.userId}
+                  onChange={e => { setForm(f => ({ ...f, userId: e.target.value })); setUserIdChecked(false) }}
+                  disabled={userIdChecked}
+                />
+                <button className="btn-inline" onClick={() => {
+                  if (!form.userId) return
+                  alert('사용 가능한 아이디입니다.\n(테스트: 바로 통과)')
+                  setUserIdChecked(true)
+                }}>
+                  {userIdChecked ? '확인완료' : '중복확인'}
+                </button>
+              </div>
+              {userIdChecked && <p className="field-hint" style={{ color: '#2CBB6A' }}>✅ 사용 가능한 아이디입니다.</p>}
+            </div>
+
+            <div className="field-group">
+              <label className="field-label">비밀번호 <span className="required">*</span></label>
+              <input
+                className="field-input"
+                type="password"
+                placeholder="비밀번호를 입력해주세요"
+                value={form.password}
+                onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+              />
+            </div>
+
+            <div className="field-group">
+              <label className="field-label">비밀번호 확인 <span className="required">*</span></label>
+              <input
+                className="field-input"
+                type="password"
+                placeholder="비밀번호를 다시 입력해주세요"
+                value={form.passwordConfirm}
+                onChange={e => setForm(f => ({ ...f, passwordConfirm: e.target.value }))}
+              />
+              {form.passwordConfirm && form.password !== form.passwordConfirm && (
+                <p className="field-hint" style={{ color: '#e53e3e' }}>비밀번호가 일치하지 않습니다.</p>
+              )}
+              {form.passwordConfirm && form.password === form.passwordConfirm && (
+                <p className="field-hint" style={{ color: '#2CBB6A' }}>✅ 비밀번호가 일치합니다.</p>
+              )}
+            </div>
+
+            <div className="field-group">
               <label className="field-label">대표자명 <span className="required">*</span></label>
               <input
                 className="field-input"
@@ -369,11 +425,13 @@ export default function Signup() {
         {/* STEP 3 신청완료 */}
         {step === 3 && (
           <div className="step-content" style={{ textAlign: 'center', padding: '20px 0' }}>
-            <div style={{ fontSize: 52, marginBottom: 16 }}>✅</div>
-            <h2 className="section-title">신청이 완료되었습니다</h2>
-            <p className="section-sub" style={{ marginTop: 8 }}>
-              담당자 확인 후 연락드리겠습니다.
+            <h2 className="section-title" style={{ fontSize: 24, fontWeight: 500 }}>회원가입이 완료되었습니다.</h2>
+            <p className="section-sub" style={{ marginTop: 8, fontSize: 18 }}>
+              데모버전을 통해 기능을 체험하고 정식 계정으로 전환 요청하세요!
             </p>
+            <button className="btn-primary" onClick={() => navigate('/dashboard')}>
+              시작하기
+            </button>
           </div>
         )}
 

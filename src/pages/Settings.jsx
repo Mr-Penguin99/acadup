@@ -170,15 +170,48 @@ export default function Settings() {
             )
           })}
         </div>
-        <button className="menu-charge-btn">전송충전관리</button>
+        <div style={{position:'relative',display:'inline-flex',margin:'10px 0',overflow:'hidden',borderRadius:4}}>
+          <button className="menu-charge-btn" style={{margin:0}}>전송충전관리</button>
+          <span style={{position:'absolute',inset:0,background:'rgba(200,200,200,0.75)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}
+            onClick={()=>{
+              const next = menuLockedClickCount + 1
+              if(next >= 2){ setShowUpgradeModal(true); setMenuLockedClickCount(0) }
+              else { setMenuLockedClickCount(next) }
+            }}>
+            <svg width="14" height="17" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="1" y="7" width="12" height="9" rx="1.5" fill="#fff"/>
+              <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 5V7" stroke="#fff" strokeWidth="2" strokeLinecap="round" fill="none"/>
+              <circle cx="7" cy="11.5" r="1.5" fill="rgba(200,200,200,0.75)"/>
+              <rect x="6.25" y="12.5" width="1.5" height="2" rx="0.75" fill="rgba(200,200,200,0.75)"/>
+            </svg>
+          </span>
+        </div>
       </div>
 
       {showUpgradeModal && (
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.45)',zIndex:2000,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={()=>setShowUpgradeModal(false)}>
-          <div style={{background:'#fff',borderRadius:8,padding:'36px 40px',textAlign:'center',boxShadow:'0 8px 32px rgba(0,0,0,0.2)',maxWidth:360,width:'90%'}} onClick={e=>e.stopPropagation()}>
-            <div style={{fontSize:36,marginBottom:16}}>🔒</div>
-            <p style={{fontSize:15,color:'#333',lineHeight:1.7,marginBottom:24}}>정식 계정으로 전환 시 기능을<br/>제한 없이 이용하실 수 있습니다.</p>
-            <button style={{padding:'10px 24px',background:'#F5841F',color:'#fff',border:'none',borderRadius:6,fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:'inherit'}} onClick={()=>setShowUpgradeModal(false)}>정식 전환하러 가기</button>
+          <div style={{background:'#fff',borderRadius:8,padding:'20px 40px',textAlign:'center',boxShadow:'0 8px 32px rgba(0,0,0,0.2)',maxWidth:360,width:'90%'}} onClick={e=>e.stopPropagation()}>
+            <div style={{marginBottom:16}}>
+              <svg width="80" height="98" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg" style={{filter:'drop-shadow(0px 3px 6px rgba(0,0,0,0.18))'}}>
+                <defs>
+                  <filter id="inset-shadow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feComponentTransfer in="SourceAlpha" result="alphaInv"><feFuncA type="table" tableValues="1 0"/></feComponentTransfer>
+                    <feOffset dx="0" dy="0.4" in="alphaInv" result="offset"/>
+                    <feGaussianBlur stdDeviation="0.35" in="offset" result="blurred"/>
+                    <feComposite in="blurred" in2="SourceAlpha" operator="in" result="innerShadow"/>
+                    <feFlood floodColor="rgba(0,0,0,0.25)" result="color"/>
+                    <feComposite in="color" in2="innerShadow" operator="in" result="coloredShadow"/>
+                    <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="coloredShadow"/></feMerge>
+                  </filter>
+                </defs>
+                <rect x="1" y="7" width="12" height="9" rx="1.5" fill="#f8f9fb"/>
+                <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 5V7" stroke="#f8f9fb" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                <circle cx="7" cy="11.5" r="1.5" fill="#e8eaed" filter="url(#inset-shadow)"/>
+                <rect x="6.25" y="12.5" width="1.5" height="2" rx="0.75" fill="#e8eaed" filter="url(#inset-shadow)"/>
+              </svg>
+            </div>
+            <p style={{fontSize:15,color:'#333',lineHeight:1.7,marginBottom:20}}>무료로 정식 계정으로 전환하고<br/>모든 기능을 제한없이 이용해보세요!</p>
+            <button style={{padding:'10px 24px',background:'#F5841F',color:'#fff',border:'none',borderRadius:6,fontSize:14,fontWeight:500,cursor:'pointer',fontFamily:'inherit'}} onClick={()=>setShowUpgradeModal(false)}>무료로 정식 전환하러 가기</button>
           </div>
         </div>
       )}
@@ -214,6 +247,14 @@ export default function Settings() {
 
         {/* 콘텐츠 */}
         <div className="settings-main">
+
+          {/* 미리보기 배너 */}
+          <div style={{background:'#f8f9fb',borderRadius:4,padding:'6px 16px',marginBottom:12,fontSize:14,color:'#ff9000',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+            <span>이 화면은 미리보기입니다. 정식 전환하시면 지금 보이는 기능을 바로 사용하실 수 있어요.</span>
+            <button style={{flexShrink:0,marginLeft:16,padding:'3px 20px',background:'#ff9000',color:'#fff',border:'none',borderRadius:4,fontSize:14,fontWeight:500,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}}>
+              정식전환 요청하기
+            </button>
+          </div>
 
           {/* ===== 학원 기본정보 ===== */}
           {activeSide === 'basic' && (
