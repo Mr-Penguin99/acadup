@@ -98,7 +98,7 @@ export default function Settings() {
     Object.fromEntries(AUTH_GROUPS.map(g => [g.code, '']))
   )
   const [form, setForm] = useState({
-    name: 'OO학원', bizNo: '123-45-67891',
+    name: localStorage.getItem('academyName') || 'OO학원', bizNo: '123-45-67891',
     code: '10102093', taxType: '면세',
     region1: '서울', region2: '중구',
     regNo: '000000', tel: '010-0000-0000',
@@ -216,7 +216,7 @@ export default function Settings() {
         </div>
       )}
 
-      {/* 바디 */}
+{/* 바디 */}
       <div className="settings-body">
 
         {/* 사이드바 */}
@@ -251,7 +251,7 @@ export default function Settings() {
           {/* 미리보기 배너 */}
           <div style={{background:'#f8f9fb',borderRadius:4,padding:'6px 16px',marginBottom:12,fontSize:14,color:'#ff9000',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
             <span>이 화면은 미리보기입니다. 정식 전환하시면 지금 보이는 기능을 바로 사용하실 수 있어요.</span>
-            <button style={{flexShrink:0,marginLeft:16,padding:'3px 20px',background:'#ff9000',color:'#fff',border:'none',borderRadius:4,fontSize:14,fontWeight:500,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}}>
+            <button style={{flexShrink:0,marginLeft:16,padding:'3px 20px',background:'#ff9000',color:'#fff',border:'none',borderRadius:4,fontSize:14,fontWeight:500,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}} onClick={()=>window.open('/conversion-request','_blank','width=560,height=780')}>
               정식전환 요청하기
             </button>
           </div>
@@ -264,7 +264,7 @@ export default function Settings() {
               <div className="sm-section-flat" style={{marginTop:40}}>
                 <div className="sm-sec-head" style={{borderBottomColor:'#00B5A9'}}>
                   <div className="sm-sec-title">기본정보</div>
-                  <button className="sm-edit-btn" onClick={() => setEditing(!editing)}> 수정 </button>
+                  <button className="sm-edit-btn" onClick={() => { if (editing) { localStorage.setItem('academyName', form.name); localStorage.setItem('bizNo', form.bizNo); } setEditing(!editing) }}> {editing ? '저장' : '수정'} </button>
                 </div>
                <div className="sm-form" style={{padding: 0}}>
 

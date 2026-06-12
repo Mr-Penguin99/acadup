@@ -303,7 +303,7 @@ export default function Students() {
           </div>
         )}
 
-        <div className="students-main">
+<div className="students-main">
 
           {/* 반별 수강생 */}
           {activeSide==='class-students'&&(
@@ -590,7 +590,7 @@ export default function Students() {
           {['attend-inout','attend-ride','notice-board','notice-talk','notice-replace','notice-schedule'].includes(activeSide)&&(
             <div style={{background:'#f8f9fb',borderRadius:4,padding:'6px 16px',marginBottom:12,fontSize:14,color:'#ff9000',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
               <span>이 화면은 미리보기입니다. 정식 전환하시면 지금 보이는 기능을 바로 사용하실 수 있어요.</span>
-              <button style={{flexShrink:0,marginLeft:16,padding:'3px 20px',background:'#ff9000',color:'#fff',border:'none',borderRadius:4,fontSize:14,fontWeight:500,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}}>
+              <button style={{flexShrink:0,marginLeft:16,padding:'3px 20px',background:'#ff9000',color:'#fff',border:'none',borderRadius:4,fontSize:14,fontWeight:500,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}} onClick={()=>window.open('/conversion-request','_blank','width=560,height=780')}>
                 정식전환 요청하기
               </button>
             </div>
@@ -708,7 +708,7 @@ export default function Students() {
           {activeSide==='notice-board'&&(
             <>
               <div className="sm-page-title"><span style={{color:'#ccc'}}>☆</span> 공지사항</div>
-              <div className="notice-subtitle">수강생 및 학부모에게 안내하는 경리up다(학원)ㄱㄱ 소식입니다.</div>
+              <div className="notice-subtitle">수강생 및 학부모에게 안내하는 {localStorage.getItem('academyName') || 'OO학원'} 소식입니다.</div>
               <div className="notice-search-wrap">
                 <select className="sts-input" style={{width:120}} value={noticeSearch.type} onChange={e=>setNoticeSearch(f=>({...f,type:e.target.value}))}><option>제목+내용</option><option>제목</option><option>내용</option></select>
                 <div className="notice-search-box"><input className="notice-search-input" value={noticeSearch.keyword} onChange={e=>setNoticeSearch(f=>({...f,keyword:e.target.value}))}/><button className="notice-search-icon">🔍</button></div>

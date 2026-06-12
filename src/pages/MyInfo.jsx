@@ -2,8 +2,8 @@ import { useState } from 'react'
 
 export default function MyInfo() {
   const [form, setForm] = useState({
-    empNo: '200001',
-    name: '원장',
+    empNo: localStorage.getItem('userEmpNo') || '200001',
+    name: localStorage.getItem('userName') || '원장',
     resId1: '000000', resId2: '1111111',
     id: '10102093',
     pw: '',
@@ -42,7 +42,7 @@ export default function MyInfo() {
           padding: '6px 20px', background: '#F5841F', color: '#fff',
           border: 'none', borderRadius: 4, fontSize: 13, fontWeight: 700,
           cursor: 'pointer', fontFamily: 'inherit',
-        }}>수정</button>
+        }} onClick={() => { localStorage.setItem('userName', form.name); localStorage.setItem('userEmpNo', form.empNo) }}>수정</button>
       </div>
 
       {/* 기본정보 카드 */}

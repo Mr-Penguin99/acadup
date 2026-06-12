@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Signup from './pages/Signup'
 import Demo from './pages/Demo'
+import ConversionRequest from './pages/ConversionRequest'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Settings from './pages/Settings'
@@ -22,6 +23,7 @@ function App() {
         <Route path="/" element={<Demo />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/conversion-request" element={<ConversionRequest />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/students" element={<Students />} />

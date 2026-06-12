@@ -4,6 +4,9 @@ import { useNavigate } from 'react-router-dom'
 export default function TopNav() {
   const navigate = useNavigate()
   const [showQuick, setShowQuick] = useState(false)
+  const [academyName, setAcademyName] = useState(localStorage.getItem('academyName') || 'OO학원')
+  const [userName, setUserName] = useState(localStorage.getItem('userName') || '원장')
+  const [userEmpNo, setUserEmpNo] = useState(localStorage.getItem('userEmpNo') || '200001')
   const [favorites, setFavorites] = useState(() => {
     try { return JSON.parse(localStorage.getItem('favorites')) || [] }
     catch { return [] }
@@ -14,9 +17,11 @@ export default function TopNav() {
     const sync = () => {
       try { setFavorites(JSON.parse(localStorage.getItem('favorites')) || []) }
       catch { setFavorites([]) }
+      setAcademyName(localStorage.getItem('academyName') || 'OO학원')
+      setUserName(localStorage.getItem('userName') || '원장')
+      setUserEmpNo(localStorage.getItem('userEmpNo') || '200001')
     }
     window.addEventListener('storage', sync)
-    // 같은 탭에서도 감지
     const interval = setInterval(sync, 500)
     return () => { window.removeEventListener('storage', sync); clearInterval(interval) }
   }, [])
@@ -34,10 +39,10 @@ export default function TopNav() {
         <img src="/logo-en.svg" alt="AcademyUP" className="tnav-logo" />
         <div className="tnav-sep" />
         <span className="tnav-item tnav-academy">
-          <img src="/icons/tnav-academy.svg" className="tnav-icon" /> OO학원
+          <img src="/icons/tnav-academy.svg" className="tnav-icon" /> {academyName}
         </span>
         <div className="tnav-sep" />
-        <span className="tnav-item">원장 (200001)님</span>
+        <span className="tnav-item">{userName} ({userEmpNo})님</span>
         <div className="tnav-sep" />
         <span className="tnav-link" style={{cursor:'pointer'}}
          onClick={() => window.open('/myinfo', '_blank', 'width=1250,height=950')}>

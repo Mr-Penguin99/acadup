@@ -207,7 +207,7 @@ export default function Payments() {
         </div>
       )}
 
-      <div className="payments-body">
+<div className="payments-body">
         {sidebarOpen&&(
           <div className="payments-sidebar">
             <div className="ss-title">수납관리</div>
@@ -233,7 +233,7 @@ export default function Payments() {
           {['bulk-bill','class-bill','monthly-pay','daily-status','monthly-status','class-status'].includes(activeSide)&&(
             <div style={{background:'#f8f9fb',borderRadius:4,padding:'6px 16px',marginBottom:12,fontSize:14,color:'#ff9000',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
               <span>이 화면은 미리보기입니다. 정식 전환하시면 지금 보이는 기능을 바로 사용하실 수 있어요.</span>
-              <button style={{flexShrink:0,marginLeft:16,padding:'3px 20px',background:'#ff9000',color:'#fff',border:'none',borderRadius:4,fontSize:14,fontWeight:500,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}}>
+              <button style={{flexShrink:0,marginLeft:16,padding:'3px 20px',background:'#ff9000',color:'#fff',border:'none',borderRadius:4,fontSize:14,fontWeight:500,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}} onClick={()=>window.open('/conversion-request','_blank','width=560,height=780')}>
                 정식전환 요청하기
               </button>
             </div>
