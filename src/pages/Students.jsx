@@ -665,9 +665,9 @@ export default function Students() {
 
           {/* 학원공지 미리보기 배너 */}
           {['notice-board','notice-talk','notice-replace','notice-schedule'].includes(activeSide)&&(
-            <div style={{background:'#FFF8F0',border:'1px solid #F5C49A',borderRadius:4,padding:'9px 16px',marginBottom:12,fontSize:13,color:'#b85c00',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+            <div style={{background:'#f8f9fb',border:'1px solid #ff9000',borderRadius:4,padding:'9px 16px',marginBottom:12,fontSize:13,color:'#ff9000',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
               <span>이 화면은 미리보기입니다. 정식 전환하시면 지금 보이는 기능을 바로 사용하실 수 있어요.</span>
-              <button style={{flexShrink:0,marginLeft:16,padding:'5px 14px',background:'#F5841F',color:'#fff',border:'none',borderRadius:4,fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}}>
+              <button style={{flexShrink:0,marginLeft:16,padding:'5px 14px',background:'#ff9000',color:'#fff',border:'none',borderRadius:4,fontSize:12,fontWeight:500,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}}>
                 정식전환 요청하기
               </button>
             </div>
