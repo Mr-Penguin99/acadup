@@ -93,7 +93,7 @@ const STUDENT_STATUS_DATA = [
   { id:9, name:'학생1',    birth:'20.01.01', photo:'X', status:'재원', classes:['반그룹 수업1 > 수업1 영어(월화목토)'], keypad:'1234', dept:'고등학교', school:'', grade:'1' },
 ]
 const INFO_TABS = ['가족','수강','수납','결제','상담','출결','학원성적','학교성적','알림내역','메모','진도','차량']
-const LOCKED_TABS = ['상담','학원성적','학교성적','알림내역','메모','진도','차량']
+const LOCKED_TABS = ['상담','출결','학원성적','학교성적','알림내역','메모','진도','차량']
 const UNLOCKED_MENUS = ['students','payments','classes']
 
 export default function Students() {
@@ -129,8 +129,6 @@ export default function Students() {
   const [students, setStudents] = useState([])
   const [selectedStudentId, setSelectedStudentId] = useState(null) // null | 'new' | number
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
-  const [lockedClickCount, setLockedClickCount] = useState(0)
-  const [menuLockedClickCount, setMenuLockedClickCount] = useState(0)
 
   const emptyForm = {
     studentNo:'', status:'', name:'', birth:'', gender:'남자',
@@ -157,7 +155,7 @@ export default function Students() {
     if (!form.birth)      { alert('생년월일을 입력해주세요.'); return }
     if (!form.enrollDate) { alert('입학일자를 입력해주세요.'); return }
     if (!form.phone)      { alert('학생 휴대폰을 입력해주세요.'); return }
-    if (selectedStudentId === 'new') {
+    if (selectedStudentId === 'new' || selectedStudentId === null) {
       const newId = Date.now()
       setStudents(prev => [...prev, { ...form, id: newId }])
       setSelectedStudentId(newId)
@@ -186,9 +184,7 @@ export default function Students() {
                 style={{position:'relative'}}
                 onClick={()=>{
                   if(isLocked){
-                    const next = menuLockedClickCount + 1
-                    if(next >= 2){ setShowUpgradeModal(true); setMenuLockedClickCount(0) }
-                    else { setMenuLockedClickCount(next) }
+                    setShowUpgradeModal(true)
                   } else {
                     setActiveMenu(m.id)
                     if(m.id==='students'){setActiveSide('class-students');setExpanded(['students'])}
@@ -222,11 +218,7 @@ export default function Students() {
         <div style={{position:'relative',display:'inline-flex',margin:'10px 0',overflow:'hidden',borderRadius:4}}>
           <button className="menu-charge-btn" style={{margin:0}}>전송충전관리</button>
           <span style={{position:'absolute',inset:0,background:'rgba(200,200,200,0.75)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}
-            onClick={()=>{
-              const next = menuLockedClickCount + 1
-              if(next >= 2){ setShowUpgradeModal(true); setMenuLockedClickCount(0) }
-              else { setMenuLockedClickCount(next) }
-            }}>
+            onClick={()=>setShowUpgradeModal(true)}>
             <svg width="14" height="17" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg">
               <rect x="1" y="7" width="12" height="9" rx="1.5" fill="#fff"/>
               <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 5V7" stroke="#fff" strokeWidth="2" strokeLinecap="round" fill="none"/>
@@ -297,7 +289,13 @@ export default function Students() {
                 border:'none', borderRadius:6, fontSize:14, fontWeight:500,
                 cursor:'pointer', fontFamily:'inherit',
               }} onClick={()=>setShowUpgradeModal(false)}>
-                무료로 정식 전환하러 가기
+                <svg width="13" height="15" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg" style={{display:'inline-block',verticalAlign:'middle',marginRight:6,marginTop:-2}}>
+                  <rect x="1" y="7" width="12" height="9" rx="1.5" fill="white"/>
+                  <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 4" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                  <circle cx="7" cy="11.5" r="1.5" fill="rgba(245,132,31,0.8)"/>
+                  <rect x="6.25" y="12.5" width="1.5" height="2" rx="0.75" fill="rgba(245,132,31,0.8)"/>
+                </svg>
+                잠금 해제하러 가기
               </button>
             </div>
           </div>
@@ -349,9 +347,19 @@ export default function Students() {
                 <div className="info-panel">
                   <div className="info-header">
                     <span className="info-title">학생 정보자료</span>
-                    <div style={{display:'flex',gap:8}}>
-                      <button className="info-save-btn" style={{background:'#E8445A'}} onClick={handleSave}>저장</button>
-                      <button className="info-new-btn" onClick={handleNewStudent}>신규 수강생 등록</button>
+                    <div style={{display:'flex',gap:6}}>
+                      {typeof selectedStudentId === 'number' ? <>
+                        <button className="info-action-btn blue narrow">수정</button>
+                        <button className="info-action-btn red narrow">퇴원</button>
+                        <button className="info-action-btn red narrow">휴원</button>
+                        <button className="info-action-btn gray narrow">삭제</button>
+                        <button className="info-action-btn blue">수강생파일</button>
+                        <button className="info-action-btn teal">알림톡전송</button>
+                        <button className="info-action-btn blue" onClick={handleNewStudent}>신규 수강생 등록</button>
+                      </> : <>
+                        <button className="info-action-btn red narrow" onClick={handleSave}>저장</button>
+                        <button className="info-action-btn blue" onClick={handleNewStudent}>신규 수강생 등록</button>
+                      </>}
                     </div>
                   </div>
                   <div className="info-body">
@@ -449,9 +457,7 @@ export default function Students() {
                           <button key={t} className={`info-tab ${infoTab===t?'active':''}`}
                             onClick={()=>{
                               if(LOCKED_TABS.includes(t)){
-                                const next = lockedClickCount + 1
-                                if(next >= 2){ setShowUpgradeModal(true); setLockedClickCount(0) }
-                                else { setLockedClickCount(next) }
+                                setShowUpgradeModal(true)
                               } else {
                                 setInfoTab(t)
                               }
@@ -589,9 +595,15 @@ export default function Students() {
           {/* 등하원관리·학원공지 미리보기 배너 */}
           {['attend-inout','attend-ride','notice-board','notice-talk','notice-replace','notice-schedule'].includes(activeSide)&&(
             <div style={{background:'#f8f9fb',borderRadius:4,padding:'6px 16px',marginBottom:12,fontSize:14,color:'#ff9000',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-              <span>이 화면은 미리보기입니다. 정식 전환하시면 지금 보이는 기능을 바로 사용하실 수 있어요.</span>
+              <span>이 화면은 미리보기입니다. 정식 버전으로 전환하시면 지금 보이는 기능을 바로 사용하실 수 있습니다.</span>
               <button style={{flexShrink:0,marginLeft:16,padding:'3px 20px',background:'#ff9000',color:'#fff',border:'none',borderRadius:4,fontSize:14,fontWeight:500,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}} onClick={()=>window.open('/conversion-request','_blank','width=560,height=780')}>
-                정식전환 요청하기
+                <svg width="13" height="15" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg" style={{display:'inline-block',verticalAlign:'middle',marginRight:6,marginTop:-2}}>
+                  <rect x="1" y="7" width="12" height="9" rx="1.5" fill="white"/>
+                  <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 4" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                  <circle cx="7" cy="11.5" r="1.5" fill="rgba(255,144,0,0.8)"/>
+                  <rect x="6.25" y="12.5" width="1.5" height="2" rx="0.75" fill="rgba(255,144,0,0.8)"/>
+                </svg>
+                지금 바로 시작하기
               </button>
             </div>
           )}

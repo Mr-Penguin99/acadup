@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import '../../pages/Students.css'
 
 const defaultRow = () => ({
   id: Date.now(),
@@ -27,8 +28,8 @@ export default function FamilyTab() {
           <span style={{fontSize:14,fontWeight:700,color:'#333'}}>가족사항</span>
         </div>
         <div style={{display:'flex',gap:6}}>
-          <button onClick={() => {}} style={btnStyle('#00B5A9')}>저장</button>
-          <button onClick={addRow} style={btnStyle('#29ABE2')}>+ 추가</button>
+          <button onClick={() => {}} className="family-save-btn">저장</button>
+          <button onClick={addRow} className="family-add-btn"><span className="plus">+</span> 추가</button>
         </div>
       </div>
 
@@ -83,7 +84,7 @@ export default function FamilyTab() {
               </td>
               <td style={{...td,textAlign:'center'}}>
                 <button onClick={() => removeRow(row.id)} style={{
-                  width:24,height:24,background:'#29ABE2',color:'#fff',border:'none',
+                  width:24,height:24,background:'#fff',color:'#00a2ff',border:'1px solid #ddd',
                   borderRadius:4,cursor:'pointer',fontSize:14,lineHeight:1,
                 }}>−</button>
               </td>

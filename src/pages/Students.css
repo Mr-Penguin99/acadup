@@ -217,6 +217,63 @@
   font-family: inherit;
 }
 
+/* 학생 정보 액션 버튼 */
+.info-action-btn {
+  padding: 0 17px;
+  height: 28px;
+  line-height: 28px;
+  color: #fff;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  font-family: inherit;
+  border: 1.5px solid transparent;
+  transition: background 0.15s, color 0.15s;
+}
+.info-action-btn.narrow { padding: 0 14px; }
+
+/* 가족 탭 버튼 */
+.family-save-btn {
+  padding: 0 14px;
+  height: 28px;
+  background: #00ab9a;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.family-save-btn:hover { background: #006765; }
+
+.family-add-btn {
+  padding: 0 14px;
+  height: 28px;
+  background: #f3f3f3;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: color 0.15s;
+}
+.family-add-btn:hover { background: #666; border-color: #666; color: #fff; }
+.family-add-btn .plus { color: #FF9000; }
+.family-add-btn:hover .plus { color: #fff; }
+.info-action-btn.blue  { background: #00a2ff; border-color: #00a2ff; }
+.info-action-btn.red   { background: #ff3c00; border-color: #ff3c00; }
+.info-action-btn.gray  { background: #6e7576; border-color: #6e7576; }
+.info-action-btn.teal  { background: #00ab9a; border-color: #00ab9a; }
+.info-action-btn.blue:hover  { background: transparent; color: #000; }
+.info-action-btn.red:hover   { background: transparent; color: #000; }
+.info-action-btn.gray:hover  { background: transparent; color: #000; }
+.info-action-btn.teal:hover  { background: transparent; color: #000; }
+
 /* 수강생 액션 버튼 */
 .st-btn {
   padding: 6px 14px;

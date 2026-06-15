@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import '../../pages/Students.css'
 
 const SAMPLE = [
   {
@@ -32,7 +33,7 @@ export default function ClassTab() {
             <option>수강+종강</option><option>수강</option><option>종강</option>
           </select>
         </div>
-        <button style={btnStyle('#29ABE2')} onClick={()=>window.open('/class-register','_blank','width=650,height=800')}>+ 수강신청</button>
+        <button className="family-add-btn" onClick={()=>window.open('/class-register','_blank','width=650,height=800')}><span className="plus">+</span> 수강신청</button>
       </div>
 
       {/* 테이블 */}

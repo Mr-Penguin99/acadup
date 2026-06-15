@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import '../../pages/Students.css'
 
 const SAMPLE = [
   {
@@ -35,8 +36,8 @@ export default function PaymentTab() {
           </select>
         </div>
         <div style={{display:'flex',gap:6}}>
-          <button style={btnStyle('#29ABE2')} onClick={()=>window.open('/manual-register','_blank','width=650,height=800')}>+ 수기등록</button>
-          <button style={btnStyle('#00B5A9')} onClick={()=>window.open('/payment-register','_blank','width=650,height=800')}>+ 수납</button>
+          <button className="family-add-btn" onClick={()=>window.open('/manual-register','_blank','width=650,height=800')}><span className="plus">+</span> 수기등록</button>
+          <button className="family-add-btn" onClick={()=>window.open('/payment-register','_blank','width=650,height=800')}><span className="plus">+</span> 수납</button>
         </div>
       </div>
 

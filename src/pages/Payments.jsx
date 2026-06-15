@@ -25,7 +25,7 @@ const MENUS = [
 const SIDE_MENUS = [
   { id:'payment-mgmt', label:'수납관리', items:[
     { id:'bulk-bill',   label:'일괄청구' },
-    { id:'class-bill',  label:'회차반 일괄청구' },
+    { id:'class-bill',  label:'회차반 일괄청구', locked:true },
     { id:'unpaid',      label:'청구/미납내역' },
     { id:'monthly-pay', label:'수강월 청구/수납' },
     { id:'pay-history', label:'결제내역' },
@@ -202,7 +202,14 @@ export default function Payments() {
               </svg>
             </div>
             <p style={{fontSize:15,color:'#333',lineHeight:1.7,marginBottom:20}}>무료로 정식 계정으로 전환하고<br/>모든 기능을 제한없이 이용해보세요!</p>
-            <button style={{padding:'10px 24px',background:'#F5841F',color:'#fff',border:'none',borderRadius:6,fontSize:14,fontWeight:500,cursor:'pointer',fontFamily:'inherit'}} onClick={()=>setShowUpgradeModal(false)}>무료로 정식 전환하러 가기</button>
+            <button style={{padding:'10px 24px',background:'#F5841F',color:'#fff',border:'none',borderRadius:6,fontSize:14,fontWeight:500,cursor:'pointer',fontFamily:'inherit'}} onClick={()=>setShowUpgradeModal(false)}>
+                <svg width="13" height="15" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg" style={{display:'inline-block',verticalAlign:'middle',marginRight:6,marginTop:-2}}>
+                  <rect x="1" y="7" width="12" height="9" rx="1.5" fill="white"/>
+                  <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 4" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                  <circle cx="7" cy="11.5" r="1.5" fill="rgba(245,132,31,0.8)"/>
+                  <rect x="6.25" y="12.5" width="1.5" height="2" rx="0.75" fill="rgba(245,132,31,0.8)"/>
+                </svg>
+                잠금 해제하러 가기</button>
           </div>
         </div>
       )}
@@ -217,8 +224,20 @@ export default function Payments() {
                   <span className="ss-toggle">{expanded.includes(group.id)?'∧':'∨'}</span><span>{group.label}</span>
                 </div>
                 {expanded.includes(group.id)&&group.items.map(item=>(
-                  <div key={item.id} className={`ss-item ${activeSide===item.id?'active':''}`} onClick={()=>setActiveSide(item.id)}>
+                  <div key={item.id} className={`ss-item ${activeSide===item.id?'active':''}`}
+                    style={{position:'relative'}}
+                    onClick={()=>{ if(item.locked){ setShowUpgradeModal(true) } else { setActiveSide(item.id) } }}>
                     <span className="ss-arrow">▶</span> {item.label}
+                    {item.locked && (
+                      <span style={{position:'absolute',inset:0,background:'rgba(100,100,100,0.45)',display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none',borderRadius:'inherit'}}>
+                        <svg width="16" height="19" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <rect x="1" y="7" width="12" height="9" rx="1.5" fill="white"/>
+                          <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 5V7" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                          <circle cx="7" cy="11.5" r="1.5" fill="rgba(100,100,100,0.45)"/>
+                          <rect x="6.25" y="12.5" width="1.5" height="2" rx="0.75" fill="rgba(100,100,100,0.45)"/>
+                        </svg>
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>
@@ -232,9 +251,15 @@ export default function Payments() {
           {/* 미리보기 배너 */}
           {['bulk-bill','class-bill','monthly-pay','daily-status','monthly-status','class-status'].includes(activeSide)&&(
             <div style={{background:'#f8f9fb',borderRadius:4,padding:'6px 16px',marginBottom:12,fontSize:14,color:'#ff9000',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-              <span>이 화면은 미리보기입니다. 정식 전환하시면 지금 보이는 기능을 바로 사용하실 수 있어요.</span>
+              <span>이 화면은 미리보기입니다. 정식 버전으로 전환하시면 지금 보이는 기능을 바로 사용하실 수 있습니다.</span>
               <button style={{flexShrink:0,marginLeft:16,padding:'3px 20px',background:'#ff9000',color:'#fff',border:'none',borderRadius:4,fontSize:14,fontWeight:500,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}} onClick={()=>window.open('/conversion-request','_blank','width=560,height=780')}>
-                정식전환 요청하기
+                <svg width="13" height="15" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg" style={{display:'inline-block',verticalAlign:'middle',marginRight:6,marginTop:-2}}>
+                  <rect x="1" y="7" width="12" height="9" rx="1.5" fill="white"/>
+                  <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 4" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                  <circle cx="7" cy="11.5" r="1.5" fill="rgba(255,144,0,0.8)"/>
+                  <rect x="6.25" y="12.5" width="1.5" height="2" rx="0.75" fill="rgba(255,144,0,0.8)"/>
+                </svg>
+                지금 바로 시작하기
               </button>
             </div>
           )}
@@ -297,33 +322,16 @@ export default function Payments() {
 
           {/* 회차반 일괄청구 */}
           {activeSide==='class-bill'&&(
-            <>
-              <div className="pm-page-title"><span style={{color:'#ccc'}}>☆</span> 회차반 일괄청구</div>
-              <div className="pm-section" style={{border:'none',background:'#f8f9fb',borderRadius:5,marginTop:40}}>
-                <div className="pm-sec-head" style={{borderBottom:'none'}}>
-                  <div className="pm-sec-title">조건검색</div>
-                  <div style={{display:'flex',gap:6}}><button className="pm-dark-btn">검색하기</button><button className="pm-reset-btn">초기화</button><button className="pm-orange-btn">선택청구</button><button className="pm-red-btn">선택청구삭제</button></div>
-                </div>
-                <div className="pm-filter">
-                  <div style={{display:'flex',gap:16,alignItems:'center',flexWrap:'wrap',justifyContent:'flex-start'}}>
-                    <div style={{display:'flex',alignItems:'center',gap:6}}><label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>조회구분</label><select className="pm-input" style={{width:90}} value={classBillFilter.searchType} onChange={e=>setClassBillFilter(f=>({...f,searchType:e.target.value}))}><option>반별</option><option>수강생별</option></select></div>
-                    <div style={{display:'flex',alignItems:'center',gap:6}}><label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>반 그룹</label><select className="pm-input" style={{width:90}} value={classBillFilter.group} onChange={e=>setClassBillFilter(f=>({...f,group:e.target.value}))}><option>전체</option></select></div>
-                    <div style={{display:'flex',alignItems:'center',gap:6}}><label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>반명</label><select className="pm-input" style={{width:90}} value={classBillFilter.className} onChange={e=>setClassBillFilter(f=>({...f,className:e.target.value}))}><option>선택하기</option></select></div>
-                    <div style={{display:'flex',alignItems:'center',gap:6}}><label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>잔여횟수</label><select className="pm-input" style={{width:100}} value={classBillFilter.remaining} onChange={e=>setClassBillFilter(f=>({...f,remaining:e.target.value}))}><option>전체</option><option>5회 이하</option><option>4회 이하</option><option>3회 이하</option><option>2회 이하</option><option>1회 이하</option><option>0회 이하</option></select></div>
-                    <div style={{display:'flex',alignItems:'center',gap:6}}><label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>수강생</label><input className="pm-input" style={{width:120}} value={classBillFilter.student} onChange={e=>setClassBillFilter(f=>({...f,student:e.target.value}))}/></div>
-                  </div>
-                </div>
+            <div style={{position:'relative', minHeight:400}}>
+              <div style={{position:'absolute', top:'50%', left:'50%', transform:'translate(-50%, -50%)'}}>
+                <svg width="80" height="98" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg" style={{filter:'drop-shadow(0px 3px 6px rgba(0,0,0,0.12))'}}>
+                  <rect x="1" y="7" width="12" height="9" rx="1.5" fill="#d0d0d0"/>
+                  <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 5V7" stroke="#d0d0d0" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                  <circle cx="7" cy="11.5" r="1.5" fill="#b0b0b0"/>
+                  <rect x="6.25" y="12.5" width="1.5" height="2" rx="0.75" fill="#b0b0b0"/>
+                </svg>
               </div>
-              <div className="pm-section" style={{border:'none'}}>
-                <div className="pm-sec-head" style={{borderBottom:'none'}}><div className="pm-sec-title">반현황</div></div>
-                <div className="pm-table-wrap">
-                  <table className="pm-table">
-                    <thead><tr><th>반 그룹</th><th>반 명</th><th>반 코드</th><th>상태</th><th>수강생수</th><th>수강기간</th></tr></thead>
-                    <tbody>{CLASS_BILL_DATA.map((d,i)=><tr key={i}><td style={{textAlign:'center'}}>{d.group}</td><td style={{textAlign:'center'}}>{d.name}</td><td style={{textAlign:'center'}}>{d.code}</td><td style={{textAlign:'center'}}>{d.status}</td><td style={{textAlign:'center'}}>{d.count}</td><td style={{textAlign:'center'}}>{d.period}</td></tr>)}</tbody>
-                  </table>
-                </div>
-              </div>
-            </>
+            </div>
           )}
 
           {/* 청구/미납내역 */}

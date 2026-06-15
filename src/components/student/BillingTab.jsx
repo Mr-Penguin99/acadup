@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import '../../pages/Students.css'
 
 const SAMPLE = [
   {
@@ -33,7 +34,7 @@ export default function BillingTab() {
             <option>전체</option><option>결제</option><option>결제취소</option>
           </select>
         </div>
-        <button style={btnStyle('#F5841F')}>+ 결제취소</button>
+        <button className="family-add-btn"><span className="plus">+</span> 결제취소</button>
       </div>
 
       {/* 테이블 */}
@@ -75,7 +76,7 @@ export default function BillingTab() {
               <td style={{...td,textAlign:'center'}}>
                 <div style={{display:'flex',gap:4,justifyContent:'center'}}>
                   <button style={outlineBtn}>현금영수증</button>
-                  <button style={btnStyle('#29ABE2')}>출력</button>
+                  <button className="info-action-btn blue">출력</button>
                 </div>
               </td>
             </tr>
