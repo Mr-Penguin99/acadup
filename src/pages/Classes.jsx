@@ -261,7 +261,7 @@ export default function Classes() {
                 <div className="assign-panel">
                   <div className="assign-head">
                     <span className="assign-head-title" style={{fontWeight:700,fontSize:14,paddingLeft:8,borderLeft:'3px solid #333'}}>반 검색</span>
-                    <button className="cl-search-btn">검색하기</button>
+                    <button className="cl-assign-search-btn">검색하기</button>
                   </div>
                   <div style={{padding:'10px 14px',display:'flex',gap:12,alignItems:'center',flexWrap:'wrap',background:'#f8f9fb',borderRadius:5}}>
                     <div style={{display:'flex',alignItems:'center',gap:6}}>
@@ -306,7 +306,7 @@ export default function Classes() {
                 <div className="assign-panel">
                   <div className="assign-head">
                     <span className="assign-head-title" style={{fontWeight:700,fontSize:14,paddingLeft:8,borderLeft:'3px solid #333'}}>배정/이동 대상반</span>
-                    <button className="cl-search-btn">검색하기</button>
+                    <button className="cl-assign-search-btn">검색하기</button>
                   </div>
                   <div style={{padding:'10px 14px',display:'flex',gap:12,alignItems:'center',flexWrap:'wrap',background:'#f8f9fb',borderRadius:5}}>
                     <div style={{display:'flex',alignItems:'center',gap:6}}>
@@ -434,7 +434,7 @@ export default function Classes() {
                 </div>
               </div>
               <div className="cl-section" style={{borderTop:'none'}}>
-                <div className="cl-table-header"><button className="cl-reg-btn">반 등록</button></div>
+                <div className="cl-table-header"><button className="cl-reg-btn" onClick={()=>window.open('/class-create','_blank','width=960,height=900,resizable=yes')}>반 등록</button></div>
                 <div className="cl-table-wrap">
                   <table className="cl-table">
                     <thead><tr><th>출력순서</th><th>반 그룹</th><th>반 명</th><th>반 코드</th><th>상태</th><th>중분류</th><th>담임</th><th>수강기간</th><th>강의실</th><th>수강생수</th><th>기능</th></tr></thead>

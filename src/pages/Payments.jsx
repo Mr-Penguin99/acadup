@@ -273,7 +273,7 @@ export default function Payments() {
                   <div className="pm-sec-title">조건검색</div>
                   <div style={{display:'flex',gap:6}}>
                     <button className="pm-dark-btn">검색하기</button><button className="pm-reset-btn">초기화</button>
-                    <button className="pm-orange-btn">일괄청구</button><button className="pm-red-btn">일괄청구삭제</button>
+                    <button className="pm-teal-btn">일괄청구</button><button className="pm-red-btn">일괄청구삭제</button>
                   </div>
                 </div>
                 <div className="pm-filter">
@@ -309,7 +309,7 @@ export default function Payments() {
                           <td>{d.group}</td><td>{d.name}</td><td>{d.code}</td>
                           <td style={{textAlign:'center'}}>{d.status}</td><td style={{textAlign:'center'}}>{d.count}</td>
                           <td style={{textAlign:'center'}}>{d.billRound}</td><td style={{textAlign:'center'}}>{d.billCnt}</td>
-                          <td style={{textAlign:'right'}}>{d.amount}</td><td style={{textAlign:'right',color:'#E8445A'}}>{d.unpaid}</td>
+                          <td style={{textAlign:'center'}}>{d.amount}</td><td style={{textAlign:'center'}}>{d.unpaid}</td>
                           <td>{d.period}</td>
                         </tr>
                       ))}
@@ -412,7 +412,7 @@ export default function Payments() {
                       <label style={{fontSize:13,color:'#666',whiteSpace:'nowrap'}}>검색</label>
                       <select className="pm-input" style={{width:130}} value={monthlyPayFilter.searchType} onChange={e=>setMonthlyPayFilter(f=>({...f,searchType:e.target.value}))}><option>수강생-성명</option><option>수강생-휴대폰</option><option>수강생-집전화</option></select>
                       <input className="pm-input" style={{width:120}} value={monthlyPayFilter.keyword} onChange={e=>setMonthlyPayFilter(f=>({...f,keyword:e.target.value}))}/>
-                      <button className="pm-dark-btn">검색</button>
+                      <button className="pm-gray-btn">검색</button>
                     </div>
                   </div>
                 </div>
@@ -428,10 +428,10 @@ export default function Payments() {
                           <td style={{textAlign:'center'}}>{d.id}</td>
                           <td style={{textAlign:'center'}}><div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:4}}><span>👤</span><span>{d.name}</span></div></td>
                           <td style={{textAlign:'center'}}>{d.cls}</td><td style={{textAlign:'center'}}>{d.billAmt}</td><td style={{textAlign:'center'}}>{d.tradeDate}</td><td style={{textAlign:'center'}}>{d.payMethod}</td>
-                          <td style={{textAlign:'center'}}><span style={{color:d.status==='미납'?'#29ABE2':'#333',cursor:d.status==='미납'?'pointer':'default'}}>{d.status}</span></td>
+                          <td style={{textAlign:'center'}}><span style={{color:d.status==='미납'?'#0100FF':'#000',cursor:d.status==='미납'?'pointer':'default'}}>{d.status}</span></td>
                           <td style={{textAlign:'center'}}>{d.payAmt}</td><td style={{textAlign:'center'}}>{d.unpaid}</td>
                           <td style={{textAlign:'center',fontSize:13}}>{d.created}</td>
-                          <td style={{textAlign:'center'}}><button className="monthly-reg-btn">+수기등록</button></td>
+                          <td style={{textAlign:'center'}}><button className="monthly-reg-btn"><span className="plus">+</span>수기등록</button></td>
                         </tr>
                       ))}
                     </tbody>
@@ -483,7 +483,7 @@ export default function Payments() {
                           <td style={{textAlign:'center'}}>{d.id}</td>
                           <td style={{textAlign:'center'}}><div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:4}}><span>👤</span><span>{d.name}</span></div></td>
                           <td style={{textAlign:'center'}}>{d.classes.map((c,i)=><div key={i} style={{fontSize:13,color:'#444',lineHeight:'1.6'}}>{c}</div>)}</td>
-                          <td style={{textAlign:'center',color:'#29ABE2',fontWeight:700}}>{d.payAmt}</td>
+                          <td style={{textAlign:'center',color:'#0100FF',fontWeight:400}}>{d.payAmt}</td>
                           <td style={{textAlign:'center'}}>{d.refund}</td>
                           <td style={{textAlign:'center'}}>{d.phone}</td><td style={{textAlign:'center'}}>{d.guardRel}</td><td style={{textAlign:'center'}}>{d.guardPhone}</td>
                         </tr>

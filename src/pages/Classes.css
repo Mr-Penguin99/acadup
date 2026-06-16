@@ -11,7 +11,7 @@
 
 /* 사이드바 */
 .classes-sidebar {
-  width: 220px;
+  width: 180px;
   flex-shrink: 0;
   background: #fff;
   border-right: 1px solid #e0e0e0;
@@ -72,15 +72,16 @@
 
 .cl-search-btn {
   padding: 5px 14px;
-  background: #F5841F;
+  background: #ff3c00;
   color: #fff;
-  border: none;
+  border: 1px solid #ff3c00;
   border-radius: 4px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 400;
   cursor: pointer;
   font-family: inherit;
 }
+.cl-search-btn:hover { background: transparent; color: #000; }
 
 /* 회색 검색 버튼 — 예비생 반배정 오른쪽 패널용 */
 .cl-search-gray-btn {
@@ -89,22 +90,50 @@
   color: #fff;
   border: none;
   border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 400;
   cursor: pointer;
   font-family: inherit;
 }
 
+/* 재원생 반편성 전용 버튼 */
+.cl-assign-search-btn {
+  padding: 5px 14px;
+  background: #6e7576;
+  color: #fff;
+  border: 1px solid #6e7576;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  font-family: inherit;
+}
+.cl-assign-search-btn:hover { background: transparent; color: #000; }
+
+.pm-red-btn {
+  padding: 5px 14px;
+  background: #ff3c00;
+  color: #fff;
+  border: 1px solid #ff3c00;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  font-family: inherit;
+}
+.pm-red-btn:hover { background: transparent; color: #000; }
+
 .cl-reset-btn {
   padding: 5px 14px;
-  background: #fff;
-  color: #555;
-  border: 1px solid #ccc;
+  background: #6e7576;
+  color: #fff;
+  border: 1px solid #6e7576;
   border-radius: 4px;
   font-size: 13px;
   cursor: pointer;
   font-family: inherit;
 }
+.cl-reset-btn:hover { background: transparent; color: #000; }
 
 /* 필터 */
 .cl-filter { padding: 12px 16px; }
@@ -146,15 +175,16 @@
 
 .cl-reg-btn {
   padding: 6px 16px;
-  background: #00B5A9;
+  background: #00a2ff;
   color: #fff;
-  border: none;
+  border: 1px solid #00a2ff;
   border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 400;
   cursor: pointer;
   font-family: inherit;
 }
+.cl-reg-btn:hover { background: transparent; color: #000; }
 
 /* 테이블 */
 .cl-table-wrap { overflow-x: auto; }
@@ -191,17 +221,18 @@
 
 .cl-edit-btn {
   padding: 4px 12px;
-  background: #555;
+  background: #6e7576;
   color: #fff;
-  border: none;
+  border: 1px solid #6e7576;
   border-radius: 4px;
-  font-size: 13px;
+  font-size: 12px;
+  font-weight: 400;
   cursor: pointer;
   font-family: inherit;
   white-space: nowrap;
 }
 
-.cl-edit-btn:hover { background: #333; }
+.cl-edit-btn:hover { background: transparent; color: #000; }
 
 .order-btn {
   background: none;

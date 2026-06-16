@@ -11,7 +11,7 @@
 
 /* 사이드바 */
 .payments-sidebar {
-  width: 220px;
+  width: 180px;
   flex-shrink: 0;
   background: #fff;
   border-right: 1px solid #e0e0e0;
@@ -104,65 +104,85 @@
 
 .pm-dark-btn {
   padding: 6px 14px;
-  background: #555;
+  background: #ff3c00;
   color: #fff;
-  border: none;
+  border: 1px solid #ff3c00;
   border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 400;
   cursor: pointer;
   font-family: inherit;
   white-space: nowrap;
 }
+.pm-dark-btn:hover { background: transparent; color: #000; }
 
 .pm-teal-btn {
   padding: 6px 14px;
-  background: #00B5A9;
+  background: #00a2ff;
   color: #fff;
-  border: none;
+  border: 1px solid #00a2ff;
   border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 400;
   cursor: pointer;
   font-family: inherit;
   white-space: nowrap;
 }
+.pm-teal-btn:hover { background: transparent; color: #000; }
 
 .pm-orange-btn {
   padding: 6px 14px;
-  background: #F5841F;
+  background: #ff8a01;
   color: #fff;
-  border: none;
+  border: 1px solid #ff8a01;
   border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 400;
   cursor: pointer;
   font-family: inherit;
   white-space: nowrap;
 }
+.pm-orange-btn:hover { background: transparent; color: #000; }
 
 .pm-search-btn {
   padding: 5px 14px;
-  background: #F5841F;
+  background: #ff3c00;
   color: #fff;
-  border: none;
+  border: 1px solid #ff3c00;
   border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 400;
   cursor: pointer;
   font-family: inherit;
 }
+.pm-search-btn:hover { background: transparent; color: #000; }
 
 .pm-reset-btn {
   padding: 5px 14px;
-  background: #fff;
-  color: #555;
-  border: 1px solid #ccc;
+  background: #6e7576;
+  color: #fff;
+  border: 1px solid #6e7576;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 400;
   cursor: pointer;
   font-family: inherit;
 }
+.pm-reset-btn:hover { background: transparent; color: #000; }
+
+.pm-gray-btn {
+  padding: 6px 14px;
+  background: #6e7576;
+  color: #fff;
+  border: 1px solid #6e7576;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.pm-gray-btn:hover { background: transparent; color: #000; }
 
 /* 테이블 */
 .pm-table-wrap { overflow-x: auto; }
@@ -189,7 +209,7 @@
 .pm-table td {
   padding: 8px 10px;
   border-bottom: 1px solid #f0f0f0;
-  color: #333;
+  color: #000;
   vertical-align: middle;
   font-size: 13px;
   text-align: center;
@@ -212,9 +232,9 @@
 .cls-day  { color: #888; white-space: nowrap; }
 
 .unpaid-amt {
-  color: #29ABE2;
-  font-weight: 700;
-  text-align: right;
+  color: #0100FF;
+  font-weight: 400;
+  text-align: center;
 }
 
 .sent-date     { color: #555; font-size: 11px; }
@@ -260,33 +280,34 @@
 
 .pm-red-btn {
   padding: 6px 14px;
-  background: #E8445A;
+  background: #ff3c00;
   color: #fff;
-  border: none;
+  border: 1px solid #ff3c00;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.pm-red-btn:hover { background: transparent; color: #000; }
+
+.monthly-reg-btn {
+  padding: 0 10px;
+  height: 28px;
+  background: #f3f3f3;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   font-family: inherit;
   white-space: nowrap;
 }
-
-.monthly-reg-btn {
-  padding: 4px 10px;
-  background: #fff;
-  color: #F5841F;
-  border: 1px solid #F5841F;
-  border-radius: 4px;
-  font-size: 13px;
-  cursor: pointer;
-  font-family: inherit;
-  white-space: nowrap;
-}
-
-.monthly-reg-btn:hover {
-  background: #F5841F;
-  color: #fff;
-}
+.monthly-reg-btn:hover { background: #666; border-color: #666; color: #fff; }
+.monthly-reg-btn .plus { color: #FF9000; }
+.monthly-reg-btn:hover .plus { color: #fff; }
 
 .pm-table-foot td {
   padding: 8px 10px;

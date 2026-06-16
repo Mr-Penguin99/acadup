@@ -15,6 +15,8 @@ import ClassRegister from './pages/ClassRegister'
 import ManualRegister from './pages/ManualRegister'
 import PaymentRegister from './pages/PaymentRegister'
 import PaymentMemo from './pages/PaymentMemo'
+import Admin from './pages/Admin'
+import ClassCreate from './pages/ClassCreate'
 
 function App() {
   return (
@@ -36,6 +38,8 @@ function App() {
         <Route path="/manual-register" element={<ManualRegister />} />
         <Route path="/payment-register" element={<PaymentRegister />} />
         <Route path="/payment-memo" element={<PaymentMemo />} />
+        <Route path="/admin" element={<Admin />} />
+        <Route path="/class-create" element={<ClassCreate />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>

@@ -11,7 +11,7 @@
 
 /* 사이드바 */
 .students-sidebar {
-  width: 220px;
+  width: 180px;
   flex-shrink: 0;
   background: #fff;
   border-right: 1px solid #e0e0e0;
@@ -562,9 +562,9 @@
 
 .sts-search-btn {
   padding: 5px 12px;
-  background: #F5841F;
+  background: #ff3c00;
   color: #fff;
-  border: none;
+  border: 1px solid #ff3c00;
   border-radius: 4px;
   font-size: 12px;
   font-weight: 500;
@@ -572,12 +572,13 @@
   font-family: inherit;
   white-space: nowrap;
 }
+.sts-search-btn:hover { background: transparent; color: #000; }
 
 .sts-export-btn {
   padding: 5px 12px;
-  background: #29ABE2;
+  background: #00a2ff;
   color: #fff;
-  border: none;
+  border: 1px solid #00a2ff;
   border-radius: 4px;
   font-size: 12px;
   font-weight: 500;
@@ -585,12 +586,13 @@
   font-family: inherit;
   white-space: nowrap;
 }
+.sts-export-btn:hover { background: transparent; color: #000; }
 
 .sts-teal-btn {
   padding: 5px 12px;
-  background: #00B5A9;
+  background: #ff8a01;
   color: #fff;
-  border: none;
+  border: 1px solid #ff8a01;
   border-radius: 4px;
   font-size: 12px;
   font-weight: 500;
@@ -598,12 +600,13 @@
   font-family: inherit;
   white-space: nowrap;
 }
+.sts-teal-btn:hover { background: transparent; color: #000; }
 
-.sts-gray-btn {
+.sts-orange-btn {
   padding: 5px 12px;
-  background: #888;
+  background: #ff8a01;
   color: #fff;
-  border: none;
+  border: 1px solid #ff8a01;
   border-radius: 4px;
   font-size: 12px;
   font-weight: 500;
@@ -611,18 +614,21 @@
   font-family: inherit;
   white-space: nowrap;
 }
+.sts-orange-btn:hover { background: transparent; color: #000; }
 
 .sts-reset-btn {
   padding: 5px 12px;
-  background: #fff;
-  color: #555;
-  border: 1px solid #ccc;
+  background: #6e7576;
+  color: #fff;
+  border: 1px solid #6e7576;
   border-radius: 4px;
   font-size: 12px;
+  font-weight: 500;
   cursor: pointer;
   font-family: inherit;
   white-space: nowrap;
 }
+.sts-reset-btn:hover { background: transparent; color: #000; }
 
 .sts-table-wrap { overflow-x: auto; }
 

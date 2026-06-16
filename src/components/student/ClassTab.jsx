@@ -40,17 +40,13 @@ export default function ClassTab() {
       <table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}>
         <thead>
           <tr style={{borderTop:'2px solid #666',borderBottom:'1px solid #e0e0e0',background:'#f8f9fb'}}>
-            <th style={th} rowSpan={2}>선택</th>
-            <th style={th} rowSpan={2}>반명</th>
-            <th style={th} rowSpan={2}>상태</th>
-            <th style={th} rowSpan={2}>수강기간</th>
-            <th style={th} rowSpan={2}>담임</th>
-            <th style={th} rowSpan={2}>강의실</th>
-            <th style={{...th,borderBottom:'1px solid #e0e0e0'}} colSpan={8}>수업시간</th>
-          </tr>
-          <tr style={{background:'#f8f9fb',borderBottom:'1px solid #e0e0e0'}}>
-            <th style={th}>시간</th>
-            {DAYS.map(d=><th key={d} style={th}>{d}</th>)}
+            <th style={th}>선택</th>
+            <th style={th}>반명</th>
+            <th style={th}>상태</th>
+            <th style={th}>수강기간</th>
+            <th style={th}>담임</th>
+            <th style={th}>강의실</th>
+            <th style={th} colSpan={8}>수업시간</th>
           </tr>
         </thead>
         <tbody>
@@ -64,10 +60,14 @@ export default function ClassTab() {
               <td style={{...td,textAlign:'center'}}>{row.period}</td>
               <td style={{...td,textAlign:'center'}}>{row.teacher}</td>
               <td style={{...td,textAlign:'center'}}>{row.room}</td>
-              <td style={{...td,textAlign:'center'}}>{row.time}</td>
-              {DAYS.map(d=>(
-                <td key={d} style={{...td,textAlign:'center'}}>
-                  {row.days[d] ? <span style={{color:'#333'}}>O</span> : ''}
+              <td style={{...td,textAlign:'center',verticalAlign:'top',borderRight:'1px solid #e0e0e0'}}>
+                <div style={{fontSize:13,color:'#888',margin:'0 -8px',padding:'0 8px 2px',borderBottom:'1px solid #e0e0e0'}}>시간</div>
+                <div style={{paddingTop:2}}>{row.time}</div>
+              </td>
+              {DAYS.map((d,i)=>(
+                <td key={d} style={{...td,textAlign:'center',verticalAlign:'top',borderRight:i<DAYS.length-1?'1px solid #e0e0e0':'none'}}>
+                  <div style={{fontSize:13,color:'#888',margin:'0 -8px',padding:'0 8px 2px',borderBottom:'1px solid #e0e0e0'}}>{d}</div>
+                  <div style={{paddingTop:2}}>{row.days[d] ? <span style={{color:'#333'}}>O</span> : ''}</div>
                 </td>
               ))}
             </tr>

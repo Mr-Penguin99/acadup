@@ -135,6 +135,16 @@ export default function Students() {
     id:'', pw:'', enrollDate:'', payMethod:'',
     phone:'', homePhone:'', grade1:'', grade2:'', attendNo:'',
     email1:'', email2:'', emailType:'직접입력', dept:'',
+    hasClasses: false,
+  }
+
+  const getDisplayStatus = () => {
+    if (selectedStudentId === null) return ''
+    if (selectedStudentId === 'new' && !form.name) return ''
+    if (form.status === '퇴원') return '퇴원'
+    if (form.status === '휴원') return '휴원'
+    if (form.hasClasses) return '재원'
+    return '예비'
   }
   const [form, setForm] = useState(emptyForm)
 
@@ -157,10 +167,14 @@ export default function Students() {
     if (!form.phone)      { alert('학생 휴대폰을 입력해주세요.'); return }
     if (selectedStudentId === 'new' || selectedStudentId === null) {
       const newId = Date.now()
-      setStudents(prev => [...prev, { ...form, id: newId }])
+      const newStatus = form.status || '예비'
+      setStudents(prev => [...prev, { ...form, id: newId, status: newStatus }])
+      setForm(f => ({...f, status: newStatus}))
       setSelectedStudentId(newId)
+      setInfoTab('가족')
     } else {
       setStudents(prev => prev.map(s => s.id === selectedStudentId ? { ...form, id: selectedStudentId } : s))
+      setInfoTab('가족')
     }
   }
 
@@ -350,8 +364,8 @@ export default function Students() {
                     <div style={{display:'flex',gap:6}}>
                       {typeof selectedStudentId === 'number' ? <>
                         <button className="info-action-btn blue narrow">수정</button>
-                        <button className="info-action-btn red narrow">퇴원</button>
-                        <button className="info-action-btn red narrow">휴원</button>
+                        <button className="info-action-btn red narrow" onClick={()=>setForm(f=>({...f,status:'퇴원'}))}>퇴원</button>
+                        <button className="info-action-btn red narrow" onClick={()=>setForm(f=>({...f,status:'휴원'}))}>휴원</button>
                         <button className="info-action-btn gray narrow">삭제</button>
                         <button className="info-action-btn blue">수강생파일</button>
                         <button className="info-action-btn teal">알림톡전송</button>
@@ -378,7 +392,7 @@ export default function Students() {
                           </div>
                           <label className="if-label">상태</label>
                           <div className="if-cell">
-                            <select className="if-input" style={{width:120}} value={form.status} onChange={e=>setForm(f=>({...f,status:e.target.value}))}><option value=''>선택하기</option><option>재원</option><option>예비</option><option>휴원</option><option>퇴원</option><option>예비+휴원+퇴원</option></select>
+                            <span style={{fontSize:13,color:'#333',minWidth:40,display:'inline-block'}}>{getDisplayStatus()}</span>
                           </div>
                         </div>
                         <div className="if-row">
@@ -556,10 +570,10 @@ export default function Students() {
                   <div style={{display:'flex',alignItems:'center',gap:6}}>
                     <span style={{fontSize:12,color:'#666'}}>페이지당 조회</span>
                     <select className="sts-input" style={{width:60}} value={statusPageSize} onChange={e=>setStatusPageSize(e.target.value)}><option>10</option><option>20</option><option>50</option></select>
-                    <button className="sts-search-btn">수강생 등록</button>
+                    <button className="sts-export-btn">수강생 등록</button>
                     <button className="sts-teal-btn">진도 등록</button>
-                    <button className="sts-gray-btn">알림톡전송</button>
-                    <button className="sts-gray-btn">알림톡전체전송</button>
+                    <button className="sts-export-btn">알림톡전송</button>
+                    <button className="sts-orange-btn">알림톡전체전송</button>
                   </div>
                 </div>
                 <div className="sts-table-wrap">

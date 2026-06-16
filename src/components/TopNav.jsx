@@ -30,7 +30,6 @@ export default function TopNav() {
     { icon: '/icons/tnav-home.svg',     label: '메인홈',  path: '/dashboard' },
     { icon: '/icons/tnav-book.svg',     label: '교재관리', path: null },
     { icon: '/icons/tnav-settings.svg', label: '환경설정', path: '/settings' },
-    { icon: '/icons/tnav-remote.svg',   label: '원격지원', path: null },
   ]
 
   return (
@@ -105,6 +104,10 @@ export default function TopNav() {
             </div>
           </>
         )}
+
+        <span className="tnav-link">
+          <img src="/icons/tnav-remote.svg" className="tnav-icon" /> 원격지원
+        </span>
 
         <span className="tnav-link" onClick={() => navigate('/')}>
           <img src="/icons/tnav-logout.svg" className="tnav-icon" /> 로그아웃
