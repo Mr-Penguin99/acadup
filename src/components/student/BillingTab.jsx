@@ -34,7 +34,20 @@ export default function BillingTab() {
             <option>전체</option><option>결제</option><option>결제취소</option>
           </select>
         </div>
-        <button className="family-add-btn"><span className="plus">+</span> 결제취소</button>
+        <button className="family-add-btn" onClick={()=>{
+          const target = checked.length > 0 ? SAMPLE.find(d=>d.id===checked[0]) : SAMPLE[0]
+          sessionStorage.setItem('paymentCancelData', JSON.stringify({
+            date: target.date,
+            payDiv: target.payDiv,
+            payMethod: target.payMethod,
+            payAmt: target.payAmt,
+            month: '2026-06',
+            className: '이동완로_매뉴얼반',
+            studentName: '반이동_매뉴얼',
+            birth: '01.01.01',
+          }))
+          window.open('/payment-cancel','_blank','width=600,height=660')
+        }}><span className="plus">+</span> 결제취소</button>
       </div>
 
       {/* 테이블 */}

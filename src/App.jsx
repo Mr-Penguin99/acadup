@@ -17,6 +17,8 @@ import PaymentRegister from './pages/PaymentRegister'
 import PaymentMemo from './pages/PaymentMemo'
 import Admin from './pages/Admin'
 import ClassCreate from './pages/ClassCreate'
+import StudentDetail from './pages/StudentDetail'
+import PaymentCancel from './pages/PaymentCancel'
 
 function App() {
   return (
@@ -40,6 +42,8 @@ function App() {
         <Route path="/payment-memo" element={<PaymentMemo />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/class-create" element={<ClassCreate />} />
+        <Route path="/student-detail" element={<StudentDetail />} />
+        <Route path="/payment-cancel" element={<PaymentCancel />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>

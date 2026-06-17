@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 const CLASS_LIST = ['중등 수학A 1교시', '중등 수학A 2교시', '중등 수학A 3교시']
 const CLASS_INFO = {
@@ -51,6 +51,7 @@ function ItemTable({ items, setItems, options }) {
 }
 
 export default function ManualRegister() {
+  const [prefillData, setPrefillData] = useState(null)
   const [className, setClassName] = useState('')
   const [round, setRound] = useState('1차')
   const [payType, setPayType] = useState('수납')
@@ -62,7 +63,21 @@ export default function ManualRegister() {
   const [discountItems, setDiscountItems] = useState([{ id: 1, item: '선택', amt: '' }])
   const [addItems, setAddItems] = useState([{ id: 1, item: '선택', amt: '' }])
 
+  useEffect(() => {
+    const raw = sessionStorage.getItem('manualRegisterData')
+    if (!raw) return
+    sessionStorage.removeItem('manualRegisterData')
+    const row = JSON.parse(raw)
+    setPrefillData(row)
+    if (row.month) { setTargetStart(row.month); setTargetEnd(row.month) }
+    if (row.billAmt) setPayItems([{ id: 1, item: row.item || '수강료01', amt: row.billAmt }])
+    // 일반 CLASS_LIST 매칭도 시도
+    const cls = row.className?.includes(' > ') ? row.className.split(' > ').pop() : row.className
+    if (cls && CLASS_LIST.includes(cls)) setClassName(cls)
+  }, [])
+
   const info = CLASS_INFO[className] || null
+  const showForm = !!info || !!prefillData
 
   const handleClassChange = (val) => {
     setClassName(val)
@@ -80,7 +95,7 @@ export default function ManualRegister() {
       {/* 헤더 */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <span style={{ fontSize: 16, fontWeight: 700 }}>수기 등록</span>
-        {info && <button style={btnStyle('#555')}>등록</button>}
+        {showForm && <button style={btnStyle('#555')}>등록</button>}
       </div>
 
       {/* 수강생 정보 */}
@@ -101,26 +116,32 @@ export default function ManualRegister() {
 
       <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #e0e0e0' }}>
         <tbody>
-          {/* 반명 - 항상 표시 */}
+          {/* 반명 */}
           <tr style={{ borderBottom: '1px solid #e0e0e0' }}>
             <td style={labelCell}>반명</td>
             <td style={valueCell}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <select style={selectStyle} value={className} onChange={e => handleClassChange(e.target.value)}>
-                  <option value="">반 선택</option>
-                  {CLASS_LIST.map(c => <option key={c}>{c}</option>)}
-                </select>
-                {info && <span style={{ fontSize: 12, color: '#555' }}>{info.type}</span>}
-              </div>
+              {prefillData ? (
+                <span style={{ fontSize: 13, color: '#333' }}>{prefillData.className}</span>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <select style={selectStyle} value={className} onChange={e => handleClassChange(e.target.value)}>
+                    <option value="">반 선택</option>
+                    {CLASS_LIST.map(c => <option key={c}>{c}</option>)}
+                  </select>
+                  {info && <span style={{ fontSize: 12, color: '#555' }}>{info.type}</span>}
+                </div>
+              )}
             </td>
           </tr>
 
-          {/* 반 선택 후에만 표시 */}
-          {info && <>
-            <tr style={{ borderBottom: '1px solid #e0e0e0' }}>
-              <td style={labelCell}>강사</td>
-              <td style={{ ...valueCell, color: '#F5841F' }}>{info.teacher}</td>
-            </tr>
+          {/* 반 선택 후 또는 prefill 시 표시 */}
+          {showForm && <>
+            {info && (
+              <tr style={{ borderBottom: '1px solid #e0e0e0' }}>
+                <td style={labelCell}>강사</td>
+                <td style={{ ...valueCell, color: '#F5841F' }}>{info.teacher}</td>
+              </tr>
+            )}
 
             <tr style={{ borderBottom: '1px solid #e0e0e0' }}>
               <td style={labelCell}>수강차수</td>
@@ -141,10 +162,12 @@ export default function ManualRegister() {
               </td>
             </tr>
 
-            <tr style={{ borderBottom: '1px solid #e0e0e0' }}>
-              <td style={labelCell}>최종청구월</td>
-              <td style={valueCell}>{info.lastMonth}</td>
-            </tr>
+            {info && (
+              <tr style={{ borderBottom: '1px solid #e0e0e0' }}>
+                <td style={labelCell}>최종청구월</td>
+                <td style={valueCell}>{info.lastMonth}</td>
+              </tr>
+            )}
 
             <tr style={{ borderBottom: '1px solid #e0e0e0' }}>
               <td style={labelCell}>추가수납여부</td>

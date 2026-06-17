@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import './Payments.css'
 import TopNav from '../components/TopNav'
 import { MonthPicker, DatePicker } from '../components/DatePicker'
+import BillingTab from '../components/student/BillingTab'
 
 const UNLOCKED_MENUS = ['students','payments','classes']
 
@@ -37,11 +38,11 @@ const SIDE_MENUS = [
   ]},
 ]
 const PAY_HISTORY_DATA = [
-  { id:1, name:'@이순신',    classes:['to_반그룹 > to_반_AAA_배정','to_반그룹 > from_반_CCC','to_반그룹 > to_반_001_배정','고등_AA > 고등_AA_기초반'], payAmt:'1,115',   refund:'', phone:'', guardRel:'모', guardPhone:'010-8278-2350' },
-  { id:2, name:'abc',        classes:['고등_AA > 고등_AA_기초반'], payAmt:'100,100', refund:'', phone:'', guardRel:'부', guardPhone:'010-8278-2350' },
-  { id:3, name:'회차_김222', classes:['반그룹_02(회차반) > 회차반_001'], payAmt:'100', refund:'', phone:'', guardRel:'', guardPhone:'01082782350' },
-  { id:4, name:'회차_김333', classes:['반그룹_02(회차반) > 회차반_001','반그룹_02(회차반) > 회차반_002','to_반그룹 > to_반_AAA_이동'], payAmt:'8', refund:'', phone:'', guardRel:'모', guardPhone:'111-2222-1011' },
-  { id:5, name:'회차_김444', classes:['반그룹_02(회차반) > 회차반_001'], payAmt:'500', refund:'', phone:'', guardRel:'', guardPhone:'' },
+  { id:1, name:'학생01', classes:['to_반그룹 > to_반_AAA_배정','to_반그룹 > from_반_CCC','to_반그룹 > to_반_001_배정','고등_AA > 고등_AA_기초반'], payAmt:'1,115',   refund:'', phone:'', guardRel:'모', guardPhone:'010-8278-2350' },
+  { id:2, name:'학생02', classes:['고등_AA > 고등_AA_기초반'], payAmt:'100,100', refund:'', phone:'', guardRel:'부', guardPhone:'010-8278-2350' },
+  { id:3, name:'학생03', classes:['반그룹_02(회차반) > 회차반_001'], payAmt:'100', refund:'', phone:'', guardRel:'', guardPhone:'01082782350' },
+  { id:4, name:'학생04', classes:['반그룹_02(회차반) > 회차반_001','반그룹_02(회차반) > 회차반_002','to_반그룹 > to_반_AAA_이동'], payAmt:'8', refund:'', phone:'', guardRel:'모', guardPhone:'111-2222-1011' },
+  { id:5, name:'학생05', classes:['반그룹_02(회차반) > 회차반_001'], payAmt:'500', refund:'', phone:'', guardRel:'', guardPhone:'' },
 ]
 const MONTHLY_PAY_DATA = [
   { id:1,  name:'@이순신',    cls:'to_반그룹 > from_반_CCC',    billAmt:'222',     tradeDate:'', payMethod:'', status:'미납', payAmt:'',  unpaid:'222',     created:'일괄수동' },
@@ -114,6 +115,7 @@ export default function Payments() {
   const [filter, setFilter] = useState({ month:'2026-05', group:'전체', className:'', type:'수강생-성명', keyword:'' })
 
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [expandedPayId, setExpandedPayId] = useState(null)
   const [menuLockedClickCount, setMenuLockedClickCount] = useState(0)
 
   const toggleGroup   = id => setExpanded(e=>e.includes(id)?[]:  [id])
@@ -421,17 +423,29 @@ export default function Payments() {
                 <div className="pm-sec-head" style={{borderBottom:'none'}}><div className="pm-sec-title">수강생 목록</div></div>
                 <div className="pm-table-wrap">
                   <table className="pm-table">
-                    <thead><tr><th>번호</th><th>성명</th><th>반명</th><th>청구금액</th><th>거래일</th><th>수납방법</th><th>상태</th><th>수납금액</th><th>미납금액</th><th>생성</th><th>기능</th></tr></thead>
+                    <thead><tr><th></th><th style={{textAlign:'left',paddingLeft:30}}>성명</th><th>반명</th><th>청구금액</th><th>거래일</th><th>수납방법</th><th>상태</th><th>수납금액</th><th>미납금액</th><th>생성</th><th>기능</th></tr></thead>
                     <tbody>
                       {MONTHLY_PAY_DATA.map(d=>(
                         <tr key={d.id}>
                           <td style={{textAlign:'center'}}>{d.id}</td>
-                          <td style={{textAlign:'center'}}><div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:4}}><span>👤</span><span>{d.name}</span></div></td>
+                          <td style={{textAlign:'left'}}>{d.name}</td>
                           <td style={{textAlign:'center'}}>{d.cls}</td><td style={{textAlign:'center'}}>{d.billAmt}</td><td style={{textAlign:'center'}}>{d.tradeDate}</td><td style={{textAlign:'center'}}>{d.payMethod}</td>
                           <td style={{textAlign:'center'}}><span style={{color:d.status==='미납'?'#0100FF':'#000',cursor:d.status==='미납'?'pointer':'default'}}>{d.status}</span></td>
                           <td style={{textAlign:'center'}}>{d.payAmt}</td><td style={{textAlign:'center'}}>{d.unpaid}</td>
                           <td style={{textAlign:'center',fontSize:13}}>{d.created}</td>
-                          <td style={{textAlign:'center'}}><button className="monthly-reg-btn"><span className="plus">+</span>수기등록</button></td>
+                          <td style={{textAlign:'center'}}><button className="monthly-reg-btn" onClick={()=>{
+                            if(d.status==='완납'){
+                              alert('수납이 발생한 청구 건은 수정할 수 없습니다.')
+                              return
+                            }
+                            sessionStorage.setItem('manualRegisterData', JSON.stringify({
+                              className: d.cls,
+                              month: monthlyPayFilter.month,
+                              billAmt: d.billAmt,
+                              item: '수강료01',
+                            }))
+                            window.open('/manual-register','_blank','width=650,height=800')
+                          }}><span className="plus">+</span>수기등록</button></td>
                         </tr>
                       ))}
                     </tbody>
@@ -475,18 +489,35 @@ export default function Payments() {
               <div className="pm-section" style={{border:'none'}}>
                 <div className="pm-sec-head" style={{borderBottom:'none'}}><div className="pm-sec-title">수강생 목록</div></div>
                 <div className="pm-table-wrap">
-                  <table className="pm-table">
+                  <table className="pm-table" style={{tableLayout:'fixed',minWidth:760}}>
+                    <colgroup>
+                      <col style={{width:60}}/><col style={{width:100}}/><col/><col style={{width:220}}/><col style={{width:170}}/><col style={{width:200}}/><col style={{width:170}}/><col style={{width:210}}/>
+                    </colgroup>
                     <thead><tr><th>번호</th><th>성명</th><th>반명</th><th>결제금액</th><th>환불금액</th><th>수강생휴대폰</th><th>보호자관계</th><th>보호자휴대폰</th></tr></thead>
                     <tbody>
-                      {PAY_HISTORY_DATA.map(d=>(
-                        <tr key={d.id}>
-                          <td style={{textAlign:'center'}}>{d.id}</td>
-                          <td style={{textAlign:'center'}}><div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:4}}><span>👤</span><span>{d.name}</span></div></td>
-                          <td style={{textAlign:'center'}}>{d.classes.map((c,i)=><div key={i} style={{fontSize:13,color:'#444',lineHeight:'1.6'}}>{c}</div>)}</td>
-                          <td style={{textAlign:'center',color:'#0100FF',fontWeight:400}}>{d.payAmt}</td>
-                          <td style={{textAlign:'center'}}>{d.refund}</td>
-                          <td style={{textAlign:'center'}}>{d.phone}</td><td style={{textAlign:'center'}}>{d.guardRel}</td><td style={{textAlign:'center'}}>{d.guardPhone}</td>
-                        </tr>
+                      {PAY_HISTORY_DATA.filter(d=>expandedPayId===null||expandedPayId===d.id).map(d=>(
+                        <>
+                          <tr key={d.id}>
+                            <td style={{textAlign:'center'}}>{d.id}</td>
+                            <td style={{textAlign:'left'}}>
+                              <span className="sts-name-link"
+                                onClick={()=>setExpandedPayId(expandedPayId===d.id?null:d.id)}>
+                                {d.name}
+                              </span>
+                            </td>
+                            <td style={{textAlign:'center'}}>{d.classes.map((c,i)=><div key={i} style={{fontSize:13,color:'#444',lineHeight:'1.6'}}>{c}</div>)}</td>
+                            <td style={{textAlign:'center',color:'#0100FF',fontWeight:400}}>{d.payAmt}</td>
+                            <td style={{textAlign:'center'}}>{d.refund}</td>
+                            <td style={{textAlign:'center'}}>{d.phone}</td><td style={{textAlign:'center'}}>{d.guardRel}</td><td style={{textAlign:'center'}}>{d.guardPhone}</td>
+                          </tr>
+                          {expandedPayId===d.id && (
+                            <tr key={`billing-${d.id}`}>
+                              <td colSpan={8} style={{padding:'0 20px',background:'#fff'}}>
+                                <div style={{marginTop:80}}><BillingTab /></div>
+                              </td>
+                            </tr>
+                          )}
+                        </>
                       ))}
                     </tbody>
                   </table>

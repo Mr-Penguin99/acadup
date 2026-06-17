@@ -1,13 +1,15 @@
 .payments-wrap {
   min-height: 100vh;
+  height: 100vh;
   background: #fff;
   display: flex;
   flex-direction: column;
   font-family: 'Noto Sans KR', sans-serif;
+  overflow: hidden;
 }
 
 /* 바디 */
-.payments-body { display: flex; flex: 1; min-height: 0; }
+.payments-body { display: flex; flex: 1; min-height: 0; overflow: hidden; }
 
 /* 사이드바 */
 .payments-sidebar {

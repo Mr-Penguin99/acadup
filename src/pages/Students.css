@@ -349,7 +349,7 @@
   grid-template-columns: 160px 1fr 160px 1fr;
   align-items: stretch;
   border-bottom: 1px solid #eeeeee;
-  min-height: 38px;
+  min-height: 28px;
 }
 .if-row:last-child { border-bottom: none; }
 
@@ -362,14 +362,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6px 8px;
+  padding: 3px 8px;
   text-align: center;
   white-space: nowrap;
 }
 .if-label.required::before { content: '* '; color: #F5841F; }
 
 .if-cell {
-  padding: 6px 10px;
+  padding: 3px 10px;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -379,7 +379,9 @@
 .if-cell:last-child { border-right: none; }
 
 .if-input {
-  padding: 6px 10px;
+  height: 28px;
+  box-sizing: border-box;
+  padding: 0 10px;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 12px;
@@ -548,7 +550,9 @@
 .sts-filter-label.first { margin-left: 0; }
 
 .sts-input {
-  padding: 6px 8px;
+  height: 24px;
+  box-sizing: border-box;
+  padding: 0 8px;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 12px;
@@ -572,7 +576,7 @@
   font-family: inherit;
   white-space: nowrap;
 }
-.sts-search-btn:hover { background: transparent; color: #000; }
+.sts-search-btn:hover { background: #fff; border-color: #ff3c00; color: #000; }
 
 .sts-export-btn {
   padding: 5px 12px;
@@ -634,9 +638,24 @@
 
 .sts-table {
   width: 100%;
+  min-width: 720px;
   border-collapse: collapse;
   font-size: 12px;
+  table-layout: fixed;
 }
+.sts-table th:nth-child(1)  { width: 60px; }
+.sts-table th:nth-child(2)  { width: 160px; }
+.sts-table td:nth-child(2)  { text-align: left; padding-left: 40px; }
+.sts-name-link { color: #000; cursor: pointer; }
+.sts-name-link:hover { color: #00a2ff; }
+.sts-table th:nth-child(3)  { width: 180px; }
+.sts-table th:nth-child(4)  { width: 100px; }
+.sts-table th:nth-child(5)  { width: 100px; }
+.sts-table th:nth-child(6)  { }
+.sts-table th:nth-child(7)  { width: 130px; }
+.sts-table th:nth-child(8)  { width: 180px; }
+.sts-table th:nth-child(9)  { width: 180px; }
+.sts-table th:nth-child(10) { width: 80px; }
 
 .sts-table th {
   background: #f8f9fb;
@@ -873,7 +892,7 @@
 .notice-unsent { color: #E8445A; font-size: 12px; font-weight: 700; }
 
 .schedule-search-btn {
-  padding: 6px 16px;
+  padding: 5px 12px;
   background: #555;
   color: #fff;
   border: none;

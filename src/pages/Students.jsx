@@ -90,7 +90,11 @@ const STUDENT_STATUS_DATA = [
   { id:6, name:'김길동',   birth:'23.01.01', photo:'X', status:'재원', classes:['no-use반모음 > 회 차반_333(사용안함)'], keypad:'', dept:'', school:'', grade:'' },
   { id:7, name:'김학생AA', birth:'23.01.01', photo:'X', status:'재원', classes:['to_반그룹 > to_반_001_배정','반그룹_01(기간반) > 01_국어(222개월)'], keypad:'', dept:'', school:'', grade:'' },
   { id:8, name:'김학생CC', birth:'20.10.12', photo:'O', status:'재원', classes:['to_반그룹 > to_반_001_배정','반그룹_01(기간반) > 01_국어(222개월)'], keypad:'', dept:'', school:'', grade:'' },
-  { id:9, name:'학생1',    birth:'20.01.01', photo:'X', status:'재원', classes:['반그룹 수업1 > 수업1 영어(월화목토)'], keypad:'1234', dept:'고등학교', school:'', grade:'1' },
+  { id:9,  name:'학생1',    birth:'20.01.01', photo:'X', status:'재원', classes:['반그룹 수업1 > 수업1 영어(월화목토)'], keypad:'1234', dept:'고등학교', school:'', grade:'1' },
+  { id:10, name:'예비학생1', birth:'21.03.10', photo:'X', status:'예비', classes:[], keypad:'', dept:'초등학교', school:'', grade:'2' },
+  { id:11, name:'예비학생2', birth:'22.07.05', photo:'X', status:'예비', classes:[], keypad:'', dept:'', school:'', grade:'' },
+  { id:12, name:'휴원학생1', birth:'19.05.15', photo:'X', status:'휴원', classes:['to_반그룹 > to_반_AAA_배정'], keypad:'0000', dept:'중학교', school:'', grade:'3' },
+  { id:13, name:'퇴원학생1', birth:'18.07.20', photo:'X', status:'퇴원', classes:[], keypad:'', dept:'고등학교', school:'', grade:'1' },
 ]
 const INFO_TABS = ['가족','수강','수납','결제','상담','출결','학원성적','학교성적','알림내역','메모','진도','차량']
 const LOCKED_TABS = ['상담','출결','학원성적','학교성적','알림내역','메모','진도','차량']
@@ -183,7 +187,15 @@ export default function Students() {
   const toggleTalkCheck    = id => setTalkChecked(c => c.includes(id) ? c.filter(x=>x!==id) : [...c,id])
   const toggleNoticeCheck  = id => setNoticeChecked(c => c.includes(id) ? c.filter(x=>x!==id) : [...c,id])
   const toggleStatusCheck  = id => setStatusChecked(c => c.includes(id) ? c.filter(x=>x!==id) : [...c,id])
-  const toggleStatusAll    = () => setStatusChecked(statusChecked.length===STUDENT_STATUS_DATA.length ? [] : STUDENT_STATUS_DATA.map(d=>d.id))
+
+  const filteredStudents = STUDENT_STATUS_DATA.filter(d => {
+    const s = statusFilter.studentStatus
+    if (s === '선택하기') return true
+    if (s === '예비+휴원+퇴원') return ['예비','휴원','퇴원'].includes(d.status)
+    return d.status === s
+  })
+
+  const toggleStatusAll = () => setStatusChecked(statusChecked.length===filteredStudents.length ? [] : filteredStudents.map(d=>d.id))
 
   return (
     <div className="students-wrap">
@@ -314,6 +326,7 @@ export default function Students() {
             </div>
           </div>
         )}
+
 
 <div className="students-main">
 
@@ -579,14 +592,14 @@ export default function Students() {
                 <div className="sts-table-wrap">
                   <table className="sts-table">
                     <thead><tr>
-                      <th><input type="checkbox" checked={statusChecked.length===STUDENT_STATUS_DATA.length} onChange={toggleStatusAll}/></th>
+                      <th><input type="checkbox" checked={filteredStudents.length>0&&statusChecked.length===filteredStudents.length} onChange={toggleStatusAll}/></th>
                       <th>성명</th><th>생년월일</th><th>사진</th><th>상태</th><th>반명</th><th>키패드</th><th>학부</th><th>학교명</th><th>학년</th>
                     </tr></thead>
                     <tbody>
-                      {STUDENT_STATUS_DATA.map(d=>(
+                      {filteredStudents.map(d=>(
                         <tr key={d.id} className={statusChecked.includes(d.id)?'checked-row':''}>
                           <td><input type="checkbox" checked={statusChecked.includes(d.id)} onChange={()=>toggleStatusCheck(d.id)}/></td>
-                          <td><div style={{display:'flex',alignItems:'center',gap:4}}><span>👤</span><span>{d.name}</span></div></td>
+                          <td><span className="sts-name-link" onClick={()=>{ sessionStorage.setItem('studentDetailData', JSON.stringify(d)); window.open('/student-detail','_blank','width=1250,height=850'); }}>{d.name}</span></td>
                           <td>{d.birth}</td>
                           <td style={{textAlign:'center'}}>{d.photo}</td>
                           <td style={{textAlign:'center'}}>{d.status}</td>
@@ -742,7 +755,7 @@ export default function Students() {
               <div className="sts-section">
                 <div className="notice-list-head">
                   <span className="sts-sec-title">공지사항 목록</span>
-                  <div style={{display:'flex',gap:6}}><button className="sts-teal-btn">공지사항 등록</button><button className="sts-export-btn">알림톡전송</button></div>
+                  <div style={{display:'flex',gap:6}}><button className="sts-export-btn">공지사항 등록</button><button className="sts-export-btn">알림톡전송</button></div>
                 </div>
                 <table className="notice-table">
                   <thead><tr><th>번호</th><th>선택</th><th>제목</th><th>문자전송</th><th>작성자</th><th>작성일</th></tr></thead>
@@ -775,7 +788,7 @@ export default function Students() {
               <div className="sts-section">
                 <div className="notice-list-head">
                   <span className="sts-sec-title">소통톡톡 목록</span>
-                  <div style={{display:'flex',gap:6}}><button className="sts-teal-btn">소통톡톡 등록</button><button className="sts-export-btn">알림톡전송</button></div>
+                  <div style={{display:'flex',gap:6}}><button className="sts-export-btn">소통톡톡 등록</button><button className="sts-export-btn">알림톡전송</button></div>
                 </div>
                 <table className="notice-table">
                   <thead><tr><th>번호</th><th>선택</th><th>제목</th><th>문자전송</th><th>작성자</th><th>작성일</th></tr></thead>
@@ -850,7 +863,7 @@ export default function Students() {
                 </div>
               </div>
               <div className="sts-section">
-                <div className="notice-list-head"><span className="sts-sec-title">예약 목록</span><button className="sts-search-btn" style={{background:'#E8445A'}}>전송 취소</button></div>
+                <div className="notice-list-head"><span className="sts-sec-title">예약 목록</span><button className="sts-search-btn">전송 취소</button></div>
                 <table className="notice-table">
                   <thead><tr><th><input type="checkbox" onChange={e=>setScheduleChecked(e.target.checked?['all']:[])}/></th><th>수신번호</th><th>예약시간</th><th>메세지</th><th>등록자</th><th>등록시간</th></tr></thead>
                   <tbody><tr><td colSpan={6} style={{textAlign:'center',padding:'40px',color:'#bbb',fontSize:13}}>검색된 데이터가 없습니다.</td></tr></tbody>

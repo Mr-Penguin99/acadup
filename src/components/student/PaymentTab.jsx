@@ -36,7 +36,15 @@ export default function PaymentTab() {
           </select>
         </div>
         <div style={{display:'flex',gap:6}}>
-          <button className="family-add-btn" onClick={()=>window.open('/manual-register','_blank','width=650,height=800')}><span className="plus">+</span> 수기등록</button>
+          <button className="family-add-btn" onClick={()=>{
+            if(checked.length > 0){
+              const row = SAMPLE.find(d=>d.id===checked[0])
+              sessionStorage.setItem('manualRegisterData', JSON.stringify(row))
+            } else {
+              sessionStorage.removeItem('manualRegisterData')
+            }
+            window.open('/manual-register','_blank','width=650,height=800')
+          }}><span className="plus">+</span> 수기등록</button>
           <button className="family-add-btn" onClick={()=>window.open('/payment-register','_blank','width=650,height=800')}><span className="plus">+</span> 수납</button>
         </div>
       </div>
