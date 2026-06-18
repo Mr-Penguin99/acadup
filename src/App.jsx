@@ -1,4 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { TutorialProvider } from './components/TutorialContext'
+import TutorialFloatingButton from './components/TutorialFloatingButton'
+import TutorialDevNav from './components/TutorialDevNav'
 import Signup from './pages/Signup'
 import Demo from './pages/Demo'
 import ConversionRequest from './pages/ConversionRequest'
@@ -22,31 +25,35 @@ import PaymentCancel from './pages/PaymentCancel'
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Demo />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/conversion-request" element={<ConversionRequest />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/students" element={<Students />} />
-        <Route path="/payments" element={<Payments />} />
-        <Route path="/classes" element={<Classes />} />
-        <Route path="/myinfo" element={<MyInfo />} />
-        <Route path="/changepassword" element={<ChangePassword />} />
-        <Route path="/resid-add" element={<ResidExceptionAdd />} />
-        <Route path="/class-register" element={<ClassRegister />} />
-        <Route path="/manual-register" element={<ManualRegister />} />
-        <Route path="/payment-register" element={<PaymentRegister />} />
-        <Route path="/payment-memo" element={<PaymentMemo />} />
-        <Route path="/admin" element={<Admin />} />
-        <Route path="/class-create" element={<ClassCreate />} />
-        <Route path="/student-detail" element={<StudentDetail />} />
-        <Route path="/payment-cancel" element={<PaymentCancel />} />
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
-    </BrowserRouter>
+    <TutorialProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Demo />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/conversion-request" element={<ConversionRequest />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/students" element={<Students />} />
+          <Route path="/payments" element={<Payments />} />
+          <Route path="/classes" element={<Classes />} />
+          <Route path="/myinfo" element={<MyInfo />} />
+          <Route path="/changepassword" element={<ChangePassword />} />
+          <Route path="/resid-add" element={<ResidExceptionAdd />} />
+          <Route path="/class-register" element={<ClassRegister />} />
+          <Route path="/manual-register" element={<ManualRegister />} />
+          <Route path="/payment-register" element={<PaymentRegister />} />
+          <Route path="/payment-memo" element={<PaymentMemo />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/class-create" element={<ClassCreate />} />
+          <Route path="/student-detail" element={<StudentDetail />} />
+          <Route path="/payment-cancel" element={<PaymentCancel />} />
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+        <TutorialFloatingButton />
+        <TutorialDevNav />
+      </BrowserRouter>
+    </TutorialProvider>
   )
 }
 

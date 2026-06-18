@@ -1,10 +1,16 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import TopNav from '../components/TopNav'
 import './Classes.css'
 import { DatePicker } from '../components/DatePicker'
+import { useTutorial } from '../components/TutorialContext'
+import TutorialOverlay from '../components/TutorialOverlay'
+import TutorialSpotlight from '../components/TutorialSpotlight'
+import ClassCreate from './ClassCreate'
 
 const UNLOCKED_MENUS = ['students','payments','classes']
+const MODAL_TUTORIAL_STEP_IDS = ['class-create-code-hint', 'class-create-required-fields', 'class-create-payday-hint', 'class-create-period-hint', 'class-create-save-hint', 'class-create-new-register-hint', 'class-create-closing']
+const FULL_OVERLAY_STEP_IDS = ['class-create-required-fields', 'class-create-payday-hint', 'class-create-period-hint', 'class-create-save-hint', 'class-create-new-register-hint', 'class-create-closing']
 
 const MENUS = [
   { id: 'students',    icon: '/icons/students.svg',    label: '수강생관리' },
@@ -44,18 +50,6 @@ const GROUP_DATA = [
   { id:9,  code:'11_B',       name:'초등_B',            use:'사용' },
   { id:10, code:'11_C',       name:'초등_C',            use:'사용' },
 ]
-const SAMPLE_DATA = [
-  { id:1,  group:'',               name:'수업2_영어',       code:'CLASS00014', status:'개강', type:'국어', teacher:'김일희(강사)',   period:'2015.09.01~2026.12.31', room:'', count:'재원: 0명' },
-  { id:2,  group:'',               name:'test02',           code:'CLASS00018', status:'개강', type:'국어', teacher:'',              period:'2016.09.01~2027.09.30', room:'', count:'재원: 1명' },
-  { id:3,  group:'',               name:'test03',           code:'CLASS00020', status:'개강', type:'국어', teacher:'김부원장1',      period:'2015.11.06~2028.11.03', room:'', count:'재원: 0명' },
-  { id:4,  group:'반그룹_02(회차반)', name:'회차반_001',    code:'CLASS00050', status:'개강', type:'국어', teacher:'장원장(기간반)', period:'2026.03.01~2026.12.31', room:'', count:'재원: 1명' },
-  { id:5,  group:'반그룹_02(회차반)', name:'회차반_002',    code:'CLASS00051', status:'개강', type:'국어', teacher:'장원장(기간반)', period:'2026.01.01~2026.12.31', room:'', count:'재원: 0명' },
-  { id:6,  group:'반그룹_02(회차반)', name:'회차반_003',    code:'CLASS00052', status:'개강', type:'수학', teacher:'장원장(기간반)', period:'2026.03.01~2026.12.31', room:'', count:'재원: 0명' },
-  { id:7,  group:'to_반그룹',      name:'to_반_AAA_배정',   code:'CLASS00030', status:'개강', type:'국어', teacher:'장원장(기간반)', period:'2025.01.01~2026.12.31', room:'', count:'재원: 4명' },
-  { id:8,  group:'to_반그룹',      name:'to_반_AAA_이동',   code:'CLASS00031', status:'개강', type:'국어', teacher:'',              period:'2026.01.01~2026.12.31', room:'', count:'재원: 0명' },
-  { id:9,  group:'to_반그룹',      name:'to_반_AAA_미개강', code:'CLASS00032', status:'개강', type:'국어', teacher:'장원장(기간반)', period:'2026.04.01~2026.12.31', room:'', count:'재원: 0명' },
-  { id:10, group:'to_반그룹',      name:'to_반_XXX_배정',   code:'CLASS00040', status:'개강', type:'국어', teacher:'',              period:'2026.01.01~2026.12.31', room:'', count:'재원: 0명' },
-]
 
 export default function Classes() {
   const navigate = useNavigate()
@@ -73,11 +67,146 @@ export default function Classes() {
 
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [menuLockedClickCount, setMenuLockedClickCount] = useState(0)
+  const [showClassCreateModal, setShowClassCreateModal] = useState(false)
+  const [classRows, setClassRows] = useState([])
+  const [newClassId, setNewClassId] = useState(null)
+
+  const handleClassSave = (form) => {
+    const newId = Math.max(0, ...classRows.map(r => r.id)) + 1
+    setClassRows(rows => [
+      ...rows,
+      {
+        id: newId,
+        group: form.group,
+        name: form.name || '(이름 없음)',
+        code: form.code || `CLASS${String(rows.length + 1).padStart(5, '0')}`,
+        status: '개강',
+        type: form.subject,
+        teacher: '',
+        period: `${form.opFrom || ''}~${form.opTo || ''}`,
+        room: form.room,
+        count: '재원: 0명',
+      },
+    ])
+    setNewClassId(newId)
+  }
+
+  const { activeStep, isOpen, autoStart, advance } = useTutorial()
+  const registerBtnRef = useRef(null)
+  const [registerBtnRect, setRegisterBtnRect] = useState(null)
+  const newRowRef = useRef(null)
+  const [newRowRect, setNewRowRect] = useState(null)
+  const modalBoxRef = useRef(null)
+  const studentsMenuRef = useRef(null)
+  const [studentsMenuRect, setStudentsMenuRect] = useState(null)
+
+  useEffect(() => {
+    autoStart('class-status-intro')
+  }, [])
+
+  const showClassStatusIntro = isOpen && activeStep?.id === 'class-status-intro'
+  const showRegisterBtnSpotlight = isOpen && activeStep?.id === 'class-status-register-btn' && activeSide === 'class-status'
+  const showCompleteHint = isOpen && activeStep?.id === 'class-status-complete-hint' && activeSide === 'class-status'
+  const showStudentMenuHint = isOpen && activeStep?.id === 'class-status-student-menu-hint'
+
+  // 모달 안에서 보여줄 단계인데 모달이 닫혀있으면(예: 플로팅 박스로 이어보기) 자동으로 모달을 열어줌
+  useEffect(() => {
+    if (isOpen && MODAL_TUTORIAL_STEP_IDS.includes(activeStep?.id) && !showClassCreateModal) {
+      setShowClassCreateModal(true)
+    }
+  }, [isOpen, activeStep, showClassCreateModal])
+
+  useEffect(() => {
+    if (!showRegisterBtnSpotlight) return
+    const measure = () => {
+      if (registerBtnRef.current) setRegisterBtnRect(registerBtnRef.current.getBoundingClientRect())
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [showRegisterBtnSpotlight])
+
+  useEffect(() => {
+    if (!showCompleteHint) return
+    const measure = () => {
+      if (newRowRef.current) setNewRowRect(newRowRef.current.getBoundingClientRect())
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [showCompleteHint])
+
+  useEffect(() => {
+    if (!showStudentMenuHint) return
+    const measure = () => {
+      if (studentsMenuRef.current) setStudentsMenuRect(studentsMenuRef.current.getBoundingClientRect())
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [showStudentMenuHint])
 
   const toggleGroup = id => setExpanded(e=>e.includes(id)?[]:  [id])
 
   return (
-    <div className="classes-wrap">
+    <div
+      className="classes-wrap"
+      onClick={()=>{
+        if(showCompleteHint) advance()
+      }}
+    >
+      {showClassStatusIntro && (
+        <TutorialOverlay
+          title="반 현황 페이지입니다"
+          description={'이곳에서 우리 학원의 모든 반을 한눈에 확인할 수 있어요.\n다음 단계에서는 반을 직접 등록해볼게요.'}
+          onNext={advance}
+        />
+      )}
+      {showRegisterBtnSpotlight && (
+        <TutorialSpotlight
+          rect={registerBtnRect}
+          message="반 등록 버튼을 눌러 반을 생성해보세요."
+        />
+      )}
+      {showCompleteHint && (
+        <TutorialSpotlight
+          rect={newRowRect}
+          message="반 등록이 완료되었습니다."
+        />
+      )}
+      {showStudentMenuHint && (
+        <TutorialSpotlight
+          rect={studentsMenuRect}
+          message="수강생관리 메뉴를 클릭해 주세요."
+        />
+      )}
+      {showClassCreateModal && (
+        <div
+          style={{
+            position:'fixed',inset:0,zIndex:3500,display:'flex',alignItems:'center',justifyContent:'center',
+            // 자체 전체화면 스포트라이트를 그리는 단계에서는 모달 배경을 중복 적용하지 않음
+            background: FULL_OVERLAY_STEP_IDS.includes(activeStep?.id) ? 'transparent' : 'rgba(0,0,0,0.5)',
+          }}
+          onClick={(e)=>{
+            if(isOpen && activeStep?.id==='class-create-code-hint') advance()
+            // 모달 바깥(배경) 클릭일 때만 다음 단계로 넘어감 - 모달 안쪽 클릭은 무시
+            // 튜토리얼 스포트라이트가 화면 전체를 덮는 fixed div로 그려지기 때문에
+            // e.target===e.currentTarget 비교로는 바깥 클릭을 감지할 수 없어, 좌표로 직접 판정한다.
+            if(isOpen && activeStep?.id==='class-create-closing'){
+              const box = modalBoxRef.current?.getBoundingClientRect()
+              const inside = box && e.clientX>=box.left && e.clientX<=box.right && e.clientY>=box.top && e.clientY<=box.bottom
+              if(!inside){
+                setShowClassCreateModal(false)
+                advance()
+              }
+            }
+          }}
+        >
+          <div ref={modalBoxRef} style={{width:960,maxWidth:'90vw',maxHeight:'90vh',overflowY:'auto',boxShadow:'0 12px 40px rgba(0,0,0,0.3)'}}>
+            <ClassCreate embedded onSave={handleClassSave} />
+          </div>
+        </div>
+      )}
       <TopNav/>
       <div className="menu-bar">
         <button className="hamburger-btn" onClick={()=>setSidebarOpen(s=>!s)}>☰</button>
@@ -85,7 +214,8 @@ export default function Classes() {
           {MENUS.map(m=>{
             const isLocked = !UNLOCKED_MENUS.includes(m.id)
             return (
-              <div key={m.id} className={`menu-item ${activeMenu===m.id?'active':''} ${isLocked?'locked':''}`}
+              <div key={m.id} ref={m.id==='students' ? studentsMenuRef : null}
+                className={`menu-item ${activeMenu===m.id?'active':''} ${isLocked?'locked':''}`}
                 style={{position:'relative'}}
                 onClick={()=>{
                   if(isLocked){
@@ -94,7 +224,10 @@ export default function Classes() {
                     else { setMenuLockedClickCount(next) }
                   } else {
                     setActiveMenu(m.id)
-                    if(m.id==='students')navigate('/students')
+                    if(m.id==='students'){
+                      navigate('/students')
+                      if(showStudentMenuHint) advance()
+                    }
                     if(m.id==='payments')navigate('/payments')
                     if(m.id==='settings')navigate('/settings')
                     if(m.id==='dashboard')navigate('/dashboard')
@@ -434,13 +567,29 @@ export default function Classes() {
                 </div>
               </div>
               <div className="cl-section" style={{borderTop:'none'}}>
-                <div className="cl-table-header"><button className="cl-reg-btn" onClick={()=>window.open('/class-create','_blank','width=960,height=900,resizable=yes')}>반 등록</button></div>
+                <div className="cl-table-header">
+                  <button
+                    ref={registerBtnRef}
+                    className="cl-reg-btn"
+                    onClick={()=>{
+                      if(activeStep?.id==='class-status-register-btn'){
+                        setShowClassCreateModal(true)
+                        advance()
+                      } else {
+                        const w = 960, h = 900
+                        const left = window.screenX + (window.outerWidth - w) / 2
+                        const top = window.screenY + (window.outerHeight - h) / 2
+                        window.open('/class-create','_blank',`width=${w},height=${h},left=${left},top=${top},resizable=yes`)
+                      }
+                    }}
+                  >반 등록</button>
+                </div>
                 <div className="cl-table-wrap">
                   <table className="cl-table">
                     <thead><tr><th>출력순서</th><th>반 그룹</th><th>반 명</th><th>반 코드</th><th>상태</th><th>중분류</th><th>담임</th><th>수강기간</th><th>강의실</th><th>수강생수</th><th>기능</th></tr></thead>
                     <tbody>
-                      {SAMPLE_DATA.map(d=>(
-                        <tr key={d.id}>
+                      {classRows.map(d=>(
+                        <tr key={d.id} ref={d.id===newClassId ? newRowRef : null}>
                           <td className="td-center">{d.id}</td><td>{d.group}</td><td>{d.name}</td><td>{d.code}</td>
                           <td className="td-center">{d.status}</td><td className="td-center">{d.type}</td>
                           <td>{d.teacher}</td><td>{d.period}</td><td>{d.room}</td><td>{d.count}</td>

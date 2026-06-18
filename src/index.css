@@ -333,9 +333,9 @@ button { cursor: pointer; font-family: inherit; }
   border-color: #F5841F;
 }
 
-/* 팝업 z-index */
+/* 팝업 z-index - react-datepicker 자체 CSS가 동일 선택자로 z-index:1을 지정해 로드 순서에 따라 덮어쓸 수 있어 !important로 고정 */
 .react-datepicker-popper {
-  z-index: 99999;
+  z-index: 99999 !important;
 }
 
 /* DatePicker input 캘린더 아이콘 */

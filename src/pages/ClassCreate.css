@@ -6,6 +6,10 @@
   min-height: 100vh;
   padding: 20px 24px;
 }
+.cc-wrap.cc-modal {
+  min-height: auto;
+  border-radius: 8px;
+}
 
 .cc-header {
   display: flex;
@@ -16,6 +20,16 @@
   border-bottom: 1px solid #e0e0e0;
 }
 .cc-title { font-size: 18px; font-weight: 700; color: #222; }
+.cc-close-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #888;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px;
+}
+.cc-close-btn:hover { color: #222; }
 
 .cc-btn-row {
   display: flex;
@@ -89,8 +103,6 @@
 .cc-input:focus { border-color: #F5841F; }
 .cc-input-sm   { width: 70px; }
 .cc-input-date { width: 130px; }
-.cc-date-empty::-webkit-datetime-edit { color: transparent; }
-.cc-date-empty:focus::-webkit-datetime-edit { color: #333; }
 
 .cc-select {
   padding: 4px 7px;

@@ -429,7 +429,7 @@ export default function Signup() {
             <p className="section-sub" style={{ marginTop: 8, fontSize: 18 }}>
               데모버전을 통해 기능을 체험하고 정식 계정으로 전환 요청하세요!
             </p>
-            <button className="btn-primary" onClick={() => navigate('/dashboard')}>
+            <button className="btn-primary" onClick={() => navigate('/classes')}>
               시작하기
             </button>
           </div>

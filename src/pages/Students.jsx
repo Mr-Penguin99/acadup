@@ -1,7 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './Students.css'
 import TopNav from '../components/TopNav'
+import { useTutorial } from '../components/TutorialContext'
+import TutorialSpotlight from '../components/TutorialSpotlight'
+import TutorialMultiSpotlight from '../components/TutorialMultiSpotlight'
+import TutorialTooltip from '../components/TutorialTooltip'
 import { MonthPicker, DatePicker } from '../components/DatePicker'
 import FamilyTab from '../components/student/FamilyTab'
 import ClassTab from '../components/student/ClassTab'
@@ -134,6 +138,77 @@ export default function Students() {
   const [selectedStudentId, setSelectedStudentId] = useState(null) // null | 'new' | number
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
+  const { activeStep, isOpen, advance } = useTutorial()
+  const infoPanelRef = useRef(null)
+  const [infoPanelRect, setInfoPanelRect] = useState(null)
+  const showInfoPanelHint = isOpen && activeStep?.id === 'student-class-list-intro' && activeSide === 'class-students'
+
+  useEffect(() => {
+    if (!showInfoPanelHint) return
+    const measure = () => {
+      if (infoPanelRef.current) setInfoPanelRect(infoPanelRef.current.getBoundingClientRect())
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [showInfoPanelHint])
+
+  const nameLabelRef = useRef(null)
+  const nameCellRef = useRef(null)
+  const birthLabelRef = useRef(null)
+  const birthCellRef = useRef(null)
+  const enrollLabelRef = useRef(null)
+  const enrollCellRef = useRef(null)
+  const phoneLabelRef = useRef(null)
+  const phoneCellRef = useRef(null)
+  const [requiredFieldsRects, setRequiredFieldsRects] = useState({ bounds: null, holes: [], nameRect: null })
+  const showRequiredFieldsHint = isOpen && activeStep?.id === 'student-required-fields' && activeSide === 'class-students'
+
+  // 여러 영역(레이블+입력란)을 하나로 합쳐 깨지지 않는 강조 영역으로 만듦
+  const unionRects = (...rects) => rects.filter(Boolean).reduce((acc, r) => {
+    if (!acc) return r
+    const left = Math.min(acc.left, r.left)
+    const top = Math.min(acc.top, r.top)
+    const right = Math.max(acc.right, r.right)
+    const bottom = Math.max(acc.bottom, r.bottom)
+    return { left, top, right, bottom, width: right - left, height: bottom - top }
+  }, null)
+
+  useEffect(() => {
+    if (!showRequiredFieldsHint) return
+    const measure = () => {
+      const nameHole = unionRects(nameLabelRef.current?.getBoundingClientRect(), nameCellRef.current?.getBoundingClientRect())
+      const birthHole = unionRects(birthLabelRef.current?.getBoundingClientRect(), birthCellRef.current?.getBoundingClientRect())
+      // 입학일자 + 학생 휴대폰을 하나의 강조 영역으로 통합
+      const enrollPhoneHole = unionRects(
+        enrollLabelRef.current?.getBoundingClientRect(), enrollCellRef.current?.getBoundingClientRect(),
+        phoneLabelRef.current?.getBoundingClientRect(), phoneCellRef.current?.getBoundingClientRect(),
+      )
+      setRequiredFieldsRects({
+        bounds: { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight },
+        holes: [nameHole, birthHole, enrollPhoneHole],
+        nameRect: nameHole,
+      })
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [showRequiredFieldsHint])
+
+  const saveBtnRef = useRef(null)
+  const [saveBtnRect, setSaveBtnRect] = useState(null)
+  const showSaveHint = isOpen && activeStep?.id === 'student-save-hint' && activeSide === 'class-students'
+
+  useEffect(() => {
+    if (!showSaveHint) return
+    const measure = () => {
+      if (saveBtnRef.current) setSaveBtnRect(saveBtnRef.current.getBoundingClientRect())
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [showSaveHint])
+
   const emptyForm = {
     studentNo:'', status:'', name:'', birth:'', gender:'남자',
     id:'', pw:'', enrollDate:'', payMethod:'',
@@ -151,6 +226,18 @@ export default function Students() {
     return '예비'
   }
   const [form, setForm] = useState(emptyForm)
+
+  // 필수 입력란을 모두 채우면 저장 버튼 강조 단계로 진행
+  // (이전 버튼 등으로 이미 채워진 상태에서 이 단계로 "막 진입"한 경우는 건너뛰고,
+  //  이 단계에 머무는 동안 실제로 입력값이 바뀔 때만 검사한다)
+  const requiredFieldsEnteredRef = useRef(false)
+  useEffect(() => {
+    const isOnStep = activeStep?.id === 'student-required-fields'
+    if (isOnStep && requiredFieldsEnteredRef.current) {
+      if (form.name && form.birth && form.enrollDate && form.phone) advance()
+    }
+    requiredFieldsEnteredRef.current = isOnStep
+  }, [form, activeStep])
 
   const handleNewStudent = () => {
     setSelectedStudentId('new')
@@ -199,6 +286,37 @@ export default function Students() {
 
   return (
     <div className="students-wrap">
+      {showInfoPanelHint && (
+        <TutorialSpotlight
+          rect={infoPanelRect}
+          placement="top"
+          message="이곳에서 학생의 상세 정보를 등록하고 관리할 수 있습니다."
+        />
+      )}
+      {showRequiredFieldsHint && (
+        <>
+          <TutorialMultiSpotlight boundsRect={requiredFieldsRects.bounds} holes={requiredFieldsRects.holes} />
+          <TutorialTooltip
+            rect={requiredFieldsRects.nameRect}
+            placement="top"
+            message={<><span style={{color:'#F5841F'}}>*</span>표시가 있는 필수 입력란을 입력해 주세요.</>}
+          />
+        </>
+      )}
+      {showSaveHint && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[saveBtnRect]}
+            pad={3}
+          />
+          <TutorialTooltip
+            rect={saveBtnRect}
+            placement="top"
+            message="저장 버튼을 누르고 저장해 주세요!"
+          />
+        </>
+      )}
       <TopNav />
       <div className="menu-bar">
         <button className="hamburger-btn" onClick={()=>setSidebarOpen(s=>!s)}>☰</button>
@@ -371,7 +489,10 @@ export default function Students() {
                     </div>
                   </div>
                 </div>
-                <div className="info-panel">
+                <div className="info-panel" ref={infoPanelRef}
+                  onClick={()=>{
+                    if(showInfoPanelHint) advance()
+                  }}>
                   <div className="info-header">
                     <span className="info-title">학생 정보자료</span>
                     <div style={{display:'flex',gap:6}}>
@@ -384,7 +505,7 @@ export default function Students() {
                         <button className="info-action-btn teal">알림톡전송</button>
                         <button className="info-action-btn blue" onClick={handleNewStudent}>신규 수강생 등록</button>
                       </> : <>
-                        <button className="info-action-btn red narrow" onClick={handleSave}>저장</button>
+                        <button ref={saveBtnRef} className="info-action-btn red narrow" onClick={handleSave}>저장</button>
                         <button className="info-action-btn blue" onClick={handleNewStudent}>신규 수강생 등록</button>
                       </>}
                     </div>
@@ -409,12 +530,12 @@ export default function Students() {
                           </div>
                         </div>
                         <div className="if-row">
-                          <label className="if-label required">성명</label>
-                          <div className="if-cell">
+                          <label className="if-label required" ref={nameLabelRef}>성명</label>
+                          <div className="if-cell" ref={nameCellRef}>
                             <input className="if-input" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))}/>
                           </div>
-                          <label className="if-label required">생년월일</label>
-                          <div className="if-cell">
+                          <label className="if-label required" ref={birthLabelRef}>생년월일</label>
+                          <div className="if-cell" ref={birthCellRef}>
                             <input className="if-input" placeholder="예) 901230" style={{width:120}} value={form.birth} onChange={e=>setForm(f=>({...f,birth:e.target.value}))}/>
                             <select className="if-input" style={{width:80}} value={form.gender} onChange={e=>setForm(f=>({...f,gender:e.target.value}))}>
                               <option>남자</option><option>여자</option>
@@ -433,8 +554,8 @@ export default function Students() {
                           </div>
                         </div>
                         <div className="if-row">
-                          <label className="if-label required">입학일자</label>
-                          <div className="if-cell">
+                          <label className="if-label required" ref={enrollLabelRef}>입학일자</label>
+                          <div className="if-cell" ref={enrollCellRef}>
                             <DatePicker value={form.enrollDate} onChange={v=>setForm(f=>({...f,enrollDate:v}))}/>
                           </div>
                           <label className="if-label">주 결제방법</label>
@@ -443,8 +564,8 @@ export default function Students() {
                           </div>
                         </div>
                         <div className="if-row">
-                          <label className="if-label required">학생 휴대폰</label>
-                          <div className="if-cell">
+                          <label className="if-label required" ref={phoneLabelRef}>학생 휴대폰</label>
+                          <div className="if-cell" ref={phoneCellRef}>
                             <input className="if-input" placeholder="예) 010-1234-5678" value={form.phone} onChange={e=>setForm(f=>({...f,phone:e.target.value}))}/>
                           </div>
                           <label className="if-label">집전화</label>
