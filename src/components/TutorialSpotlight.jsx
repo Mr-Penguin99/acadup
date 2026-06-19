@@ -1,7 +1,8 @@
 // 지정된 영역(rect)만 오버레이를 비워 강조하고, 그 옆에 말풍선 툴팁을 띄움.
 // 강조된 영역은 실제 페이지 요소가 그대로 노출되어 클릭 가능하고, 나머지는 어두운 배경으로 막혀있음.
-// placement='bottom'(기본): 강조 영역 아래, 왼쪽 정렬 / placement='top': 강조 영역 위, 중앙 정렬
-export default function TutorialSpotlight({ rect, message, placement = 'bottom' }) {
+// placement='bottom'(기본): 강조 영역 아래 / placement='top': 강조 영역 위 - 둘 다 강조 영역 가운데에 말풍선과 말꼬리가 옴
+// onConfirm을 전달하면 메시지 옆에 "확인[Enter]"가 붙고 클릭하면 호출됨 (Enter 처리는 호출하는 쪽에서 직접 담당)
+export default function TutorialSpotlight({ rect, message, placement = 'bottom', onConfirm }) {
   if (!rect) return null
 
   const PAD = 6
@@ -15,17 +16,13 @@ export default function TutorialSpotlight({ rect, message, placement = 'bottom' 
 
   const dark = { position: 'fixed', background: 'rgba(0,0,0,0.6)', zIndex: 3000 }
 
-  const tooltipWidth = 280
-  const tooltipLeft = Math.min(Math.max(left, 12), window.innerWidth - tooltipWidth - 12)
-  const arrowLeft = Math.min(Math.max(left - tooltipLeft + width / 2 - 8, 12), tooltipWidth - 28)
-
-  // top 배치는 텍스트 길이에 맞춰 한 줄로 표시하고 강조 영역 중앙 위에 맞춤(가운데 정렬은 transform으로 처리)
+  // 말풍선 박스는 내용(텍스트+확인 버튼) 크기에 맞춰 한 줄로 표시하고, 강조 영역 가운데에 맞춤
   const tooltipBoxStyle = placement === 'top'
     ? { left: centerX, top: top - 14, transform: 'translate(-50%, -100%)', width: 'max-content', maxWidth: 'calc(100vw - 24px)', whiteSpace: 'nowrap' }
-    : { left: tooltipLeft, top: bottom + 14, width: tooltipWidth }
+    : { left: centerX, top: bottom + 14, transform: 'translateX(-50%)', width: 'max-content', maxWidth: 'calc(100vw - 24px)', whiteSpace: 'nowrap' }
   const arrowBoxStyle = placement === 'top'
     ? { left: '50%', transform: 'translateX(-50%)', bottom: -8, borderTop: '8px solid #fff' }
-    : { left: arrowLeft, top: -8, borderBottom: '8px solid #fff' }
+    : { left: '50%', transform: 'translateX(-50%)', top: -8, borderBottom: '8px solid #fff' }
 
   return (
     <>
@@ -48,7 +45,17 @@ export default function TutorialSpotlight({ rect, message, placement = 'bottom' 
           borderLeft: '8px solid transparent', borderRight: '8px solid transparent',
           ...arrowBoxStyle,
         }} />
-        {message}
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: onConfirm ? 50 : 0 }}>
+          <span>{message}</span>
+          {onConfirm && (
+            <span
+              onClick={e => { e.stopPropagation(); onConfirm() }}
+              style={{ fontSize: 11, color: '#F5841F', fontWeight: 600, cursor: 'pointer' }}
+            >
+              확인[Enter]
+            </span>
+          )}
+        </div>
       </div>
     </>
   )

@@ -7,7 +7,12 @@ export const TUTORIAL_STEPS = [
   { id: 'class-create-code-hint', path: '/classes' },
   { id: 'class-create-required-fields', path: '/classes' },
   { id: 'class-create-payday-hint', path: '/classes' },
+  { id: 'class-create-name-hint', path: '/classes' },
+  { id: 'class-create-subject-hint', path: '/classes' },
+  { id: 'class-create-paycycle-hint', path: '/classes' },
+  { id: 'class-create-optype-hint', path: '/classes' },
   { id: 'class-create-period-hint', path: '/classes' },
+  { id: 'class-create-payment-hint', path: '/classes' },
   { id: 'class-create-save-hint', path: '/classes' },
   { id: 'class-create-new-register-hint', path: '/classes' },
   { id: 'class-create-closing', path: '/classes' },
@@ -15,7 +20,12 @@ export const TUTORIAL_STEPS = [
   { id: 'class-status-student-menu-hint', path: '/classes' },
   { id: 'student-class-list-intro', path: '/students' },
   { id: 'student-required-fields', path: '/students' },
+  { id: 'student-name-hint', path: '/students' },
+  { id: 'student-enroll-hint', path: '/students' },
+  { id: 'student-phone-hint', path: '/students' },
+  { id: 'student-birth-hint', path: '/students' },
   { id: 'student-save-hint', path: '/students' },
+  { id: 'student-save-complete-hint', path: '/students' },
 ]
 
 const STEP_KEY = 'tutorialStep'

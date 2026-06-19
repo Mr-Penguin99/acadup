@@ -15,10 +15,15 @@ const emptyTeacher = () => ({ id:Date.now()+Math.random(), name:'', homeroom:fal
 const emptyPayment = () => ({ id:Date.now()+Math.random(), item:'', price:'', required:true, cycle:'' })
 
 const REQUIRED_FIELDS_OVERLAY_STEP_IDS = [
-  'class-create-required-fields', 'class-create-payday-hint', 'class-create-period-hint',
+  'class-create-required-fields', 'class-create-payday-hint',
 ]
 
-export default function ClassCreate({ onClose, embedded, onSave }) {
+// 이 단계들에서는 안내만 보고 확인/Enter로 진행하도록, 입력란을 직접 수정할 수 없게 막음
+const INPUT_LOCKED_STEP_IDS = [
+  'class-create-code-hint', 'class-create-required-fields', 'class-create-payday-hint',
+]
+
+export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) {
   const [form, setForm] = useState({
     code:'', group:'', name:'',
     subject:'', room:'', capacity:'',
@@ -30,6 +35,7 @@ export default function ClassCreate({ onClose, embedded, onSave }) {
   const [payments, setPayments] = useState([emptyPayment()])
 
   const { activeStep, isOpen, advance } = useTutorial()
+  const inputsLocked = isOpen && INPUT_LOCKED_STEP_IDS.includes(activeStep?.id)
   const codeInputRef = useRef(null)
   const [codeInputRect, setCodeInputRect] = useState(null)
   const showCodeHint = isOpen && activeStep?.id === 'class-create-code-hint'
@@ -44,12 +50,164 @@ export default function ClassCreate({ onClose, embedded, onSave }) {
     return () => window.removeEventListener('resize', measure)
   }, [showCodeHint])
 
+  // 확인 클릭 또는 Enter만 누르면 다음 단계로 진행 (입력 여부는 따지지 않음)
+  const handleCodeConfirm = () => {
+    advance()
+  }
+
+  useEffect(() => {
+    if (!showCodeHint) return
+    const handleKeyDown = e => {
+      if (e.key !== 'Enter') return
+      handleCodeConfirm()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showCodeHint])
+
   const nameLabelRef = useRef(null)
   const nameCellRef = useRef(null)
+  const nameInputRef = useRef(null)
+  const [nameHoleRect, setNameHoleRect] = useState(null)
+  const [nameTooltipRect, setNameTooltipRect] = useState(null)
+  const [nameEnterWarning, setNameEnterWarning] = useState(false)
+  const showNameHint = isOpen && activeStep?.id === 'class-create-name-hint'
+
+  useEffect(() => {
+    if (!showNameHint) return
+    const measure = () => {
+      // 강조 영역은 "*반 명" 라벨부터 셀 오른쪽 끝(박스 라인)까지 (이전 단계의 강조 영역과 동일한 기준)
+      setNameHoleRect(unionRects(nameLabelRef.current?.getBoundingClientRect(), nameCellRef.current?.getBoundingClientRect()))
+      setNameTooltipRect(nameInputRef.current?.getBoundingClientRect())
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [showNameHint])
+
+  // 반 명 입력 후에만 다음 단계로 진행, 입력 없이 확인/Enter면 경고 문구 표시 (반 코드 단계와 동일한 방식)
+  const handleNameConfirm = () => {
+    if (form.name.trim()) advance()
+    else setNameEnterWarning(true)
+  }
+
+  useEffect(() => {
+    if (!showNameHint) { setNameEnterWarning(false); return }
+    const handleKeyDown = e => {
+      if (e.key !== 'Enter') return
+      handleNameConfirm()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showNameHint, form.name])
+
+  // 필수 입력란 안내 다음, 반 명 입력란에 포커스하면 반 명 강조 단계로 진행
+  const handleNameFieldFocus = () => {
+    if (activeStep?.id === 'class-create-required-fields') advance()
+  }
   const subjectLabelRef = useRef(null)
   const subjectCellRef = useRef(null)
+  const subjectSelectRef = useRef(null)
+  const [subjectHoleRect, setSubjectHoleRect] = useState(null)
+  const [subjectTooltipRect, setSubjectTooltipRect] = useState(null)
+  const [subjectEnterWarning, setSubjectEnterWarning] = useState(false)
+  const showSubjectHint = isOpen && activeStep?.id === 'class-create-subject-hint'
+
+  useEffect(() => {
+    if (!showSubjectHint) return
+    const measure = () => {
+      setSubjectHoleRect(unionRects(subjectLabelRef.current?.getBoundingClientRect(), subjectCellRef.current?.getBoundingClientRect()))
+      setSubjectTooltipRect(subjectSelectRef.current?.getBoundingClientRect())
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [showSubjectHint])
+
+  // 과목명을 선택해야 다음 단계로 진행, 선택 안 하고 확인/Enter면 경고 문구 표시
+  const handleSubjectConfirm = () => {
+    if (form.subject) advance()
+    else setSubjectEnterWarning(true)
+  }
+
+  useEffect(() => {
+    if (!showSubjectHint) { setSubjectEnterWarning(false); return }
+    const handleKeyDown = e => {
+      if (e.key !== 'Enter') return
+      handleSubjectConfirm()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showSubjectHint, form.subject])
+
   const payCycleLabelRef = useRef(null)
   const payCycleCellRef = useRef(null)
+  const payCycleSelectRef = useRef(null)
+  const [payCycleHoleRect, setPayCycleHoleRect] = useState(null)
+  const [payCycleTooltipRect, setPayCycleTooltipRect] = useState(null)
+  const [payCycleEnterWarning, setPayCycleEnterWarning] = useState(false)
+  const showPayCycleHint = isOpen && activeStep?.id === 'class-create-paycycle-hint'
+
+  useEffect(() => {
+    if (!showPayCycleHint) return
+    const measure = () => {
+      setPayCycleHoleRect(unionRects(payCycleLabelRef.current?.getBoundingClientRect(), payCycleCellRef.current?.getBoundingClientRect()))
+      setPayCycleTooltipRect(payCycleSelectRef.current?.getBoundingClientRect())
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [showPayCycleHint])
+
+  // 납부주기를 선택해야 다음 단계로 진행, 선택 안 하고 확인/Enter면 경고 문구 표시
+  const handlePayCycleConfirm = () => {
+    if (form.payCycle) advance()
+    else setPayCycleEnterWarning(true)
+  }
+
+  useEffect(() => {
+    if (!showPayCycleHint) { setPayCycleEnterWarning(false); return }
+    const handleKeyDown = e => {
+      if (e.key !== 'Enter') return
+      handlePayCycleConfirm()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showPayCycleHint, form.payCycle])
+
+  const opTypeSelectRef = useRef(null)
+  const [opTypeHoleRect, setOpTypeHoleRect] = useState(null)
+  const [opTypeTooltipRect, setOpTypeTooltipRect] = useState(null)
+  const [opTypeEnterWarning, setOpTypeEnterWarning] = useState(false)
+  const showOpTypeHint = isOpen && activeStep?.id === 'class-create-optype-hint'
+
+  useEffect(() => {
+    if (!showOpTypeHint) return
+    const measure = () => {
+      setOpTypeHoleRect(unionRects(opTypeLabelRef.current?.getBoundingClientRect(), opTypeCellRef.current?.getBoundingClientRect()))
+      setOpTypeTooltipRect(opTypeSelectRef.current?.getBoundingClientRect())
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [showOpTypeHint])
+
+  // 운영방식을 선택해야 다음 단계로 진행, 선택 안 하고 확인/Enter면 경고 문구 표시
+  const handleOpTypeConfirm = () => {
+    if (form.opType) advance()
+    else setOpTypeEnterWarning(true)
+  }
+
+  useEffect(() => {
+    if (!showOpTypeHint) { setOpTypeEnterWarning(false); return }
+    const handleKeyDown = e => {
+      if (e.key !== 'Enter') return
+      handleOpTypeConfirm()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showOpTypeHint, form.opType])
+
   const payDayLabelRef = useRef(null)
   const payDayCellRef = useRef(null)
   const opTypeLabelRef = useRef(null)
@@ -60,13 +218,63 @@ export default function ClassCreate({ onClose, embedded, onSave }) {
   const newRegisterBtnRef = useRef(null)
   const [requiredFieldsRects, setRequiredFieldsRects] = useState({ bounds: null, holes: [], nameRect: null, newRegisterRect: null })
   const showRequiredFieldsHint = isOpen && activeStep?.id === 'class-create-required-fields'
+  // 확인 클릭 또는 Enter만 누르면 다음 단계로 진행 (반 코드 단계와 동일한 방식)
+  const handleRequiredFieldsConfirm = () => advance()
+
+  useEffect(() => {
+    if (!showRequiredFieldsHint) return
+    const handleKeyDown = e => {
+      if (e.key !== 'Enter') return
+      handleRequiredFieldsConfirm()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showRequiredFieldsHint])
   // 납부기준일/운영기간 단계로 넘어가도 강조 오버레이는 계속 유지
   const showRequiredFieldsOverlay = isOpen && REQUIRED_FIELDS_OVERLAY_STEP_IDS.includes(activeStep?.id)
   const showNewRegisterHint = isOpen && activeStep?.id === 'class-create-new-register-hint'
-  // 신규 반 등록 클릭 후, 모달을 닫기 전까지 말풍선 없이 강조만 유지하는 단계
+  // 신규 반 등록 클릭 후, 모달을 닫기 전까지 확인[Enter] 말풍선만 띄우는 단계
   const showClosingOverlay = isOpen && activeStep?.id === 'class-create-closing'
   // 입력란 강조 영역 측정은 신규 반 등록 강조 단계에서도 필요
-  const needsFieldHoles = showRequiredFieldsOverlay || showNewRegisterHint || showClosingOverlay
+  const needsFieldHoles = showRequiredFieldsOverlay || showNewRegisterHint
+
+  // 확인 클릭 또는 Enter만 누르면 다음 단계로 진행 (신규 반 등록 강조 단계)
+  const handleNewRegisterConfirm = () => advance()
+
+  useEffect(() => {
+    if (!showNewRegisterHint) return
+    const handleKeyDown = e => {
+      if (e.key !== 'Enter') return
+      handleNewRegisterConfirm()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showNewRegisterHint])
+
+  const [closingModalRect, setClosingModalRect] = useState(null)
+
+  useEffect(() => {
+    if (!showClosingOverlay) return
+    const measure = () => {
+      if (modalBoxRef?.current) setClosingModalRect(modalBoxRef.current.getBoundingClientRect())
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [showClosingOverlay])
+
+  // 확인 클릭 또는 Enter만 누르면 다음 단계로 진행 (반 등록 모달 닫기 단계)
+  const handleClosingConfirm = () => advance()
+
+  useEffect(() => {
+    if (!showClosingOverlay) return
+    const handleKeyDown = e => {
+      if (e.key !== 'Enter') return
+      handleClosingConfirm()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showClosingOverlay])
 
   // 여러 영역(제목+입력란 등)을 하나로 합쳐 깨지지 않는 큰 강조 영역으로 만듦
   const unionRects = (...rects) => rects.filter(Boolean).reduce((acc, r) => {
@@ -124,13 +332,29 @@ export default function ClassCreate({ onClose, embedded, onSave }) {
     if (activeStep?.id === 'class-create-required-fields') advance()
   }
 
+  // 확인 클릭 또는 Enter만 누르면 다음 단계(반 명 입력)로 진행
+  const handlePayDayConfirm = () => advance()
+
+  useEffect(() => {
+    if (!showPayDayHint) return
+    const handleKeyDown = e => {
+      if (e.key !== 'Enter') return
+      handlePayDayConfirm()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showPayDayHint])
+
   const [periodHintRect, setPeriodHintRect] = useState(null)
+  const [periodHoleRect, setPeriodHoleRect] = useState(null)
+  const [periodEnterWarning, setPeriodEnterWarning] = useState(false)
   const showPeriodHint = isOpen && activeStep?.id === 'class-create-period-hint'
 
   useEffect(() => {
     if (!showPeriodHint) return
     const measure = () => {
       if (opPeriodLabelRef.current) setPeriodHintRect(opPeriodLabelRef.current.getBoundingClientRect())
+      setPeriodHoleRect(unionRects(opPeriodLabelRef.current?.getBoundingClientRect(), opPeriodCellRef.current?.getBoundingClientRect()))
     }
     measure()
     window.addEventListener('resize', measure)
@@ -140,6 +364,22 @@ export default function ClassCreate({ onClose, embedded, onSave }) {
   const handlePeriodClick = () => {
     if (activeStep?.id === 'class-create-payday-hint') advance()
   }
+
+  // 운영기간을 설정해야 다음 단계로 진행, 설정 안 하고 확인/Enter면 경고 문구 표시
+  const handlePeriodConfirm = () => {
+    if (form.opFrom && form.opTo) advance()
+    else setPeriodEnterWarning(true)
+  }
+
+  useEffect(() => {
+    if (!showPeriodHint) { setPeriodEnterWarning(false); return }
+    const handleKeyDown = e => {
+      if (e.key !== 'Enter') return
+      handlePeriodConfirm()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showPeriodHint, form.opFrom, form.opTo])
 
   const saveBtnRef = useRef(null)
   const [saveHintRects, setSaveHintRects] = useState({ bounds: null, rect: null })
@@ -158,18 +398,36 @@ export default function ClassCreate({ onClose, embedded, onSave }) {
     return () => window.removeEventListener('resize', measure)
   }, [showSaveHint])
 
-  // 수납 항목을 모두 입력하면 저장 버튼 강조 단계로 진행
-  // (이전 버튼 등으로 이미 입력된 상태에서 이 단계로 "막 진입"한 경우는 건너뛰고,
-  //  이 단계에 머무는 동안 실제로 입력값이 바뀔 때만 검사한다)
-  const periodHintEnteredRef = useRef(false)
+  const showPaymentHint = isOpen && activeStep?.id === 'class-create-payment-hint'
+  const [paymentEnterWarning, setPaymentEnterWarning] = useState(false)
+  const [paymentSectionRect, setPaymentSectionRect] = useState(null)
+
   useEffect(() => {
-    const isOnStep = activeStep?.id === 'class-create-period-hint'
-    if (isOnStep && periodHintEnteredRef.current) {
-      const allFilled = payments.length > 0 && payments.every(p => p.item && p.price && p.cycle)
-      if (allFilled) advance()
+    if (!showPaymentHint) return
+    const measure = () => {
+      if (paymentsSectionRef.current) setPaymentSectionRect(paymentsSectionRef.current.getBoundingClientRect())
     }
-    periodHintEnteredRef.current = isOnStep
-  }, [payments, activeStep])
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [showPaymentHint, payments])
+
+  // 수납 항목을 모두 입력해야 다음 단계로 진행, 입력 안 하고 확인/Enter면 경고 문구 표시
+  const handlePaymentConfirm = () => {
+    const allFilled = payments.length > 0 && payments.every(p => p.item && p.price && p.cycle)
+    if (allFilled) advance()
+    else setPaymentEnterWarning(true)
+  }
+
+  useEffect(() => {
+    if (!showPaymentHint) { setPaymentEnterWarning(false); return }
+    const handleKeyDown = e => {
+      if (e.key !== 'Enter') return
+      handlePaymentConfirm()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showPaymentHint, payments])
 
   const setF = (key, val) => setForm(f => ({...f, [key]: val}))
 
@@ -197,7 +455,6 @@ export default function ClassCreate({ onClose, embedded, onSave }) {
   }
   const handleNew  = () => {
     resetForm()
-    if (activeStep?.id === 'class-create-new-register-hint') advance()
   }
   const handleSave = () => {
     onSave?.(form)
@@ -212,6 +469,7 @@ export default function ClassCreate({ onClose, embedded, onSave }) {
           rect={codeInputRect}
           message="반 코드는 자동생성되니 입력을 안하셔도 됩니다."
           placement="top"
+          onConfirm={handleCodeConfirm}
         />
       )}
       {showRequiredFieldsOverlay && (
@@ -222,21 +480,105 @@ export default function ClassCreate({ onClose, embedded, onSave }) {
           rect={requiredFieldsRects.nameRect}
           placement="top"
           message={<><span className="cc-req">*</span>표시가 된 필수 입력란을 입력하고, 운영기간·수납까지 작성해 주세요.</>}
+          onConfirm={handleRequiredFieldsConfirm}
         />
+      )}
+      {showNameHint && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[nameHoleRect]}
+          />
+          <TutorialTooltip
+            rect={nameTooltipRect}
+            placement="top"
+            message={nameEnterWarning ? <span style={{ color: '#ff3c00' }}>내용을 입력하고 확인[Enter]을 누르세요.</span> : '반 명을 입력해 주세요.'}
+            onConfirm={handleNameConfirm}
+          />
+        </>
+      )}
+      {showSubjectHint && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[subjectHoleRect]}
+          />
+          <TutorialTooltip
+            rect={subjectTooltipRect}
+            placement="top"
+            message={subjectEnterWarning ? <span style={{ color: '#ff3c00' }}>선택하고 확인[Enter]을 누르세요.</span> : '과목명을 선택하세요.'}
+            onConfirm={handleSubjectConfirm}
+          />
+        </>
+      )}
+      {showPayCycleHint && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[payCycleHoleRect]}
+          />
+          <TutorialTooltip
+            rect={payCycleTooltipRect}
+            placement="top"
+            message={payCycleEnterWarning ? <span style={{ color: '#ff3c00' }}>선택하고 확인[Enter]을 누르세요.</span> : '납부주기를 선택하세요.'}
+            onConfirm={handlePayCycleConfirm}
+          />
+        </>
+      )}
+      {showOpTypeHint && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[opTypeHoleRect]}
+          />
+          <TutorialTooltip
+            rect={opTypeTooltipRect}
+            placement="top"
+            message={opTypeEnterWarning ? <span style={{ color: '#ff3c00' }}>선택하고 확인[Enter]을 누르세요.</span> : '운영방식을 선택하세요.'}
+            onConfirm={handleOpTypeConfirm}
+          />
+        </>
       )}
       {showPayDayHint && (
         <TutorialTooltip
-          rect={payDayHintRect && { left: payDayHintRect.left + 10, top: payDayHintRect.top, bottom: payDayHintRect.bottom }}
+          rect={payDayHintRect && { left: payDayHintRect.left + 10, top: payDayHintRect.top + 15, bottom: payDayHintRect.bottom }}
           placement="top"
-          message="수강생 등록 시 별도로 학생마다 납부기준일을 다르게 설정할 수 있습니다."
+          message="수강 신청 시 학생마다 납부기준일을 다르게 설정할 수 있습니다."
+          onConfirm={handlePayDayConfirm}
         />
       )}
       {showPeriodHint && (
-        <TutorialTooltip
-          rect={periodHintRect}
-          placement="top"
-          message="운영기간을 길게 유지하고 싶을 경우 2999-12-31로 입력하시면 됩니다."
-        />
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[periodHoleRect]}
+          />
+          <TutorialTooltip
+            rect={periodHintRect}
+            placement="top"
+            message={periodEnterWarning
+              ? <span style={{ color: '#ff3c00' }}>운영기간을 설정하고 확인[Enter]을 누르세요.</span>
+              : '운영기간을 길게 유지하고 싶을 경우 2999-12-31로 입력하시면 됩니다.'}
+            onConfirm={handlePeriodConfirm}
+          />
+        </>
+      )}
+      {showPaymentHint && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[paymentSectionRect]}
+          />
+          <TutorialTooltip
+            rect={paymentSectionRect}
+            placement="top"
+            center
+            message={paymentEnterWarning
+              ? <span style={{ color: '#ff3c00' }}>수납 항목을 모두 입력하고 확인[Enter]을 누르세요.</span>
+              : '수납 항목을 입력하세요.'}
+            onConfirm={handlePaymentConfirm}
+          />
+        </>
       )}
       {showSaveHint && (
         <>
@@ -252,20 +594,31 @@ export default function ClassCreate({ onClose, embedded, onSave }) {
         <>
           <TutorialMultiSpotlight
             boundsRect={requiredFieldsRects.bounds}
-            holes={[...requiredFieldsRects.holes, requiredFieldsRects.newRegisterRect && { rect: requiredFieldsRects.newRegisterRect, pad: 3 }]}
+            holes={[requiredFieldsRects.newRegisterRect && { rect: requiredFieldsRects.newRegisterRect, pad: 3 }]}
           />
           <TutorialTooltip
             rect={requiredFieldsRects.newRegisterRect}
             placement="top"
             message="신규 반 등록을 클릭 시 이어서 반 등록을 할 수 있습니다."
+            onConfirm={handleNewRegisterConfirm}
           />
         </>
       )}
       {showClosingOverlay && (
-        <TutorialMultiSpotlight
-          boundsRect={requiredFieldsRects.bounds}
-          holes={[...requiredFieldsRects.holes, requiredFieldsRects.newRegisterRect && { rect: requiredFieldsRects.newRegisterRect, pad: 3 }]}
-        />
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[closingModalRect]}
+          />
+          <TutorialTooltip
+            rect={closingModalRect}
+            placement="top"
+            center
+            minWidth={140}
+            message={null}
+            onConfirm={handleClosingConfirm}
+          />
+        </>
       )}
       {/* 헤더 */}
       <div className="cc-header">
@@ -279,12 +632,12 @@ export default function ClassCreate({ onClose, embedded, onSave }) {
       </div>
 
       <div className="cc-body">
-        <div className="cc-box">
+        <div className="cc-box" style={inputsLocked ? { pointerEvents: 'none' } : undefined}>
         {/* 기본 정보 그리드 */}
         <table className="cc-info-table">
           <tbody>
             <tr>
-              <td className="cc-label"><span className="cc-req">*</span>반 코드</td>
+              <td className="cc-label">반 코드</td>
               <td className="cc-cell">
                 <input ref={codeInputRef} className="cc-input" placeholder="미입력시 자동부여" value={form.code} onChange={e=>setF('code',e.target.value)}/>
               </td>
@@ -293,13 +646,13 @@ export default function ClassCreate({ onClose, embedded, onSave }) {
                 <select className="cc-select" value={form.group} onChange={e=>setF('group',e.target.value)}>
                   <option value="">반그룹 선택</option>
                 </select>
-                <input className="cc-input" style={{flex:1}} value={form.name} onChange={e=>setF('name',e.target.value)}/>
+                <input ref={nameInputRef} className="cc-input" style={{flex:1}} value={form.name} onChange={e=>{setF('name',e.target.value); setNameEnterWarning(false)}} onFocus={handleNameFieldFocus}/>
               </td>
             </tr>
             <tr>
               <td className="cc-label" ref={subjectLabelRef}><span className="cc-req">*</span>과목명(과정명)</td>
               <td className="cc-cell" ref={subjectCellRef}>
-                <select className="cc-select" value={form.subject} onChange={e=>setF('subject',e.target.value)}>
+                <select ref={subjectSelectRef} className="cc-select" value={form.subject} onChange={e=>{setF('subject',e.target.value); setSubjectEnterWarning(false)}}>
                   <option value="">선택</option>
                   <option>국어</option><option>수학</option><option>영어</option><option>과학</option><option>사회</option>
                 </select>
@@ -316,7 +669,7 @@ export default function ClassCreate({ onClose, embedded, onSave }) {
             <tr>
               <td className="cc-label" ref={payCycleLabelRef}><span className="cc-req">*</span>납부주기</td>
               <td className="cc-cell" ref={payCycleCellRef}>
-                <select className="cc-select" value={form.payCycle} onChange={e=>setF('payCycle',e.target.value)}>
+                <select ref={payCycleSelectRef} className="cc-select" value={form.payCycle} onChange={e=>{setF('payCycle',e.target.value); setPayCycleEnterWarning(false)}}>
                   <option value="">선택</option><option>일시납</option><option>1개월납</option><option>2개월납</option><option>3개월납</option><option>4개월납</option><option>5개월납</option><option>6개월납</option>
                 </select>
               </td>
@@ -328,15 +681,15 @@ export default function ClassCreate({ onClose, embedded, onSave }) {
             <tr>
               <td className="cc-label" ref={opTypeLabelRef}><span className="cc-req">*</span>운영방식</td>
               <td className="cc-cell" ref={opTypeCellRef}>
-                <select className="cc-select" value={form.opType} onChange={e=>setF('opType',e.target.value)}>
+                <select ref={opTypeSelectRef} className="cc-select" value={form.opType} onChange={e=>{setF('opType',e.target.value); setOpTypeEnterWarning(false)}}>
                   <option>기간반</option><option>회차반</option>
                 </select>
               </td>
               <td className="cc-label" ref={opPeriodLabelRef}>운영기간</td>
               <td className="cc-cell" ref={opPeriodCellRef}>
-                <FreeDatePicker value={form.opFrom} onChange={v=>setF('opFrom',v)} className="cc-input cc-input-date" onInputFocus={handlePeriodClick}/>
+                <FreeDatePicker value={form.opFrom} onChange={v=>{setF('opFrom',v); setPeriodEnterWarning(false)}} className="cc-input cc-input-date" onInputFocus={handlePeriodClick}/>
                 <span style={{margin:'0 6px',color:'#999'}}>~</span>
-                <FreeDatePicker value={form.opTo} onChange={v=>setF('opTo',v)} className="cc-input cc-input-date" onInputFocus={handlePeriodClick}/>
+                <FreeDatePicker value={form.opTo} onChange={v=>{setF('opTo',v); setPeriodEnterWarning(false)}} className="cc-input cc-input-date" onInputFocus={handlePeriodClick}/>
               </td>
             </tr>
           </tbody>

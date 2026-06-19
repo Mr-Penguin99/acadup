@@ -9,8 +9,8 @@ import TutorialSpotlight from '../components/TutorialSpotlight'
 import ClassCreate from './ClassCreate'
 
 const UNLOCKED_MENUS = ['students','payments','classes']
-const MODAL_TUTORIAL_STEP_IDS = ['class-create-code-hint', 'class-create-required-fields', 'class-create-payday-hint', 'class-create-period-hint', 'class-create-save-hint', 'class-create-new-register-hint', 'class-create-closing']
-const FULL_OVERLAY_STEP_IDS = ['class-create-required-fields', 'class-create-payday-hint', 'class-create-period-hint', 'class-create-save-hint', 'class-create-new-register-hint', 'class-create-closing']
+const MODAL_TUTORIAL_STEP_IDS = ['class-create-code-hint', 'class-create-required-fields', 'class-create-name-hint', 'class-create-subject-hint', 'class-create-paycycle-hint', 'class-create-optype-hint', 'class-create-payday-hint', 'class-create-period-hint', 'class-create-payment-hint', 'class-create-save-hint', 'class-create-new-register-hint', 'class-create-closing']
+const FULL_OVERLAY_STEP_IDS = ['class-create-required-fields', 'class-create-name-hint', 'class-create-subject-hint', 'class-create-paycycle-hint', 'class-create-optype-hint', 'class-create-payday-hint', 'class-create-period-hint', 'class-create-payment-hint', 'class-create-save-hint', 'class-create-new-register-hint', 'class-create-closing']
 
 const MENUS = [
   { id: 'students',    icon: '/icons/students.svg',    label: '수강생관리' },
@@ -110,10 +110,13 @@ export default function Classes() {
   const showStudentMenuHint = isOpen && activeStep?.id === 'class-status-student-menu-hint'
 
   // 모달 안에서 보여줄 단계인데 모달이 닫혀있으면(예: 플로팅 박스로 이어보기) 자동으로 모달을 열어줌
+  // 반대로 (개발용 이전/다음 버튼 등으로) 튜토리얼 진행 중 모달 단계를 벗어나면 자동으로 닫아줌
+  // (튜토리얼이 꺼져있을 때는 반 등록 버튼 등으로 수동 열고 닫는 기존 동작을 건드리지 않음)
   useEffect(() => {
-    if (isOpen && MODAL_TUTORIAL_STEP_IDS.includes(activeStep?.id) && !showClassCreateModal) {
-      setShowClassCreateModal(true)
-    }
+    if (!isOpen) return
+    const isModalStep = MODAL_TUTORIAL_STEP_IDS.includes(activeStep?.id)
+    if (isModalStep && !showClassCreateModal) setShowClassCreateModal(true)
+    else if (!isModalStep && showClassCreateModal) setShowClassCreateModal(false)
   }, [isOpen, activeStep, showClassCreateModal])
 
   useEffect(() => {
@@ -134,6 +137,16 @@ export default function Classes() {
     measure()
     window.addEventListener('resize', measure)
     return () => window.removeEventListener('resize', measure)
+  }, [showCompleteHint])
+
+  useEffect(() => {
+    if (!showCompleteHint) return
+    const handleKeyDown = e => {
+      if (e.key !== 'Enter') return
+      advance()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
   }, [showCompleteHint])
 
   useEffect(() => {
@@ -172,6 +185,7 @@ export default function Classes() {
         <TutorialSpotlight
           rect={newRowRect}
           message="반 등록이 완료되었습니다."
+          onConfirm={advance}
         />
       )}
       {showStudentMenuHint && (
@@ -185,25 +199,11 @@ export default function Classes() {
           style={{
             position:'fixed',inset:0,zIndex:3500,display:'flex',alignItems:'center',justifyContent:'center',
             // 자체 전체화면 스포트라이트를 그리는 단계에서는 모달 배경을 중복 적용하지 않음
-            background: FULL_OVERLAY_STEP_IDS.includes(activeStep?.id) ? 'transparent' : 'rgba(0,0,0,0.5)',
-          }}
-          onClick={(e)=>{
-            if(isOpen && activeStep?.id==='class-create-code-hint') advance()
-            // 모달 바깥(배경) 클릭일 때만 다음 단계로 넘어감 - 모달 안쪽 클릭은 무시
-            // 튜토리얼 스포트라이트가 화면 전체를 덮는 fixed div로 그려지기 때문에
-            // e.target===e.currentTarget 비교로는 바깥 클릭을 감지할 수 없어, 좌표로 직접 판정한다.
-            if(isOpen && activeStep?.id==='class-create-closing'){
-              const box = modalBoxRef.current?.getBoundingClientRect()
-              const inside = box && e.clientX>=box.left && e.clientX<=box.right && e.clientY>=box.top && e.clientY<=box.bottom
-              if(!inside){
-                setShowClassCreateModal(false)
-                advance()
-              }
-            }
+            background: FULL_OVERLAY_STEP_IDS.includes(activeStep?.id) ? 'transparent' : 'rgba(0,0,0,0.6)',
           }}
         >
           <div ref={modalBoxRef} style={{width:960,maxWidth:'90vw',maxHeight:'90vh',overflowY:'auto',boxShadow:'0 12px 40px rgba(0,0,0,0.3)'}}>
-            <ClassCreate embedded onSave={handleClassSave} />
+            <ClassCreate embedded onSave={handleClassSave} modalBoxRef={modalBoxRef} />
           </div>
         </div>
       )}

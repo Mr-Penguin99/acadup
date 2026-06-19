@@ -153,14 +153,93 @@ export default function Students() {
     return () => window.removeEventListener('resize', measure)
   }, [showInfoPanelHint])
 
+  // 확인 클릭 또는 Enter만 누르면 다음 단계로 진행
+  const handleInfoPanelConfirm = () => advance()
+
+  useEffect(() => {
+    if (!showInfoPanelHint) return
+    const handleKeyDown = e => {
+      if (e.key !== 'Enter') return
+      handleInfoPanelConfirm()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showInfoPanelHint])
+
   const nameLabelRef = useRef(null)
   const nameCellRef = useRef(null)
+  const nameInputRef = useRef(null)
+  const [nameHoleRect, setNameHoleRect] = useState(null)
+  const [nameTooltipRect, setNameTooltipRect] = useState(null)
+  const [nameEnterWarning, setNameEnterWarning] = useState(false)
+  const showNameHint = isOpen && activeStep?.id === 'student-name-hint' && activeSide === 'class-students'
+
+  useEffect(() => {
+    if (!showNameHint) return
+    const measure = () => {
+      setNameHoleRect(unionRects(nameLabelRef.current?.getBoundingClientRect(), nameCellRef.current?.getBoundingClientRect()))
+      setNameTooltipRect(nameInputRef.current?.getBoundingClientRect())
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [showNameHint])
+
   const birthLabelRef = useRef(null)
   const birthCellRef = useRef(null)
   const enrollLabelRef = useRef(null)
   const enrollCellRef = useRef(null)
   const phoneLabelRef = useRef(null)
   const phoneCellRef = useRef(null)
+
+  const [enrollHoleRect, setEnrollHoleRect] = useState(null)
+  const [enrollTooltipRect, setEnrollTooltipRect] = useState(null)
+  const [enrollEnterWarning, setEnrollEnterWarning] = useState(false)
+  const showEnrollHint = isOpen && activeStep?.id === 'student-enroll-hint' && activeSide === 'class-students'
+
+  useEffect(() => {
+    if (!showEnrollHint) return
+    const measure = () => {
+      setEnrollHoleRect(unionRects(enrollLabelRef.current?.getBoundingClientRect(), enrollCellRef.current?.getBoundingClientRect()))
+      setEnrollTooltipRect(enrollCellRef.current?.getBoundingClientRect())
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [showEnrollHint])
+
+  const [phoneHoleRect, setPhoneHoleRect] = useState(null)
+  const [phoneTooltipRect, setPhoneTooltipRect] = useState(null)
+  const [phoneEnterWarning, setPhoneEnterWarning] = useState(false)
+  const showPhoneHint = isOpen && activeStep?.id === 'student-phone-hint' && activeSide === 'class-students'
+
+  useEffect(() => {
+    if (!showPhoneHint) return
+    const measure = () => {
+      setPhoneHoleRect(unionRects(phoneLabelRef.current?.getBoundingClientRect(), phoneCellRef.current?.getBoundingClientRect()))
+      setPhoneTooltipRect(phoneCellRef.current?.getBoundingClientRect())
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [showPhoneHint])
+
+  const [birthHoleRect, setBirthHoleRect] = useState(null)
+  const [birthTooltipRect, setBirthTooltipRect] = useState(null)
+  const [birthEnterWarning, setBirthEnterWarning] = useState(false)
+  const showBirthHint = isOpen && activeStep?.id === 'student-birth-hint' && activeSide === 'class-students'
+
+  useEffect(() => {
+    if (!showBirthHint) return
+    const measure = () => {
+      setBirthHoleRect(unionRects(birthLabelRef.current?.getBoundingClientRect(), birthCellRef.current?.getBoundingClientRect()))
+      setBirthTooltipRect(birthCellRef.current?.getBoundingClientRect())
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [showBirthHint])
+
   const [requiredFieldsRects, setRequiredFieldsRects] = useState({ bounds: null, holes: [], nameRect: null })
   const showRequiredFieldsHint = isOpen && activeStep?.id === 'student-required-fields' && activeSide === 'class-students'
 
@@ -209,6 +288,33 @@ export default function Students() {
     return () => window.removeEventListener('resize', measure)
   }, [showSaveHint])
 
+  const infoTabContentRef = useRef(null)
+  const [saveCompleteRect, setSaveCompleteRect] = useState(null)
+  const showSaveCompleteHint = isOpen && activeStep?.id === 'student-save-complete-hint' && activeSide === 'class-students'
+
+  useEffect(() => {
+    if (!showSaveCompleteHint) return
+    const measure = () => {
+      setSaveCompleteRect(unionRects(infoPanelRef.current?.getBoundingClientRect(), infoTabContentRef.current?.getBoundingClientRect()))
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [showSaveCompleteHint])
+
+  // 확인 클릭 또는 Enter만 누르면 튜토리얼 종료
+  const handleSaveCompleteConfirm = () => advance()
+
+  useEffect(() => {
+    if (!showSaveCompleteHint) return
+    const handleKeyDown = e => {
+      if (e.key !== 'Enter') return
+      handleSaveCompleteConfirm()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showSaveCompleteHint])
+
   const emptyForm = {
     studentNo:'', status:'', name:'', birth:'', gender:'남자',
     id:'', pw:'', enrollDate:'', payMethod:'',
@@ -227,17 +333,82 @@ export default function Students() {
   }
   const [form, setForm] = useState(emptyForm)
 
-  // 필수 입력란을 모두 채우면 저장 버튼 강조 단계로 진행
-  // (이전 버튼 등으로 이미 채워진 상태에서 이 단계로 "막 진입"한 경우는 건너뛰고,
-  //  이 단계에 머무는 동안 실제로 입력값이 바뀔 때만 검사한다)
-  const requiredFieldsEnteredRef = useRef(false)
+  // 학생 이름을 입력해야 다음 단계로 진행, 입력 없이 확인/Enter면 경고 문구로 교체
+  const handleNameConfirm = () => {
+    if (form.name.trim()) advance()
+    else setNameEnterWarning(true)
+  }
+
   useEffect(() => {
-    const isOnStep = activeStep?.id === 'student-required-fields'
-    if (isOnStep && requiredFieldsEnteredRef.current) {
-      if (form.name && form.birth && form.enrollDate && form.phone) advance()
+    if (!showNameHint) { setNameEnterWarning(false); return }
+    const handleKeyDown = e => {
+      if (e.key !== 'Enter') return
+      handleNameConfirm()
     }
-    requiredFieldsEnteredRef.current = isOnStep
-  }, [form, activeStep])
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showNameHint, form.name])
+
+  // 입학일자를 선택해야 다음 단계로 진행, 미선택 상태로 확인/Enter면 경고 문구로 교체
+  const handleEnrollConfirm = () => {
+    if (form.enrollDate) advance()
+    else setEnrollEnterWarning(true)
+  }
+
+  useEffect(() => {
+    if (!showEnrollHint) { setEnrollEnterWarning(false); return }
+    const handleKeyDown = e => {
+      if (e.key !== 'Enter') return
+      handleEnrollConfirm()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showEnrollHint, form.enrollDate])
+
+  // 학생 휴대폰을 입력해야 다음 단계로 진행, 입력 없이 확인/Enter면 경고 문구로 교체
+  const handlePhoneConfirm = () => {
+    if (form.phone.trim()) advance()
+    else setPhoneEnterWarning(true)
+  }
+
+  useEffect(() => {
+    if (!showPhoneHint) { setPhoneEnterWarning(false); return }
+    const handleKeyDown = e => {
+      if (e.key !== 'Enter') return
+      handlePhoneConfirm()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showPhoneHint, form.phone])
+
+  // 생년월일을 입력해야 다음 단계로 진행, 입력 없이 확인/Enter면 경고 문구로 교체
+  const handleBirthConfirm = () => {
+    if (form.birth.length === 6) advance()
+    else setBirthEnterWarning(true)
+  }
+
+  useEffect(() => {
+    if (!showBirthHint) { setBirthEnterWarning(false); return }
+    const handleKeyDown = e => {
+      if (e.key !== 'Enter') return
+      handleBirthConfirm()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showBirthHint, form.birth])
+
+  // 확인 클릭 또는 Enter만 누르면 다음 단계로 진행 (입력은 이 단계에서는 막아둠)
+  const handleRequiredFieldsConfirm = () => advance()
+
+  useEffect(() => {
+    if (!showRequiredFieldsHint) return
+    const handleKeyDown = e => {
+      if (e.key !== 'Enter') return
+      handleRequiredFieldsConfirm()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showRequiredFieldsHint])
 
   const handleNewStudent = () => {
     setSelectedStudentId('new')
@@ -267,6 +438,7 @@ export default function Students() {
       setStudents(prev => prev.map(s => s.id === selectedStudentId ? { ...form, id: selectedStudentId } : s))
       setInfoTab('가족')
     }
+    if (activeStep?.id === 'student-save-hint') advance()
   }
 
   const toggleGroup = id => setExpanded(e => e.includes(id) ? [] : [id])
@@ -291,6 +463,7 @@ export default function Students() {
           rect={infoPanelRect}
           placement="top"
           message="이곳에서 학생의 상세 정보를 등록하고 관리할 수 있습니다."
+          onConfirm={handleInfoPanelConfirm}
         />
       )}
       {showRequiredFieldsHint && (
@@ -300,6 +473,71 @@ export default function Students() {
             rect={requiredFieldsRects.nameRect}
             placement="top"
             message={<><span style={{color:'#F5841F'}}>*</span>표시가 있는 필수 입력란을 입력해 주세요.</>}
+            onConfirm={handleRequiredFieldsConfirm}
+          />
+        </>
+      )}
+      {showNameHint && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[nameHoleRect]}
+          />
+          <TutorialTooltip
+            rect={nameTooltipRect}
+            placement="top"
+            message={nameEnterWarning
+              ? <span style={{ color: '#ff3c00' }}>내용을 입력하고 확인[Enter]을 누르세요.</span>
+              : '학생 이름을 입력해 주세요.'}
+            onConfirm={handleNameConfirm}
+          />
+        </>
+      )}
+      {showEnrollHint && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[enrollHoleRect]}
+          />
+          <TutorialTooltip
+            rect={enrollTooltipRect}
+            placement="top"
+            message={enrollEnterWarning
+              ? <span style={{ color: '#ff3c00' }}>입학일자를 선택하고 확인[Enter]을 누르세요.</span>
+              : '입학일자를 입력해 주세요.'}
+            onConfirm={handleEnrollConfirm}
+          />
+        </>
+      )}
+      {showPhoneHint && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[phoneHoleRect]}
+          />
+          <TutorialTooltip
+            rect={phoneTooltipRect}
+            placement="top"
+            message={phoneEnterWarning
+              ? <span style={{ color: '#ff3c00' }}>내용을 입력하고 확인[Enter]을 누르세요.</span>
+              : '학생 휴대폰을 입력해 주세요.'}
+            onConfirm={handlePhoneConfirm}
+          />
+        </>
+      )}
+      {showBirthHint && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[birthHoleRect]}
+          />
+          <TutorialTooltip
+            rect={birthTooltipRect}
+            placement="top"
+            message={birthEnterWarning
+              ? <span style={{ color: '#ff3c00' }}>생년월일 6자리를 입력하세요.</span>
+              : '생년월일 6자리와 성별을 체크해 주세요.'}
+            onConfirm={handleBirthConfirm}
           />
         </>
       )}
@@ -314,6 +552,22 @@ export default function Students() {
             rect={saveBtnRect}
             placement="top"
             message="저장 버튼을 누르고 저장해 주세요!"
+          />
+        </>
+      )}
+      {showSaveCompleteHint && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[saveCompleteRect]}
+            pad={3}
+          />
+          <TutorialTooltip
+            rect={saveCompleteRect}
+            placement="top"
+            center
+            message="수강생 정보가 저장되었습니다!"
+            onConfirm={handleSaveCompleteConfirm}
           />
         </>
       )}
@@ -489,10 +743,7 @@ export default function Students() {
                     </div>
                   </div>
                 </div>
-                <div className="info-panel" ref={infoPanelRef}
-                  onClick={()=>{
-                    if(showInfoPanelHint) advance()
-                  }}>
+                <div className="info-panel" ref={infoPanelRef}>
                   <div className="info-header">
                     <span className="info-title">학생 정보자료</span>
                     <div style={{display:'flex',gap:6}}>
@@ -511,7 +762,7 @@ export default function Students() {
                     </div>
                   </div>
                   <div className="info-body">
-                    <div className="info-form-wrap">
+                    <div className="info-form-wrap" style={(showInfoPanelHint || showRequiredFieldsHint) ? { pointerEvents: 'none' } : undefined}>
                       <div className="student-photo">
                         <div className="photo-box"><span>👤</span></div>
                         <button className="photo-btn">사진등록/수정</button>
@@ -532,11 +783,11 @@ export default function Students() {
                         <div className="if-row">
                           <label className="if-label required" ref={nameLabelRef}>성명</label>
                           <div className="if-cell" ref={nameCellRef}>
-                            <input className="if-input" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))}/>
+                            <input ref={nameInputRef} className="if-input" value={form.name} onChange={e=>{setForm(f=>({...f,name:e.target.value})); setNameEnterWarning(false)}}/>
                           </div>
                           <label className="if-label required" ref={birthLabelRef}>생년월일</label>
                           <div className="if-cell" ref={birthCellRef}>
-                            <input className="if-input" placeholder="예) 901230" style={{width:120}} value={form.birth} onChange={e=>setForm(f=>({...f,birth:e.target.value}))}/>
+                            <input className="if-input" placeholder="예) 901230" style={{width:120}} value={form.birth} onChange={e=>{const digits=e.target.value.replace(/\D/g,'').slice(0,6); setForm(f=>({...f,birth:digits})); setBirthEnterWarning(false)}}/>
                             <select className="if-input" style={{width:80}} value={form.gender} onChange={e=>setForm(f=>({...f,gender:e.target.value}))}>
                               <option>남자</option><option>여자</option>
                             </select>
@@ -556,7 +807,7 @@ export default function Students() {
                         <div className="if-row">
                           <label className="if-label required" ref={enrollLabelRef}>입학일자</label>
                           <div className="if-cell" ref={enrollCellRef}>
-                            <DatePicker value={form.enrollDate} onChange={v=>setForm(f=>({...f,enrollDate:v}))}/>
+                            <DatePicker value={form.enrollDate} onChange={v=>{setForm(f=>({...f,enrollDate:v})); setEnrollEnterWarning(false)}}/>
                           </div>
                           <label className="if-label">주 결제방법</label>
                           <div className="if-cell">
@@ -566,7 +817,13 @@ export default function Students() {
                         <div className="if-row">
                           <label className="if-label required" ref={phoneLabelRef}>학생 휴대폰</label>
                           <div className="if-cell" ref={phoneCellRef}>
-                            <input className="if-input" placeholder="예) 010-1234-5678" value={form.phone} onChange={e=>setForm(f=>({...f,phone:e.target.value}))}/>
+                            <input className="if-input" placeholder="예) 010-1234-5678" value={form.phone} onChange={e=>{
+                              const digits = e.target.value.replace(/\D/g,'').slice(0,11)
+                              const formatted = digits.length <= 3 ? digits
+                                : digits.length <= 7 ? `${digits.slice(0,3)}-${digits.slice(3)}`
+                                : `${digits.slice(0,3)}-${digits.slice(3,7)}-${digits.slice(7)}`
+                              setForm(f=>({...f,phone:formatted})); setPhoneEnterWarning(false)
+                            }}/>
                           </div>
                           <label className="if-label">집전화</label>
                           <div className="if-cell">
@@ -598,7 +855,7 @@ export default function Students() {
                         </div>
                       </div>
                     </div>
-                    <div className="info-tabs-wrap">
+                    <div className="info-tabs-wrap" style={(showInfoPanelHint || showRequiredFieldsHint) ? { pointerEvents: 'none' } : undefined}>
                       <div className="info-tabs">
                         <div className="info-tab-v">V</div>
                         {INFO_TABS.map(t=>(
@@ -631,7 +888,7 @@ export default function Students() {
                         ))}
                       </div>
                       {selectedStudentId !== null && selectedStudentId !== 'new' && (
-                        <div className="info-tab-content">
+                        <div className="info-tab-content" ref={infoTabContentRef}>
                           {infoTab==='가족'     && <FamilyTab />}
                           {infoTab==='수강'     && <ClassTab />}
                           {infoTab==='수납'     && <PaymentTab />}
