@@ -238,19 +238,6 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
   // 입력란 강조 영역 측정은 신규 반 등록 강조 단계에서도 필요
   const needsFieldHoles = showRequiredFieldsOverlay || showNewRegisterHint
 
-  // 확인 클릭 또는 Enter만 누르면 다음 단계로 진행 (신규 반 등록 강조 단계)
-  const handleNewRegisterConfirm = () => advance()
-
-  useEffect(() => {
-    if (!showNewRegisterHint) return
-    const handleKeyDown = e => {
-      if (e.key !== 'Enter') return
-      handleNewRegisterConfirm()
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [showNewRegisterHint])
-
   const [closingModalRect, setClosingModalRect] = useState(null)
 
   useEffect(() => {
@@ -455,6 +442,7 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
   }
   const handleNew  = () => {
     resetForm()
+    if (activeStep?.id === 'class-create-new-register-hint') advance()
   }
   const handleSave = () => {
     onSave?.(form)
@@ -600,7 +588,6 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
             rect={requiredFieldsRects.newRegisterRect}
             placement="top"
             message="신규 반 등록을 클릭 시 이어서 반 등록을 할 수 있습니다."
-            onConfirm={handleNewRegisterConfirm}
           />
         </>
       )}
