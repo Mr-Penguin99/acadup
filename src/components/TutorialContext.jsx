@@ -26,6 +26,13 @@ export const TUTORIAL_STEPS = [
   { id: 'student-birth-hint', path: '/students' },
   { id: 'student-save-hint', path: '/students' },
   { id: 'student-save-complete-hint', path: '/students' },
+  { id: 'student-family-hint', path: '/students' },
+  { id: 'student-family-name-hint', path: '/students' },
+  { id: 'student-family-relation-hint', path: '/students' },
+  { id: 'student-family-phone-hint', path: '/students' },
+  { id: 'student-family-msgtype-hint', path: '/students' },
+  { id: 'student-family-msgtype-info-hint', path: '/students' },
+  { id: 'student-family-save-hint', path: '/students' },
 ]
 
 const STEP_KEY = 'tutorialStep'

@@ -289,6 +289,7 @@ export default function Students() {
   }, [showSaveHint])
 
   const infoTabContentRef = useRef(null)
+  const infoTabsWrapRef = useRef(null)
   const [saveCompleteRect, setSaveCompleteRect] = useState(null)
   const showSaveCompleteHint = isOpen && activeStep?.id === 'student-save-complete-hint' && activeSide === 'class-students'
 
@@ -302,7 +303,6 @@ export default function Students() {
     return () => window.removeEventListener('resize', measure)
   }, [showSaveCompleteHint])
 
-  // 확인 클릭 또는 Enter만 누르면 튜토리얼 종료
   const handleSaveCompleteConfirm = () => advance()
 
   useEffect(() => {
@@ -314,6 +314,164 @@ export default function Students() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [showSaveCompleteHint])
+
+  const [familyHoleRect, setFamilyHoleRect] = useState(null)
+  const showFamilyHint = isOpen && activeStep?.id === 'student-family-hint' && activeSide === 'class-students'
+
+  useEffect(() => {
+    if (!showFamilyHint) return
+    const measure = () => {
+      setFamilyHoleRect(unionRects(infoTabsWrapRef.current?.getBoundingClientRect(), infoTabContentRef.current?.getBoundingClientRect()))
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [showFamilyHint])
+
+  const handleFamilyConfirm = () => advance()
+
+  useEffect(() => {
+    if (!showFamilyHint) return
+    const handleKeyDown = e => {
+      if (e.key !== 'Enter') return
+      handleFamilyConfirm()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showFamilyHint])
+
+  const familyNameInputRef = useRef(null)
+  const [familyNameRect, setFamilyNameRect] = useState(null)
+  const showFamilyNameHint = isOpen && activeStep?.id === 'student-family-name-hint' && activeSide === 'class-students'
+
+  useEffect(() => {
+    if (!showFamilyNameHint) return
+    const measure = () => {
+      if (familyNameInputRef.current) setFamilyNameRect(familyNameInputRef.current.getBoundingClientRect())
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [showFamilyNameHint])
+
+  const [familyNameWarning, setFamilyNameWarning] = useState(false)
+  const handleFamilyNameConfirm = () => {
+    if (familyNameInputRef.current?.value.trim()) advance()
+    else setFamilyNameWarning(true)
+  }
+
+  useEffect(() => {
+    if (!showFamilyNameHint) { setFamilyNameWarning(false); return }
+    const handleKeyDown = e => {
+      if (e.key !== 'Enter') return
+      handleFamilyNameConfirm()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showFamilyNameHint])
+
+  const familyRelationSelectRef = useRef(null)
+  const [familyRelationRect, setFamilyRelationRect] = useState(null)
+  const showFamilyRelationHint = isOpen && activeStep?.id === 'student-family-relation-hint' && activeSide === 'class-students'
+
+  useEffect(() => {
+    if (!showFamilyRelationHint) return
+    const measure = () => {
+      if (familyRelationSelectRef.current) setFamilyRelationRect(familyRelationSelectRef.current.getBoundingClientRect())
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [showFamilyRelationHint])
+
+  const [familyRelationWarning, setFamilyRelationWarning] = useState(false)
+  const handleFamilyRelationConfirm = () => {
+    if (familyRelationSelectRef.current?.value) advance()
+    else setFamilyRelationWarning(true)
+  }
+
+  useEffect(() => {
+    if (!showFamilyRelationHint) { setFamilyRelationWarning(false); return }
+    const handleKeyDown = e => { if (e.key !== 'Enter') return; handleFamilyRelationConfirm() }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showFamilyRelationHint])
+
+  const familyPhoneInputRef = useRef(null)
+  const [familyPhoneRect, setFamilyPhoneRect] = useState(null)
+  const showFamilyPhoneHint = isOpen && activeStep?.id === 'student-family-phone-hint' && activeSide === 'class-students'
+
+  useEffect(() => {
+    if (!showFamilyPhoneHint) return
+    const measure = () => {
+      if (familyPhoneInputRef.current) setFamilyPhoneRect(familyPhoneInputRef.current.getBoundingClientRect())
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [showFamilyPhoneHint])
+
+  const [familyPhoneWarning, setFamilyPhoneWarning] = useState(false)
+  const handleFamilyPhoneConfirm = () => {
+    if (familyPhoneInputRef.current?.value.trim()) advance()
+    else setFamilyPhoneWarning(true)
+  }
+
+  useEffect(() => {
+    if (!showFamilyPhoneHint) { setFamilyPhoneWarning(false); return }
+    const handleKeyDown = e => { if (e.key !== 'Enter') return; handleFamilyPhoneConfirm() }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showFamilyPhoneHint])
+
+  const familyMsgTypeSelectRef = useRef(null)
+  const [familyMsgTypeRect, setFamilyMsgTypeRect] = useState(null)
+  const showFamilyMsgTypeHint = isOpen && activeStep?.id === 'student-family-msgtype-hint' && activeSide === 'class-students'
+  const showFamilyMsgTypeInfoHint = isOpen && activeStep?.id === 'student-family-msgtype-info-hint' && activeSide === 'class-students'
+
+  useEffect(() => {
+    if (!showFamilyMsgTypeHint && !showFamilyMsgTypeInfoHint) return
+    const measure = () => {
+      if (familyMsgTypeSelectRef.current) setFamilyMsgTypeRect(familyMsgTypeSelectRef.current.getBoundingClientRect())
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [showFamilyMsgTypeHint, showFamilyMsgTypeInfoHint])
+
+  const handleFamilyMsgTypeConfirm = () => advance()
+  const handleFamilyMsgTypeClick = () => { if (showFamilyMsgTypeHint) advance() }
+  const handleFamilyMsgTypeChange = () => { if (showFamilyMsgTypeInfoHint) advance() }
+
+  useEffect(() => {
+    if (!showFamilyMsgTypeHint) return
+    const handleKeyDown = e => { if (e.key !== 'Enter') return; handleFamilyMsgTypeConfirm() }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showFamilyMsgTypeHint])
+
+  useEffect(() => {
+    if (!showFamilyMsgTypeInfoHint) return
+    const handleKeyDown = e => { if (e.key !== 'Enter') return; advance() }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showFamilyMsgTypeInfoHint])
+
+  const familySaveBtnRef = useRef(null)
+  const [familySaveBtnRect, setFamilySaveBtnRect] = useState(null)
+  const showFamilySaveHint = isOpen && activeStep?.id === 'student-family-save-hint' && activeSide === 'class-students'
+
+  useEffect(() => {
+    if (!showFamilySaveHint) return
+    const measure = () => {
+      if (familySaveBtnRef.current) setFamilySaveBtnRect(familySaveBtnRef.current.getBoundingClientRect())
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [showFamilySaveHint])
+
+  const handleFamilySaveClick = () => { if (showFamilySaveHint) advance() }
 
   const emptyForm = {
     studentNo:'', status:'', name:'', birth:'', gender:'남자',
@@ -571,6 +729,129 @@ export default function Students() {
           />
         </>
       )}
+      {showFamilyHint && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[familyHoleRect]}
+            pad={10}
+          />
+          <TutorialTooltip
+            rect={familyHoleRect}
+            placement="top"
+            center
+            message="이곳에서 해당 학생의 가족 정보를 입력할 수 있습니다."
+            onConfirm={handleFamilyConfirm}
+          />
+        </>
+      )}
+      {showFamilyNameHint && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[familyNameRect]}
+            pad={4}
+          />
+          <TutorialTooltip
+            rect={familyNameRect}
+            placement="top"
+            center
+            message="학부모님 성명을 작성해주세요."
+            onConfirm={handleFamilyNameConfirm}
+            warn={familyNameWarning}
+          />
+        </>
+      )}
+      {showFamilyRelationHint && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[familyRelationRect]}
+            pad={4}
+          />
+          <TutorialTooltip
+            rect={familyRelationRect}
+            placement="top"
+            center
+            message="관계를 선택하세요."
+            onConfirm={handleFamilyRelationConfirm}
+            warn={familyRelationWarning}
+          />
+        </>
+      )}
+      {showFamilyPhoneHint && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[familyPhoneRect]}
+            pad={4}
+          />
+          <TutorialTooltip
+            rect={familyPhoneRect}
+            placement="top"
+            center
+            message="휴대폰번호를 입력하세요."
+            onConfirm={handleFamilyPhoneConfirm}
+            warn={familyPhoneWarning}
+          />
+        </>
+      )}
+      {showFamilyMsgTypeHint && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[familyMsgTypeRect]}
+            pad={4}
+          />
+          <TutorialTooltip
+            rect={familyMsgTypeRect}
+            placement="top"
+            center
+            message="메세지 수신 조건을 선택합니다."
+            onConfirm={handleFamilyMsgTypeConfirm}
+          />
+        </>
+      )}
+      {showFamilyMsgTypeInfoHint && familyMsgTypeRect && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[familyMsgTypeRect]}
+            pad={4}
+          />
+          <div style={{
+            position: 'fixed',
+            right: window.innerWidth - familyMsgTypeRect.left + 12,
+            top: familyMsgTypeRect.top + familyMsgTypeRect.height / 2 - 22 + 70,
+            zIndex: 4000,
+            color: '#fff',
+            fontSize: 13,
+            lineHeight: 1.8,
+            whiteSpace: 'nowrap',
+            textAlign: 'right',
+          }}>
+            <div>학원관련 공지사항·출결 등의 알림만 수신한다면 [학원관련]</div>
+            <div>청구서·수납 등의 결제 내용 알림만 수신한다면 [청구+수납]</div>
+          </div>
+        </>
+      )}
+      {showFamilySaveHint && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[familySaveBtnRect]}
+            pad={4}
+          />
+          <TutorialTooltip
+            rect={familySaveBtnRect}
+            placement="top"
+            rightAlign
+            message={"학부모 정보는 이곳에서 저장을 합니다.\n저장을 클릭해주세요."}
+            multiLine
+            minWidth={245}
+          />
+        </>
+      )}
       <TopNav />
       <div className="menu-bar">
         <button className="hamburger-btn" onClick={()=>setSidebarOpen(s=>!s)}>☰</button>
@@ -743,7 +1024,7 @@ export default function Students() {
                     </div>
                   </div>
                 </div>
-                <div className="info-panel" ref={infoPanelRef}>
+                <div className="info-panel" ref={infoPanelRef} style={(showSaveCompleteHint || showFamilyHint) ? { pointerEvents: 'none' } : undefined}>
                   <div className="info-header">
                     <span className="info-title">학생 정보자료</span>
                     <div style={{display:'flex',gap:6}}>
@@ -855,7 +1136,7 @@ export default function Students() {
                         </div>
                       </div>
                     </div>
-                    <div className="info-tabs-wrap" style={(showInfoPanelHint || showRequiredFieldsHint) ? { pointerEvents: 'none' } : undefined}>
+                    <div className="info-tabs-wrap" ref={infoTabsWrapRef} style={(showInfoPanelHint || showRequiredFieldsHint) ? { pointerEvents: 'none' } : undefined}>
                       <div className="info-tabs">
                         <div className="info-tab-v">V</div>
                         {INFO_TABS.map(t=>(
@@ -889,7 +1170,7 @@ export default function Students() {
                       </div>
                       {selectedStudentId !== null && selectedStudentId !== 'new' && (
                         <div className="info-tab-content" ref={infoTabContentRef}>
-                          {infoTab==='가족'     && <FamilyTab />}
+                          {infoTab==='가족'     && <FamilyTab nameInputRef={familyNameInputRef} relationSelectRef={familyRelationSelectRef} phoneInputRef={familyPhoneInputRef} msgTypeSelectRef={familyMsgTypeSelectRef} onMsgTypeChange={handleFamilyMsgTypeChange} onMsgTypeClick={handleFamilyMsgTypeClick} saveBtnRef={familySaveBtnRef} onSaveClick={handleFamilySaveClick} />}
                           {infoTab==='수강'     && <ClassTab />}
                           {infoTab==='수납'     && <PaymentTab />}
                           {infoTab==='결제'     && <BillingTab />}

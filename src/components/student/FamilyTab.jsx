@@ -8,7 +8,7 @@ const defaultRow = () => ({
   msgType: '전체수신',
 })
 
-export default function FamilyTab() {
+export default function FamilyTab({ nameInputRef, relationSelectRef, phoneInputRef, msgTypeSelectRef, onMsgTypeChange, onMsgTypeClick, saveBtnRef, onSaveClick }) {
   const [rows, setRows] = useState([defaultRow()])
 
   const addRow = () => setRows(r => [...r, defaultRow()])
@@ -28,7 +28,7 @@ export default function FamilyTab() {
           <span style={{fontSize:14,fontWeight:700,color:'#333'}}>가족사항</span>
         </div>
         <div style={{display:'flex',gap:6}}>
-          <button onClick={() => {}} className="family-save-btn">저장</button>
+          <button ref={saveBtnRef} onClick={onSaveClick ?? (() => {})} className="family-save-btn">저장</button>
           <button onClick={addRow} className="family-add-btn"><span className="plus">+</span> 추가</button>
         </div>
       </div>
@@ -52,10 +52,10 @@ export default function FamilyTab() {
             <tr key={row.id} style={{borderBottom:'1px solid #f0f0f0'}}>
               <td style={td}>{idx + 1}</td>
               <td style={td}>
-                <input style={inputStyle} value={row.name} onChange={e => updateRow(row.id,'name',e.target.value)}/>
+                <input ref={idx === 0 ? nameInputRef : undefined} style={inputStyle} value={row.name} onChange={e => updateRow(row.id,'name',e.target.value)}/>
               </td>
               <td style={td}>
-                <select style={inputStyle} value={row.relation} onChange={e => updateRow(row.id,'relation',e.target.value)}>
+                <select ref={idx === 0 ? relationSelectRef : undefined} style={inputStyle} value={row.relation} onChange={e => updateRow(row.id,'relation',e.target.value)}>
                   <option value="">선택</option>
                   <option>부</option><option>모</option><option>형제</option><option>자매</option>
                   <option>조부</option><option>조모</option><option>기타</option>
@@ -65,7 +65,7 @@ export default function FamilyTab() {
                 <input type="checkbox" checked={row.isPrimary} onChange={e => updateRow(row.id,'isPrimary',e.target.checked)}/>
               </td>
               <td style={td}>
-                <input style={inputStyle} placeholder="010-0000-0000" value={row.phone} onChange={e => updateRow(row.id,'phone',e.target.value)}/>
+                <input ref={idx === 0 ? phoneInputRef : undefined} style={inputStyle} placeholder="010-0000-0000" value={row.phone} onChange={e => updateRow(row.id,'phone',e.target.value)}/>
               </td>
               <td style={td}>
                 <div style={{display:'flex',alignItems:'center',gap:4}}>
@@ -78,8 +78,8 @@ export default function FamilyTab() {
                 </div>
               </td>
               <td style={td}>
-                <select style={{...inputStyle,width:90}} value={row.msgType} onChange={e => updateRow(row.id,'msgType',e.target.value)}>
-                  <option>전체수신</option><option>SMS수신</option><option>알림톡수신</option><option>수신안함</option>
+                <select ref={idx === 0 ? msgTypeSelectRef : undefined} style={{...inputStyle,width:130}} value={row.msgType} onClick={idx === 0 ? onMsgTypeClick : undefined} onChange={e => { updateRow(row.id,'msgType',e.target.value); if (idx === 0 && onMsgTypeChange) onMsgTypeChange() }}>
+                  <option>전체수신</option><option>학원관련</option><option>학원관련+수납</option><option>청구</option><option>청구+수납</option><option>수신안함</option>
                 </select>
               </td>
               <td style={{...td,textAlign:'center'}}>
