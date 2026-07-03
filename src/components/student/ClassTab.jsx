@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import '../../pages/Students.css'
 
-export default function ClassTab({ onRegisterClick, tutorialShowEnrollment, enrollmentRowRef }) {
+export default function ClassTab({ onRegisterClick, enrollments = [], enrollmentRowRef }) {
   const [filter, setFilter] = useState('수강+종강')
 
   return (
@@ -33,23 +33,23 @@ export default function ClassTab({ onRegisterClick, tutorialShowEnrollment, enro
           </tr>
         </thead>
         <tbody>
-          {tutorialShowEnrollment ? (
-            <tr ref={enrollmentRowRef} style={{borderBottom:'1px solid #e0e0e0'}}>
-              <td style={{...td,textAlign:'center'}}><input type="checkbox" defaultChecked readOnly /></td>
-              <td style={td}>중등 수학A 1교시</td>
-              <td style={{...td,textAlign:'center',color:'#29ABE2',fontWeight:600}}>수강</td>
-              <td style={{...td,textAlign:'center'}}>2022.01.01~2999.12.31</td>
-              <td style={{...td,textAlign:'center'}}>강사01</td>
-              <td style={{...td,textAlign:'center'}}>101호</td>
-              <td style={td} colSpan={8} />
-            </tr>
-          ) : (
+          {enrollments.length === 0 ? (
             <tr>
               <td colSpan={14} style={{padding:'32px 0',textAlign:'center',fontSize:13,color:'#aaa',borderBottom:'1px solid #e0e0e0'}}>
                 수강 내역이 없습니다.
               </td>
             </tr>
-          )}
+          ) : enrollments.map((e, i) => (
+            <tr key={e.id} ref={i === 0 ? enrollmentRowRef : undefined} style={{borderBottom:'1px solid #e0e0e0'}}>
+              <td style={{...td,textAlign:'center'}}><input type="checkbox" defaultChecked readOnly /></td>
+              <td style={td}>{e.className}</td>
+              <td style={{...td,textAlign:'center',color:'#29ABE2',fontWeight:600}}>{e.status}</td>
+              <td style={{...td,textAlign:'center'}}>{e.startDate}~{e.endDate}</td>
+              <td style={{...td,textAlign:'center'}}>{e.teacher}</td>
+              <td style={{...td,textAlign:'center'}}>{e.room}</td>
+              <td style={td} colSpan={8} />
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
 import './Login.css'
 
 const logo = '/logo.svg'
@@ -12,20 +13,29 @@ const SLIDES = [
 
 export default function Login() {
   const navigate = useNavigate()
+  const { signIn } = useAuth()
   const [form, setForm] = useState({ id: '', password: '', remember: false })
   const [slide, setSlide] = useState(0)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     const t = setInterval(() => setSlide(s => (s + 1) % SLIDES.length), 3000)
     return () => clearInterval(t)
   }, [])
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!form.id || !form.password) {
-      alert('아이디와 비밀번호를 입력해주세요.')
+      setError('아이디와 비밀번호를 입력해주세요.')
       return
     }
-    navigate('/classes')
+    setError('')
+    setLoading(true)
+    const { error: err } = await signIn(form.id, form.password)
+    setLoading(false)
+    if (err) { setError(err.message || '로그인에 실패했습니다.'); return }
+    if (form.id === 'admin') navigate('/admin')
+    else navigate('/classes')
   }
 
   return (
@@ -63,8 +73,9 @@ export default function Login() {
               />
             </div>
 
-            <button className="login-btn" onClick={handleLogin}>
-              학원 로그인
+            {error && <p style={{ color: '#e53e3e', fontSize: 13, margin: '-4px 0 8px', textAlign: 'center' }}>{error}</p>}
+            <button className="login-btn" onClick={handleLogin} disabled={loading}>
+              {loading ? '로그인 중...' : '학원 로그인'}
             </button>
 
             <div className="remember-row">

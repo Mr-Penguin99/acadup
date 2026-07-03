@@ -8,8 +8,8 @@ const defaultRow = () => ({
   msgType: '전체수신',
 })
 
-export default function FamilyTab({ nameInputRef, relationSelectRef, phoneInputRef, msgTypeSelectRef, onMsgTypeChange, onMsgTypeClick, saveBtnRef, onSaveClick }) {
-  const [rows, setRows] = useState([defaultRow()])
+export default function FamilyTab({ nameInputRef, relationSelectRef, phoneInputRef, msgTypeSelectRef, onMsgTypeChange, onMsgTypeClick, saveBtnRef, onSaveClick, initialRows }) {
+  const [rows, setRows] = useState(() => initialRows?.length > 0 ? initialRows : [defaultRow()])
 
   const addRow = () => setRows(r => [...r, defaultRow()])
   const removeRow = id => setRows(r =>
@@ -28,7 +28,7 @@ export default function FamilyTab({ nameInputRef, relationSelectRef, phoneInputR
           <span style={{fontSize:14,fontWeight:700,color:'#333'}}>가족사항</span>
         </div>
         <div style={{display:'flex',gap:6}}>
-          <button ref={saveBtnRef} onClick={onSaveClick ?? (() => {})} className="family-save-btn">저장</button>
+          <button ref={saveBtnRef} onClick={() => onSaveClick?.(rows)} className="family-save-btn">저장</button>
           <button onClick={addRow} className="family-add-btn"><span className="plus">+</span> 추가</button>
         </div>
       </div>

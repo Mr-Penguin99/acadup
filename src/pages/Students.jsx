@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import './Students.css'
 import TopNav from '../components/TopNav'
 import { useTutorial } from '../components/TutorialContext'
+import { useAppData } from '../contexts/AppDataContext'
 import TutorialSpotlight from '../components/TutorialSpotlight'
 import TutorialMultiSpotlight from '../components/TutorialMultiSpotlight'
 import TutorialTooltip from '../components/TutorialTooltip'
@@ -86,21 +87,6 @@ const ATTEND_DATA = [
   { id:4, name:'abc' },   { id:5, name:'가나다' },   { id:6, name:'교재수령수강생' },
   { id:7, name:'김학생AA' }, { id:8, name:'김학생CC' }, { id:9, name:'학생1' }, { id:10, name:'홍길동ab' },
 ]
-const STUDENT_STATUS_DATA = [
-  { id:1, name:'@예비',    birth:'20.01.01', photo:'X', status:'재원', classes:['to_반그룹 > to_반_AAA_배정'], keypad:'1234', dept:'', school:'', grade:'' },
-  { id:2, name:'@이순신',  birth:'20.01.01', photo:'X', status:'재원', classes:['to_반그룹 > to_반_AAA_배정','to_반그룹 > from_반_CCC','to_반그룹 > to_반_001_배정','고등_AA > 고등_AA_기초반'], keypad:'2350', dept:'초등학교', school:'', grade:'1' },
-  { id:3, name:'@하늘땅',  birth:'20.01.02', photo:'X', status:'재원', classes:['to_반그룹 > from_반_CCC'], keypad:'', dept:'중학교', school:'', grade:'' },
-  { id:4, name:'abc',      birth:'14.01.01', photo:'X', status:'재원', classes:['고등_AA > 고등_AA_기초반'], keypad:'1709', dept:'', school:'', grade:'' },
-  { id:5, name:'가나다',   birth:'20.01.01', photo:'X', status:'재원', classes:['to_반그룹 > to_반_AAA_배정'], keypad:'1111', dept:'', school:'', grade:'' },
-  { id:6, name:'김길동',   birth:'23.01.01', photo:'X', status:'재원', classes:['no-use반모음 > 회 차반_333(사용안함)'], keypad:'', dept:'', school:'', grade:'' },
-  { id:7, name:'김학생AA', birth:'23.01.01', photo:'X', status:'재원', classes:['to_반그룹 > to_반_001_배정','반그룹_01(기간반) > 01_국어(222개월)'], keypad:'', dept:'', school:'', grade:'' },
-  { id:8, name:'김학생CC', birth:'20.10.12', photo:'O', status:'재원', classes:['to_반그룹 > to_반_001_배정','반그룹_01(기간반) > 01_국어(222개월)'], keypad:'', dept:'', school:'', grade:'' },
-  { id:9,  name:'학생1',    birth:'20.01.01', photo:'X', status:'재원', classes:['반그룹 수업1 > 수업1 영어(월화목토)'], keypad:'1234', dept:'고등학교', school:'', grade:'1' },
-  { id:10, name:'예비학생1', birth:'21.03.10', photo:'X', status:'예비', classes:[], keypad:'', dept:'초등학교', school:'', grade:'2' },
-  { id:11, name:'예비학생2', birth:'22.07.05', photo:'X', status:'예비', classes:[], keypad:'', dept:'', school:'', grade:'' },
-  { id:12, name:'휴원학생1', birth:'19.05.15', photo:'X', status:'휴원', classes:['to_반그룹 > to_반_AAA_배정'], keypad:'0000', dept:'중학교', school:'', grade:'3' },
-  { id:13, name:'퇴원학생1', birth:'18.07.20', photo:'X', status:'퇴원', classes:[], keypad:'', dept:'고등학교', school:'', grade:'1' },
-]
 const INFO_TABS = ['가족','수강','수납','결제','상담','출결','학원성적','학교성적','알림내역','메모','진도','차량']
 const LOCKED_TABS = ['상담','출결','학원성적','학교성적','알림내역','메모','진도','차량']
 const UNLOCKED_MENUS = ['students','payments','classes']
@@ -135,8 +121,8 @@ export default function Students() {
   const [replaceChecked, setReplaceChecked] = useState([])
   const [talkChecked, setTalkChecked] = useState([])
   const [noticeChecked, setNoticeChecked] = useState([])
-  const [students, setStudents] = useState([])
   const [selectedStudentId, setSelectedStudentId] = useState(null) // null | 'new' | number
+  const { students, enrollments: contextEnrollments, addStudent, updateStudent, addEnrollment } = useAppData()
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
   const { activeStep, isOpen, advance } = useTutorial()
@@ -481,7 +467,14 @@ export default function Students() {
     return () => window.removeEventListener('resize', measure)
   }, [showFamilySaveHint])
 
-  const handleFamilySaveClick = () => { if (showFamilySaveHint) advance() }
+  const handleFamilySaveClick = async (familyRows) => {
+    if (typeof selectedStudentId === 'number') {
+      const updated = { ...form, family: familyRows }
+      await updateStudent(selectedStudentId, updated)
+      setForm(updated)
+    }
+    if (showFamilySaveHint) advance()
+  }
 
   const [familyCompleteRect, setFamilyCompleteRect] = useState(null)
   const [familyCompleteTabsRect, setFamilyCompleteTabsRect] = useState(null)
@@ -692,7 +685,17 @@ export default function Students() {
     return () => { clearTimeout(timer); window.removeEventListener('resize', measure) }
   }, [showClassRegisterSubmitHint])
 
-  const handleSubmitClick = () => { if (showClassRegisterSubmitHint) advance() }
+  const handleSubmitClick = async (data) => {
+    if (showClassRegisterSubmitHint) {
+      if (typeof selectedStudentId === 'number' && data) {
+        await addEnrollment({ studentId: selectedStudentId, ...data })
+        const updated = { ...form, hasClasses: true }
+        await updateStudent(selectedStudentId, updated)
+        setForm(updated)
+      }
+      advance()
+    }
+  }
 
   const classTabEnrollmentRowRef = useRef(null)
   const [classTabEnrollmentRect, setClassTabEnrollmentRect] = useState(null)
@@ -837,20 +840,20 @@ export default function Students() {
     setInfoTab('가족')
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.name)       { alert('성명을 입력해주세요.'); return }
     if (!form.birth)      { alert('생년월일을 입력해주세요.'); return }
     if (!form.enrollDate) { alert('입학일자를 입력해주세요.'); return }
     if (!form.phone)      { alert('학생 휴대폰을 입력해주세요.'); return }
     if (selectedStudentId === 'new' || selectedStudentId === null) {
-      const newId = Date.now()
       const newStatus = form.status || '예비'
-      setStudents(prev => [...prev, { ...form, id: newId, status: newStatus }])
+      const { data, error } = await addStudent({ ...form, status: newStatus })
+      if (error) { alert(error.message || '수강생 등록에 실패했습니다.'); return }
       setForm(f => ({...f, status: newStatus}))
-      setSelectedStudentId(newId)
+      if (data) setSelectedStudentId(data.id)
       setInfoTab('가족')
     } else {
-      setStudents(prev => prev.map(s => s.id === selectedStudentId ? { ...form, id: selectedStudentId } : s))
+      await updateStudent(selectedStudentId, { ...form })
       setInfoTab('가족')
     }
     if (activeStep?.id === 'student-save-hint') advance()
@@ -862,11 +865,22 @@ export default function Students() {
   const toggleNoticeCheck  = id => setNoticeChecked(c => c.includes(id) ? c.filter(x=>x!==id) : [...c,id])
   const toggleStatusCheck  = id => setStatusChecked(c => c.includes(id) ? c.filter(x=>x!==id) : [...c,id])
 
-  const filteredStudents = STUDENT_STATUS_DATA.filter(d => {
-    const s = statusFilter.studentStatus
-    if (s === '선택하기') return true
-    if (s === '예비+휴원+퇴원') return ['예비','휴원','퇴원'].includes(d.status)
-    return d.status === s
+  const filteredStudents = students.map(s => ({
+    id: s.id,
+    name: s.name || '',
+    birth: s.birth || '',
+    photo: 'X',
+    status: s.hasClasses ? '재원' : (s.status || '예비'),
+    classes: contextEnrollments.filter(e => e.studentId === s.id).map(e => `${e.group} > ${e.className}`),
+    keypad: s.attendNo || '',
+    dept: s.dept || '',
+    school: '',
+    grade: s.grade1 || '',
+  })).filter(d => {
+    const f = statusFilter.studentStatus
+    if (f === '선택하기') return true
+    if (f === '예비+휴원+퇴원') return ['예비','휴원','퇴원'].includes(d.status)
+    return d.status === f
   })
 
   const toggleStatusAll = () => setStatusChecked(statusChecked.length===filteredStudents.length ? [] : filteredStudents.map(d=>d.id))
@@ -1675,8 +1689,8 @@ export default function Students() {
                       </div>
                       {(selectedStudentId !== null && selectedStudentId !== 'new' || tutorialShowInfoTabs) && (
                         <div className="info-tab-content" ref={infoTabContentRef}>
-                          {infoTab==='가족'     && <FamilyTab nameInputRef={familyNameInputRef} relationSelectRef={familyRelationSelectRef} phoneInputRef={familyPhoneInputRef} msgTypeSelectRef={familyMsgTypeSelectRef} onMsgTypeChange={handleFamilyMsgTypeChange} onMsgTypeClick={handleFamilyMsgTypeClick} saveBtnRef={familySaveBtnRef} onSaveClick={handleFamilySaveClick} />}
-                          {infoTab==='수강'     && <ClassTab onRegisterClick={handleRegisterBtnClick} tutorialShowEnrollment={showClassRegisterCompleteHint} enrollmentRowRef={classTabEnrollmentRowRef} />}
+                          {infoTab==='가족'     && <FamilyTab key={selectedStudentId} nameInputRef={familyNameInputRef} relationSelectRef={familyRelationSelectRef} phoneInputRef={familyPhoneInputRef} msgTypeSelectRef={familyMsgTypeSelectRef} onMsgTypeChange={handleFamilyMsgTypeChange} onMsgTypeClick={handleFamilyMsgTypeClick} saveBtnRef={familySaveBtnRef} onSaveClick={handleFamilySaveClick} initialRows={form.family} />}
+                          {infoTab==='수강'     && <ClassTab onRegisterClick={handleRegisterBtnClick} enrollments={contextEnrollments.filter(e => e.studentId === selectedStudentId)} enrollmentRowRef={classTabEnrollmentRowRef} />}
                           {infoTab==='수납'     && <PaymentTab />}
                           {infoTab==='결제'     && <BillingTab />}
                           {infoTab==='상담'     && <ConsultTab />}

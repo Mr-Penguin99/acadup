@@ -4,6 +4,7 @@ import TopNav from '../components/TopNav'
 import './Classes.css'
 import { DatePicker } from '../components/DatePicker'
 import { useTutorial } from '../components/TutorialContext'
+import { useAppData } from '../contexts/AppDataContext'
 import TutorialOverlay from '../components/TutorialOverlay'
 import TutorialSpotlight from '../components/TutorialSpotlight'
 import ClassCreate from './ClassCreate'
@@ -38,18 +39,6 @@ const SIDE_MENUS = [
     { id:'assign-prospect', label:'예비생 반배정' },
   ]},
 ]
-const GROUP_DATA = [
-  { id:1,  code:'GROUP00007', name:'반그룹_02(회차반)', use:'사용' },
-  { id:2,  code:'GROUP00013', name:'to_반그룹',         use:'사용' },
-  { id:3,  code:'GROUP00006', name:'반그룹_01(기간반)', use:'사용' },
-  { id:4,  code:'GROUP00001', name:'그룹01',            use:'사용' },
-  { id:5,  code:'33_02',      name:'고등_BB',           use:'사용' },
-  { id:6,  code:'33_01',      name:'고등_AA',           use:'사용' },
-  { id:7,  code:'33_03',      name:'고등_CC',           use:'사용' },
-  { id:8,  code:'11_A',       name:'초등_A',            use:'사용' },
-  { id:9,  code:'11_B',       name:'초등_B',            use:'사용' },
-  { id:10, code:'11_C',       name:'초등_C',            use:'사용' },
-]
 
 export default function Classes() {
   const navigate = useNavigate()
@@ -68,27 +57,29 @@ export default function Classes() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [menuLockedClickCount, setMenuLockedClickCount] = useState(0)
   const [showClassCreateModal, setShowClassCreateModal] = useState(false)
-  const [classRows, setClassRows] = useState([])
   const [newClassId, setNewClassId] = useState(null)
 
-  const handleClassSave = (form) => {
-    const newId = Math.max(0, ...classRows.map(r => r.id)) + 1
-    setClassRows(rows => [
-      ...rows,
-      {
-        id: newId,
-        group: form.group,
-        name: form.name || '(이름 없음)',
-        code: form.code || `CLASS${String(rows.length + 1).padStart(5, '0')}`,
-        status: '개강',
-        type: form.subject,
-        teacher: '',
-        period: `${form.opFrom || ''}~${form.opTo || ''}`,
-        room: form.room,
-        count: '재원: 0명',
-      },
-    ])
-    setNewClassId(newId)
+  const { classes, addClass } = useAppData()
+
+  const handleClassSave = async (form) => {
+    const { data, error } = await addClass({
+      group: form.group || '',
+      name: form.name || '(이름 없음)',
+      code: form.code || `CLASS${String(classes.length + 1).padStart(5, '0')}`,
+      status: '개강',
+      type: form.subject || '',
+      teacher: '',
+      period: `${form.opFrom || ''}~${form.opTo || ''}`,
+      room: form.room || '',
+      subject: form.subject || '',
+      opFrom: form.opFrom || '',
+      opTo: form.opTo || '',
+      payDay: form.payDay || '1',
+      opType: form.opType || '기간반',
+      payments: form.payments || [],
+    })
+    if (error) { alert(error.message || '반 등록에 실패했습니다.'); return }
+    if (data) setNewClassId(data.id)
   }
 
   const { activeStep, isOpen, autoStart, advance } = useTutorial()
@@ -363,20 +354,9 @@ export default function Classes() {
                   <table className="cl-table">
                     <thead><tr><th>출력순서</th><th>반그룹 코드</th><th>반 그룹 명</th><th>사용유무</th></tr></thead>
                     <tbody>
-                      {GROUP_DATA.map(d=>(
-                        <tr key={d.id}>
-                          <td style={{textAlign:'center'}}>
-                            <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:4}}>
-                              <span style={{fontSize:12,color:'#666'}}>{d.id}</span>
-                              <button className="order-btn up">↑</button>
-                              <button className="order-btn down">↓</button>
-                            </div>
-                          </td>
-                          <td style={{textAlign:'center'}}>{d.code}</td>
-                          <td style={{textAlign:'center'}}>{d.name}</td>
-                          <td style={{textAlign:'center'}}>{d.use}</td>
-                        </tr>
-                      ))}
+                      {classes.length === 0 && (
+                        <tr><td colSpan={4} style={{textAlign:'center',padding:'32px 0',color:'#aaa',fontSize:13}}>등록된 반 그룹이 없습니다.</td></tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -588,7 +568,7 @@ export default function Classes() {
                   <table className="cl-table">
                     <thead><tr><th>출력순서</th><th>반 그룹</th><th>반 명</th><th>반 코드</th><th>상태</th><th>중분류</th><th>담임</th><th>수강기간</th><th>강의실</th><th>수강생수</th><th>기능</th></tr></thead>
                     <tbody>
-                      {classRows.map(d=>(
+                      {classes.map(d=>(
                         <tr key={d.id} ref={d.id===newClassId ? newRowRef : null}>
                           <td className="td-center">{d.id}</td><td>{d.group}</td><td>{d.name}</td><td>{d.code}</td>
                           <td className="td-center">{d.status}</td><td className="td-center">{d.type}</td>

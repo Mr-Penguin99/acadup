@@ -1,18 +1,30 @@
 import { useState, useEffect } from 'react'
+import { useAppData } from '../contexts/AppDataContext'
 
-const GROUPS = ['반 그룹']
-const CLASS_OPTIONS = {
-  '반 그룹': ['중등 수학A 1교시', '중등 수학A 2교시', '중등 수학A 3교시'],
-}
-const CLASS_INFO = {
-  '중등 수학A 1교시': { teacher: '강사01', period: '2022.01.01~2999.12.31', room: '101호', fee: '1,000', type: '기간반' },
-  '중등 수학A 2교시': { teacher: '강사01', period: '2022.01.01~2999.12.31', room: '101호', fee: '1,000', type: '기간반' },
-  '중등 수학A 3교시': { teacher: '강사01', period: '2022.01.01~2999.12.31', room: '101호', fee: '1,000', type: '기간반' },
-}
 const REPEAT_OPTIONS = ['선택', '월납', '일시납']
 const DISCOUNT_OPTIONS = ['선택', '형제할인', '장기할인', '성적우수할인', '일수할인', '기타(특별)할인']
 
 export default function ClassRegister({ classSectionRef, classNameRowRef, onClassSelect, classPaydayRowRef, classDiscountRowRef, classDiscountRepeatSelectRef, classSubmitBtnRef, onSubmitClick, autoSelectFirstClass }) {
+  const { classes: contextClasses } = useAppData()
+
+  const GROUPS = [...new Set(contextClasses.map(c => c.group || '반 그룹'))].filter(Boolean)
+  const CLASS_OPTIONS = contextClasses.reduce((acc, c) => {
+    const g = c.group || '반 그룹'
+    if (!acc[g]) acc[g] = []
+    acc[g].push(c.name)
+    return acc
+  }, {})
+  const CLASS_INFO = contextClasses.reduce((acc, c) => {
+    acc[c.name] = {
+      teacher: c.teacher || '',
+      period: c.period || `${c.opFrom || ''}~${c.opTo || ''}`,
+      room: c.room || '',
+      fee: c.payments?.[0]?.price || '0',
+      type: c.opType || '기간반',
+      payDay: c.payDay || '1',
+    }
+    return acc
+  }, {})
   const [group, setGroup] = useState('반 그룹')
   const [submitHover, setSubmitHover] = useState(false)
   const [className, setClassName] = useState('')
@@ -53,7 +65,17 @@ export default function ClassRegister({ classSectionRef, classNameRowRef, onClas
         {info && (
           <button
             ref={classSubmitBtnRef}
-            onClick={onSubmitClick}
+            onClick={() => onSubmitClick?.({
+              className,
+              group: group || '반 그룹',
+              startDate,
+              endDate,
+              payDay,
+              status: '수강',
+              teacher: info.teacher,
+              room: info.room,
+              fee: info.fee,
+            })}
             onMouseEnter={() => setSubmitHover(true)}
             onMouseLeave={() => setSubmitHover(false)}
             style={submitHover ? submitBtnHoverStyle : submitBtnStyle}

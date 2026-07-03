@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
 import './Signup.css'
 
 const logo = '/logo.svg'
 
 export default function Signup() {
   const navigate = useNavigate()
+  const { signUp } = useAuth()
   const [step, setStep] = useState(1)
+  const [signupError, setSignupError] = useState('')
+  const [signupLoading, setSignupLoading] = useState(false)
   const [agreed, setAgreed] = useState({ all: false, terms: false, privacy: false })
 
   const [phoneInput, setPhoneInput] = useState('')
@@ -412,11 +416,33 @@ export default function Signup() {
               </div>
             )}
 
+            {signupError && <p style={{ color: '#e53e3e', fontSize: 13, margin: '-4px 0 8px' }}>{signupError}</p>}
             <button
-              className={`btn-primary ${!canSubmit ? 'btn-disabled' : ''}`}
-              onClick={() => { if (canSubmit) setStep(3) }}
+              className={`btn-primary ${!canSubmit || signupLoading ? 'btn-disabled' : ''}`}
+              onClick={async () => {
+                if (!canSubmit || signupLoading) return
+                setSignupError('')
+                setSignupLoading(true)
+                const { error } = await signUp({
+                  email: form.email,
+                  password: form.password,
+                  user_id: form.userId,
+                  biz_name: form.bizName,
+                  biz_num: form.bizNum,
+                  owner_name: form.ownerName,
+                  phone: form.phone,
+                  tel: form.tel,
+                  address: form.address,
+                  address_detail: form.addressDetail,
+                  referral: form.referral,
+                  referral_code: form.referralCode,
+                })
+                setSignupLoading(false)
+                if (error) { setSignupError(error.message || '회원가입에 실패했습니다.'); return }
+                setStep(3)
+              }}
             >
-              회원가입
+              {signupLoading ? '처리 중...' : '회원가입'}
             </button>
             <button className="btn-secondary" onClick={() => setBizVerified(false)}>이전</button>
           </div>

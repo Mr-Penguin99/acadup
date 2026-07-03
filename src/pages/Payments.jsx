@@ -40,13 +40,7 @@ const SIDE_MENUS = [
     { id:'class-status',   label:'반별 수납현황' },
   ]},
 ]
-const PAY_HISTORY_DATA = [
-  { id:1, name:'학생01', classes:['to_반그룹 > to_반_AAA_배정','to_반그룹 > from_반_CCC','to_반그룹 > to_반_001_배정','고등_AA > 고등_AA_기초반'], payAmt:'1,115',   refund:'', phone:'', guardRel:'모', guardPhone:'010-8278-2350' },
-  { id:2, name:'학생02', classes:['고등_AA > 고등_AA_기초반'], payAmt:'100,100', refund:'', phone:'', guardRel:'부', guardPhone:'010-8278-2350' },
-  { id:3, name:'학생03', classes:['반그룹_02(회차반) > 회차반_001'], payAmt:'100', refund:'', phone:'', guardRel:'', guardPhone:'01082782350' },
-  { id:4, name:'학생04', classes:['반그룹_02(회차반) > 회차반_001','반그룹_02(회차반) > 회차반_002','to_반그룹 > to_반_AAA_이동'], payAmt:'8', refund:'', phone:'', guardRel:'모', guardPhone:'111-2222-1011' },
-  { id:5, name:'학생05', classes:['반그룹_02(회차반) > 회차반_001'], payAmt:'500', refund:'', phone:'', guardRel:'', guardPhone:'' },
-]
+const PAY_HISTORY_DATA = []
 const MONTHLY_PAY_DATA = [
   { id:1,  name:'@이순신',    cls:'to_반그룹 > from_반_CCC',    billAmt:'222',     tradeDate:'', payMethod:'', status:'미납', payAmt:'',  unpaid:'222',     created:'일괄수동' },
   { id:2,  name:'@하늘땅',    cls:'to_반그룹 > from_반_CCC',    billAmt:'222',     tradeDate:'', payMethod:'', status:'미납', payAmt:'',  unpaid:'222',     created:'일괄수동' },
@@ -522,30 +516,33 @@ export default function Payments() {
                     </colgroup>
                     <thead><tr><th>번호</th><th>성명</th><th>반명</th><th>결제금액</th><th>환불금액</th><th>수강생휴대폰</th><th>보호자관계</th><th>보호자휴대폰</th></tr></thead>
                     <tbody>
-                      {PAY_HISTORY_DATA.filter(d=>expandedPayId===null||expandedPayId===d.id).map(d=>(
-                        <>
-                          <tr key={d.id}>
-                            <td style={{textAlign:'center'}}>{d.id}</td>
-                            <td style={{textAlign:'left'}}>
-                              <span className="sts-name-link"
-                                onClick={()=>setExpandedPayId(expandedPayId===d.id?null:d.id)}>
-                                {d.name}
-                              </span>
-                            </td>
-                            <td style={{textAlign:'center'}}>{d.classes.map((c,i)=><div key={i} style={{fontSize:13,color:'#444',lineHeight:'1.6'}}>{c}</div>)}</td>
-                            <td style={{textAlign:'center',color:'#0100FF',fontWeight:400}}>{d.payAmt}</td>
-                            <td style={{textAlign:'center'}}>{d.refund}</td>
-                            <td style={{textAlign:'center'}}>{d.phone}</td><td style={{textAlign:'center'}}>{d.guardRel}</td><td style={{textAlign:'center'}}>{d.guardPhone}</td>
-                          </tr>
-                          {expandedPayId===d.id && (
-                            <tr key={`billing-${d.id}`}>
-                              <td colSpan={8} style={{padding:'0 20px',background:'#fff'}}>
-                                <div style={{marginTop:80}}><BillingTab /></div>
+                      {PAY_HISTORY_DATA.length === 0
+                        ? <tr><td colSpan={8} style={{textAlign:'center',padding:'30px',color:'#bbb',fontSize:13}}>결제 내역이 없습니다.</td></tr>
+                        : PAY_HISTORY_DATA.filter(d=>expandedPayId===null||expandedPayId===d.id).map(d=>(
+                          <>
+                            <tr key={d.id}>
+                              <td style={{textAlign:'center'}}>{d.id}</td>
+                              <td style={{textAlign:'left'}}>
+                                <span className="sts-name-link"
+                                  onClick={()=>setExpandedPayId(expandedPayId===d.id?null:d.id)}>
+                                  {d.name}
+                                </span>
                               </td>
+                              <td style={{textAlign:'center'}}>{d.classes.map((c,i)=><div key={i} style={{fontSize:13,color:'#444',lineHeight:'1.6'}}>{c}</div>)}</td>
+                              <td style={{textAlign:'center',color:'#0100FF',fontWeight:400}}>{d.payAmt}</td>
+                              <td style={{textAlign:'center'}}>{d.refund}</td>
+                              <td style={{textAlign:'center'}}>{d.phone}</td><td style={{textAlign:'center'}}>{d.guardRel}</td><td style={{textAlign:'center'}}>{d.guardPhone}</td>
                             </tr>
-                          )}
-                        </>
-                      ))}
+                            {expandedPayId===d.id && (
+                              <tr key={`billing-${d.id}`}>
+                                <td colSpan={8} style={{padding:'0 20px',background:'#fff'}}>
+                                  <div style={{marginTop:80}}><BillingTab /></div>
+                                </td>
+                              </tr>
+                            )}
+                          </>
+                        ))
+                      }
                     </tbody>
                   </table>
                 </div>

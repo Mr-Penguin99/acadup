@@ -444,8 +444,8 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
     resetForm()
     if (activeStep?.id === 'class-create-new-register-hint') advance()
   }
-  const handleSave = () => {
-    onSave?.(form)
+  const handleSave = async () => {
+    await onSave?.({ ...form, payments })
     alert('저장되었습니다.')
     if (activeStep?.id === 'class-create-save-hint') advance()
   }
