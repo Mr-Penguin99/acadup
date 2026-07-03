@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 const GROUPS = ['반 그룹']
 const CLASS_OPTIONS = {
@@ -12,10 +12,17 @@ const CLASS_INFO = {
 const REPEAT_OPTIONS = ['선택', '월납', '일시납']
 const DISCOUNT_OPTIONS = ['선택', '형제할인', '장기할인', '성적우수할인', '일수할인', '기타(특별)할인']
 
-export default function ClassRegister() {
+export default function ClassRegister({ classSectionRef, classNameRowRef, onClassSelect, classPaydayRowRef, classDiscountRowRef, classDiscountRepeatSelectRef, classSubmitBtnRef, onSubmitClick, autoSelectFirstClass }) {
   const [group, setGroup] = useState('반 그룹')
+  const [submitHover, setSubmitHover] = useState(false)
   const [className, setClassName] = useState('')
   const [round, setRound] = useState('신규')
+
+  useEffect(() => {
+    if (!autoSelectFirstClass || className) return
+    const options = CLASS_OPTIONS[group] || []
+    if (options.length > 0) setClassName(options[0])
+  }, [autoSelectFirstClass])
   const [startDate, setStartDate] = useState('2026-06-05')
   const [endDate, setEndDate] = useState('2999-12-31')
   const [payDay, setPayDay] = useState('1')
@@ -43,7 +50,15 @@ export default function ClassRegister() {
       {/* 헤더 */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <span style={{ fontSize: 18, fontWeight: 700 }}>수강신청</span>
-        {info && <button style={btnStyle('#F5841F')}>등록</button>}
+        {info && (
+          <button
+            ref={classSubmitBtnRef}
+            onClick={onSubmitClick}
+            onMouseEnter={() => setSubmitHover(true)}
+            onMouseLeave={() => setSubmitHover(false)}
+            style={submitHover ? submitBtnHoverStyle : submitBtnStyle}
+          >등록</button>
+        )}
       </div>
 
       {/* 수강생 정보 */}
@@ -57,6 +72,7 @@ export default function ClassRegister() {
       </table>
 
       {/* 신청 정보 */}
+      <div ref={classSectionRef}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
         <div style={{ width: 14, height: 14, background: '#F5841F', borderRadius: 2 }} />
         <span style={{ fontSize: 14, fontWeight: 700 }}>신청 정보</span>
@@ -65,7 +81,7 @@ export default function ClassRegister() {
       <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #e0e0e0' }}>
         <tbody>
           {/* 반명 - 항상 표시 */}
-          <tr style={{ borderBottom: '1px solid #e0e0e0' }}>
+          <tr ref={classNameRowRef} style={{ borderBottom: '1px solid #e0e0e0' }}>
             <td style={labelCell}>반명</td>
             <td style={valueCell}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -73,7 +89,7 @@ export default function ClassRegister() {
                   {GROUPS.map(g => <option key={g}>{g}</option>)}
                 </select>
                 <span style={{ color: '#888' }}>{'>'}</span>
-                <select style={selectStyle} value={className} onChange={e => setClassName(e.target.value)}>
+                <select style={selectStyle} value={className} onChange={e => { setClassName(e.target.value); if (e.target.value) onClassSelect?.() }}>
                   <option value="">반 선택</option>
                   {(CLASS_OPTIONS[group] || []).map(c => <option key={c}>{c}</option>)}
                 </select>
@@ -122,7 +138,7 @@ export default function ClassRegister() {
               </td>
             </tr>
 
-            <tr style={{ borderBottom: '1px solid #e0e0e0' }}>
+            <tr ref={classPaydayRowRef} style={{ borderBottom: '1px solid #e0e0e0' }}>
               <td style={labelCell}>납부기준일</td>
               <td style={valueCell}>
                 <input style={{ ...inputStyle, width: 60 }} value={payDay} onChange={e => setPayDay(e.target.value)} />
@@ -165,7 +181,7 @@ export default function ClassRegister() {
             </tr>
 
             {/* 할인항목 */}
-            <tr style={{ borderBottom: '1px solid #e0e0e0' }}>
+            <tr ref={classDiscountRowRef} style={{ borderBottom: '1px solid #e0e0e0' }}>
               <td style={labelCell}>할인항목</td>
               <td style={{ ...valueCell, padding: 0 }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -180,7 +196,7 @@ export default function ClassRegister() {
                     </tr>
                   </thead>
                   <tbody>
-                    {discountItems.map(row => (
+                    {discountItems.map((row, index) => (
                       <tr key={row.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
                         <td style={subTd}>
                           <select style={{ ...selectStyle, width: 120 }} value={row.item} onChange={e => updateDiscount(row.id, 'item', e.target.value)}>
@@ -191,7 +207,7 @@ export default function ClassRegister() {
                           <input style={{ ...inputStyle, width: 80 }} value={row.amt} onChange={e => updateDiscount(row.id, 'amt', e.target.value)} />
                         </td>
                         <td style={subTd}>
-                          <select style={{ ...selectStyle, width: 80 }} value={row.repeat} onChange={e => updateDiscount(row.id, 'repeat', e.target.value)}>
+                          <select ref={index === 0 ? classDiscountRepeatSelectRef : undefined} style={{ ...selectStyle, width: 80 }} value={row.repeat} onChange={e => updateDiscount(row.id, 'repeat', e.target.value)}>
                             {REPEAT_OPTIONS.map(o => <option key={o}>{o}</option>)}
                           </select>
                         </td>
@@ -217,6 +233,7 @@ export default function ClassRegister() {
           </tr>
         </tbody>
       </table>
+      </div>
     </div>
   )
 }
@@ -225,6 +242,16 @@ const btnStyle = (bg) => ({
   padding: '6px 16px', background: bg, color: '#fff', border: 'none',
   borderRadius: 4, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
 })
+
+const submitBtnStyle = {
+  padding: '6px 16px', background: '#6e7576', color: '#fff', border: '1px solid #6e7576',
+  borderRadius: 4, fontSize: 13, fontWeight: 300, cursor: 'pointer', fontFamily: 'inherit',
+}
+
+const submitBtnHoverStyle = {
+  padding: '6px 16px', background: 'none', color: '#6e7576', border: '1px solid #6e7576',
+  borderRadius: 4, fontSize: 13, fontWeight: 300, cursor: 'pointer', fontFamily: 'inherit',
+}
 
 const labelCell = {
   padding: '10px 16px', background: '#f8f9fb', fontWeight: 600,

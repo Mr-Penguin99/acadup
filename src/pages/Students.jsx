@@ -9,6 +9,7 @@ import TutorialTooltip from '../components/TutorialTooltip'
 import { MonthPicker, DatePicker } from '../components/DatePicker'
 import FamilyTab from '../components/student/FamilyTab'
 import ClassTab from '../components/student/ClassTab'
+import ClassRegisterModal from '../components/student/ClassRegisterModal'
 import PaymentTab from '../components/student/PaymentTab'
 import BillingTab from '../components/student/BillingTab'
 import ConsultTab from '../components/student/ConsultTab'
@@ -139,6 +140,9 @@ export default function Students() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
   const { activeStep, isOpen, advance } = useTutorial()
+  const tutorialShowInfoTabs = isOpen && activeSide === 'class-students' && (
+    activeStep?.id?.startsWith('student-family-') || activeStep?.id?.startsWith('student-class-')
+  )
   const infoPanelRef = useRef(null)
   const [infoPanelRect, setInfoPanelRect] = useState(null)
   const showInfoPanelHint = isOpen && activeStep?.id === 'student-class-list-intro' && activeSide === 'class-students'
@@ -315,6 +319,12 @@ export default function Students() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [showSaveCompleteHint])
 
+  useEffect(() => {
+    if (!isOpen || activeSide !== 'class-students') return
+    if (activeStep?.id?.startsWith('student-family-')) setInfoTab('가족')
+    else if (activeStep?.id === 'student-class-tab-content-hint' || activeStep?.id?.startsWith('student-class-register')) setInfoTab('수강')
+  }, [activeStep?.id, isOpen, activeSide])
+
   const [familyHoleRect, setFamilyHoleRect] = useState(null)
   const showFamilyHint = isOpen && activeStep?.id === 'student-family-hint' && activeSide === 'class-students'
 
@@ -472,6 +482,253 @@ export default function Students() {
   }, [showFamilySaveHint])
 
   const handleFamilySaveClick = () => { if (showFamilySaveHint) advance() }
+
+  const [familyCompleteRect, setFamilyCompleteRect] = useState(null)
+  const [familyCompleteTabsRect, setFamilyCompleteTabsRect] = useState(null)
+  const showFamilyCompleteHint = isOpen && activeStep?.id === 'student-family-complete-hint' && activeSide === 'class-students'
+
+  useEffect(() => {
+    if (!showFamilyCompleteHint) return
+    const measure = () => {
+      setFamilyCompleteRect(unionRects(infoTabsWrapRef.current?.getBoundingClientRect(), infoTabContentRef.current?.getBoundingClientRect()))
+      if (familyTabBtnRef.current) setFamilyCompleteTabsRect(familyTabBtnRef.current.getBoundingClientRect())
+    }
+    const timer = setTimeout(measure, 50)
+    window.addEventListener('resize', measure)
+    return () => { clearTimeout(timer); window.removeEventListener('resize', measure) }
+  }, [showFamilyCompleteHint])
+
+  const handleFamilyCompleteConfirm = () => advance()
+
+  useEffect(() => {
+    if (!showFamilyCompleteHint) return
+    const handleKeyDown = e => { if (e.key !== 'Enter') return; handleFamilyCompleteConfirm() }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showFamilyCompleteHint])
+
+  const familyTabBtnRef = useRef(null)
+  const classTabBtnRef = useRef(null)
+  const [classTabBtnRect, setClassTabBtnRect] = useState(null)
+  const showClassTabHint = isOpen && activeStep?.id === 'student-class-tab-hint' && activeSide === 'class-students'
+
+  useEffect(() => {
+    if (!showClassTabHint) return
+    const measure = () => {
+      if (classTabBtnRef.current) setClassTabBtnRect(classTabBtnRef.current.getBoundingClientRect())
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [showClassTabHint])
+
+  const handleClassTabConfirm = () => advance()
+
+  useEffect(() => {
+    if (!showClassTabHint) return
+    const handleKeyDown = e => { if (e.key !== 'Enter') return; handleClassTabConfirm() }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showClassTabHint])
+
+  const [classTabContentRect, setClassTabContentRect] = useState(null)
+  const showClassTabContentHint = isOpen && activeStep?.id === 'student-class-tab-content-hint' && activeSide === 'class-students'
+
+  useEffect(() => {
+    if (!showClassTabContentHint) return
+    setInfoTab('수강')
+    const measure = () => {
+      const r = unionRects(infoTabsWrapRef.current?.getBoundingClientRect(), infoTabContentRef.current?.getBoundingClientRect())
+      if (!r) return
+      // 상/좌/우 10px 여유, 하단은 구분선 끝에 딱 맞춤
+      setClassTabContentRect({ left: r.left - 10, top: r.top - 10, right: r.right + 10, bottom: r.bottom + 10, width: r.width + 20, height: r.height + 20 })
+    }
+    const timer = setTimeout(measure, 50)
+    window.addEventListener('resize', measure)
+    return () => { clearTimeout(timer); window.removeEventListener('resize', measure) }
+  }, [showClassTabContentHint])
+
+  const [showClassRegisterModal, setShowClassRegisterModal] = useState(false)
+  const classRegisterModalRef = useRef(null)
+  const classSectionRef = useRef(null)
+  const classNameRowRef = useRef(null)
+  const handleClassTabContentConfirm = () => { setShowClassRegisterModal(true); advance() }
+  const handleRegisterBtnClick = () => {
+    if (showClassTabContentHint) { setShowClassRegisterModal(true); advance(); return }
+    setShowClassRegisterModal(true)
+  }
+
+  useEffect(() => {
+    if (!showClassTabContentHint) return
+    const handleKeyDown = e => { if (e.key !== 'Enter') return; handleClassTabContentConfirm() }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showClassTabContentHint])
+
+  const [classRegisterSectionRect, setClassRegisterSectionRect] = useState(null)
+  const [classNameRowRect, setClassNameRowRect] = useState(null)
+  const showClassRegisterHint = isOpen && activeStep?.id === 'student-class-register-hint' && activeSide === 'class-students'
+
+  useEffect(() => {
+    if (!showClassRegisterHint) return
+    const measure = () => {
+      if (classSectionRef.current) setClassRegisterSectionRect(classSectionRef.current.getBoundingClientRect())
+      if (classNameRowRef.current) setClassNameRowRect(classNameRowRef.current.getBoundingClientRect())
+    }
+    const timer = setTimeout(measure, 50)
+    window.addEventListener('resize', measure)
+    return () => { clearTimeout(timer); window.removeEventListener('resize', measure) }
+  }, [showClassRegisterHint, showClassRegisterModal])
+
+  const [classRegisterResetKey, setClassRegisterResetKey] = useState(0)
+
+  useEffect(() => {
+    if (showClassRegisterHint) {
+      setShowClassRegisterModal(true)
+      setClassRegisterResetKey(k => k + 1)
+    }
+  }, [showClassRegisterHint])
+
+  const showClassRegisterDetailHint = isOpen && activeStep?.id === 'student-class-register-detail-hint' && activeSide === 'class-students'
+  const showClassRegisterPaydayHint = isOpen && activeStep?.id === 'student-class-register-payday-hint' && activeSide === 'class-students'
+  const showClassRegisterDiscountHint = isOpen && activeStep?.id === 'student-class-register-discount-hint' && activeSide === 'class-students'
+  const showClassRegisterDiscountRepeatHint = isOpen && activeStep?.id === 'student-class-register-discount-repeat-hint' && activeSide === 'class-students'
+  const showClassRegisterSubmitHint = isOpen && activeStep?.id === 'student-class-register-submit-hint' && activeSide === 'class-students'
+  const showAnyClassRegisterStep = showClassRegisterHint || showClassRegisterDetailHint || showClassRegisterPaydayHint || showClassRegisterDiscountHint || showClassRegisterDiscountRepeatHint || showClassRegisterSubmitHint
+
+  useEffect(() => {
+    if (!showAnyClassRegisterStep) setShowClassRegisterModal(false)
+  }, [showAnyClassRegisterStep])
+
+  useEffect(() => {
+    if (!showClassRegisterHint && showAnyClassRegisterStep) setShowClassRegisterModal(true)
+  }, [showAnyClassRegisterStep, showClassRegisterHint])
+  const [classRegisterDetailRect, setClassRegisterDetailRect] = useState(null)
+
+  const handleClassSelect = () => { if (showClassRegisterHint) advance() }
+
+  useEffect(() => {
+    if (!showClassRegisterDetailHint) return
+    const measure = () => {
+      if (classSectionRef.current) setClassRegisterDetailRect(classSectionRef.current.getBoundingClientRect())
+    }
+    const timer = setTimeout(measure, 80)
+    window.addEventListener('resize', measure)
+    return () => { clearTimeout(timer); window.removeEventListener('resize', measure) }
+  }, [showClassRegisterDetailHint])
+
+  const handleClassRegisterDetailConfirm = () => advance()
+
+  useEffect(() => {
+    if (!showClassRegisterDetailHint) return
+    const handleKeyDown = e => { if (e.key !== 'Enter') return; handleClassRegisterDetailConfirm() }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showClassRegisterDetailHint])
+
+  const classPaydayRowRef = useRef(null)
+  const classDiscountRowRef = useRef(null)
+  const classDiscountRepeatSelectRef = useRef(null)
+  const classSubmitBtnRef = useRef(null)
+
+  const [classPaydayRect, setClassPaydayRect] = useState(null)
+  const [classDiscountRect, setClassDiscountRect] = useState(null)
+  const [classDiscountRepeatRect, setClassDiscountRepeatRect] = useState(null)
+  const [classSubmitBtnRect, setClassSubmitBtnRect] = useState(null)
+
+  useEffect(() => {
+    if (!showClassRegisterPaydayHint) return
+    const measure = () => { if (classPaydayRowRef.current) setClassPaydayRect(classPaydayRowRef.current.getBoundingClientRect()) }
+    const timer = setTimeout(measure, 80)
+    window.addEventListener('resize', measure)
+    return () => { clearTimeout(timer); window.removeEventListener('resize', measure) }
+  }, [showClassRegisterPaydayHint])
+
+  const handleClassRegisterPaydayConfirm = () => advance()
+  useEffect(() => {
+    if (!showClassRegisterPaydayHint) return
+    const handleKeyDown = e => { if (e.key !== 'Enter') return; handleClassRegisterPaydayConfirm() }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showClassRegisterPaydayHint])
+
+  useEffect(() => {
+    if (!showClassRegisterDiscountHint) return
+    const measure = () => { if (classDiscountRowRef.current) setClassDiscountRect(classDiscountRowRef.current.getBoundingClientRect()) }
+    const timer = setTimeout(measure, 80)
+    window.addEventListener('resize', measure)
+    return () => { clearTimeout(timer); window.removeEventListener('resize', measure) }
+  }, [showClassRegisterDiscountHint])
+
+  const handleClassRegisterDiscountConfirm = () => advance()
+  useEffect(() => {
+    if (!showClassRegisterDiscountHint) return
+    const handleKeyDown = e => { if (e.key !== 'Enter') return; handleClassRegisterDiscountConfirm() }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showClassRegisterDiscountHint])
+
+  useEffect(() => {
+    if (!showClassRegisterDiscountRepeatHint) return
+    const measure = () => { if (classDiscountRepeatSelectRef.current) setClassDiscountRepeatRect(classDiscountRepeatSelectRef.current.getBoundingClientRect()) }
+    const timer = setTimeout(measure, 80)
+    window.addEventListener('resize', measure)
+    return () => { clearTimeout(timer); window.removeEventListener('resize', measure) }
+  }, [showClassRegisterDiscountRepeatHint])
+
+  const handleClassRegisterDiscountRepeatConfirm = () => advance()
+  useEffect(() => {
+    if (!showClassRegisterDiscountRepeatHint) return
+    const handleKeyDown = e => { if (e.key !== 'Enter') return; handleClassRegisterDiscountRepeatConfirm() }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showClassRegisterDiscountRepeatHint])
+
+  useEffect(() => {
+    if (!showClassRegisterSubmitHint) return
+    const measure = () => { if (classSubmitBtnRef.current) setClassSubmitBtnRect(classSubmitBtnRef.current.getBoundingClientRect()) }
+    const timer = setTimeout(measure, 80)
+    window.addEventListener('resize', measure)
+    return () => { clearTimeout(timer); window.removeEventListener('resize', measure) }
+  }, [showClassRegisterSubmitHint])
+
+  const handleSubmitClick = () => { if (showClassRegisterSubmitHint) advance() }
+
+  const classTabEnrollmentRowRef = useRef(null)
+  const [classTabEnrollmentRect, setClassTabEnrollmentRect] = useState(null)
+  const [classRegisterCompleteWrapRect, setClassRegisterCompleteWrapRect] = useState(null)
+  const showClassRegisterCompleteHint = isOpen && activeStep?.id === 'student-class-register-complete-hint' && activeSide === 'class-students'
+
+  useEffect(() => {
+    if (!showClassRegisterCompleteHint) return
+    const measure = () => {
+      if (classTabEnrollmentRowRef.current) setClassTabEnrollmentRect(classTabEnrollmentRowRef.current.getBoundingClientRect())
+      if (infoTabsWrapRef.current) setClassRegisterCompleteWrapRect(infoTabsWrapRef.current.getBoundingClientRect())
+    }
+    const timer = setTimeout(measure, 120)
+    window.addEventListener('resize', measure)
+    return () => { clearTimeout(timer); window.removeEventListener('resize', measure) }
+  }, [showClassRegisterCompleteHint])
+
+  const handleClassRegisterCompleteConfirm = () => advance()
+  useEffect(() => {
+    if (!showClassRegisterCompleteHint) return
+    const handleKeyDown = e => { if (e.key !== 'Enter') return; handleClassRegisterCompleteConfirm() }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showClassRegisterCompleteHint])
+
+  const paymentMenuRef = useRef(null)
+  const [paymentMenuRect, setPaymentMenuRect] = useState(null)
+  const showPaymentMenuHint = isOpen && activeStep?.id === 'payment-menu-hint'
+
+  useEffect(() => {
+    if (!showPaymentMenuHint) return
+    const measure = () => { if (paymentMenuRef.current) setPaymentMenuRect(paymentMenuRef.current.getBoundingClientRect()) }
+    const timer = setTimeout(measure, 50)
+    window.addEventListener('resize', measure)
+    return () => { clearTimeout(timer); window.removeEventListener('resize', measure) }
+  }, [showPaymentMenuHint])
 
   const emptyForm = {
     studentNo:'', status:'', name:'', birth:'', gender:'남자',
@@ -852,6 +1109,249 @@ export default function Students() {
           />
         </>
       )}
+      {showFamilyCompleteHint && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[familyCompleteRect]}
+            pad={10}
+          />
+          <TutorialTooltip
+            rect={familyCompleteTabsRect}
+            placement="top"
+            center
+            message="가족 정보 입력이 완료되었습니다."
+            onConfirm={handleFamilyCompleteConfirm}
+          />
+        </>
+      )}
+      {showClassTabHint && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[classTabBtnRect]}
+            pad={4}
+          />
+          <TutorialTooltip
+            rect={classTabBtnRect}
+            placement="top"
+            center
+            message="수강 메뉴에서 해당 학생의 반을 등록하겠습니다."
+            onConfirm={handleClassTabConfirm}
+          />
+        </>
+      )}
+{showClassTabContentHint && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[classTabContentRect]}
+          />
+          <TutorialTooltip
+            rect={classTabContentRect}
+            placement="top"
+            rightAlign
+            message="수강신청 버튼을 눌러 반을 등록하세요."
+            onConfirm={handleClassTabContentConfirm}
+          />
+        </>
+      )}
+      {showClassRegisterHint && classRegisterSectionRect && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[classRegisterSectionRect]}
+            pad={8}
+          />
+          <TutorialTooltip
+            rect={classNameRowRect}
+            placement="top"
+            center
+            message="반을 선택하여 수강신청을 완료하세요."
+          />
+        </>
+      )}
+      {showClassRegisterDetailHint && classRegisterDetailRect && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[classRegisterDetailRect]}
+            pad={8}
+          />
+          <div style={{
+            position: 'fixed',
+            left: classRegisterDetailRect.left - 8,
+            top: classRegisterDetailRect.top - 8,
+            width: classRegisterDetailRect.width + 16,
+            height: classRegisterDetailRect.height + 16,
+            zIndex: 3001,
+          }} />
+          <TutorialTooltip
+            rect={classRegisterDetailRect}
+            placement="top"
+            center
+            message="수강신청 정보를 확인해주세요."
+            onConfirm={handleClassRegisterDetailConfirm}
+          />
+        </>
+      )}
+      {showClassRegisterPaydayHint && classPaydayRect && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[classPaydayRect]}
+            pad={8}
+          />
+          <div style={{
+            position: 'fixed',
+            top: classPaydayRect.bottom + 16,
+            left: classPaydayRect.left,
+            color: '#fff',
+            fontSize: 13,
+            zIndex: 3500,
+            pointerEvents: 'none',
+          }}>
+            학생별로 수강신청 시 납부기준일을 다르게 설정할 수 있습니다.
+          </div>
+          <TutorialTooltip
+            rect={classPaydayRect}
+            placement="top"
+            center
+            message="납부기준일을 설정할 수 있습니다."
+            onConfirm={handleClassRegisterPaydayConfirm}
+          />
+        </>
+      )}
+      {showClassRegisterDiscountHint && classDiscountRect && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[classDiscountRect]}
+            pad={8}
+          />
+          <TutorialTooltip
+            rect={classDiscountRect}
+            placement="top"
+            message="할인항목에서 할인 금액을 설정할 수 있습니다."
+            tailLeftPx={55}
+            onConfirm={handleClassRegisterDiscountConfirm}
+          />
+        </>
+      )}
+      {showClassRegisterDiscountRepeatHint && classDiscountRepeatRect && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[classDiscountRepeatRect]}
+            pad={4}
+          />
+          <div style={{
+            position: 'fixed',
+            left: classDiscountRepeatRect.left - 4,
+            top: classDiscountRepeatRect.top - 4,
+            width: classDiscountRepeatRect.width + 8,
+            height: classDiscountRepeatRect.height + 8,
+            zIndex: 3001,
+          }} />
+          <div style={{
+            position: 'fixed',
+            top: classDiscountRepeatRect.bottom + 2,
+            left: classDiscountRepeatRect.left,
+            width: classDiscountRepeatRect.width,
+            background: '#fff',
+            border: '1px solid #ccc',
+            borderRadius: 2,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            zIndex: 3500,
+            pointerEvents: 'none',
+          }}>
+            {['선택', '월납', '일시납'].map(opt => (
+              <div key={opt} style={{ padding: '5px 8px', fontSize: 13, color: '#333' }}>{opt}</div>
+            ))}
+          </div>
+          <div style={{
+            position: 'fixed',
+            top: classDiscountRepeatRect.top + 50,
+            left: classDiscountRepeatRect.right + 20,
+            color: '#fff',
+            fontSize: 13,
+            lineHeight: 2,
+            zIndex: 3500,
+            pointerEvents: 'none',
+          }}>
+            <div>월납 : 매달 할인 적용</div>
+            <div>일시납 : 한 번만 할인 적용</div>
+          </div>
+          <TutorialTooltip
+            rect={classDiscountRepeatRect}
+            placement="top"
+            center
+            onConfirm={handleClassRegisterDiscountRepeatConfirm}
+          />
+        </>
+      )}
+      {showClassRegisterSubmitHint && classSubmitBtnRect && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[classSubmitBtnRect]}
+            pad={6}
+          />
+          <TutorialTooltip
+            rect={classSubmitBtnRect}
+            placement="top"
+            center
+            message="등록을 눌러 수강신청을 완료합니다."
+          />
+        </>
+      )}
+      {showPaymentMenuHint && paymentMenuRect && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[paymentMenuRect]}
+            pad={6}
+          />
+          <TutorialTooltip
+            rect={paymentMenuRect}
+            placement="bottom"
+            center
+            message="수납관리 메뉴를 클릭해 주세요."
+          />
+        </>
+      )}
+      {showClassRegisterCompleteHint && classTabEnrollmentRect && classRegisterCompleteWrapRect && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[classRegisterCompleteWrapRect]}
+            pad={8}
+          />
+          <TutorialTooltip
+            rect={classRegisterCompleteWrapRect}
+            placement="bottom"
+            tailLeftPx={66}
+            message="수강신청이 완료되었습니다."
+            onConfirm={handleClassRegisterCompleteConfirm}
+          />
+        </>
+      )}
+      {showClassRegisterModal && (
+        <ClassRegisterModal
+          modalRef={classRegisterModalRef}
+          classSectionRef={classSectionRef}
+          classNameRowRef={classNameRowRef}
+          onClassSelect={handleClassSelect}
+          onClose={() => setShowClassRegisterModal(false)}
+          resetKey={classRegisterResetKey}
+          classPaydayRowRef={classPaydayRowRef}
+          classDiscountRowRef={classDiscountRowRef}
+          classDiscountRepeatSelectRef={classDiscountRepeatSelectRef}
+          classSubmitBtnRef={classSubmitBtnRef}
+          onSubmitClick={handleSubmitClick}
+          autoSelectFirstClass={showAnyClassRegisterStep && !showClassRegisterHint}
+        />
+      )}
       <TopNav />
       <div className="menu-bar">
         <button className="hamburger-btn" onClick={()=>setSidebarOpen(s=>!s)}>☰</button>
@@ -859,8 +1359,8 @@ export default function Students() {
           {MENUS.map(m=>{
             const isLocked = !UNLOCKED_MENUS.includes(m.id)
             return (
-              <div key={m.id} className={`menu-item ${activeMenu===m.id?'active':''} ${isLocked?'locked':''}`}
-                style={{position:'relative'}}
+              <div key={m.id} ref={m.id === 'payments' ? paymentMenuRef : undefined} className={`menu-item ${activeMenu===m.id?'active':''} ${isLocked?'locked':''}`}
+                style={{position:'relative', ...(m.id === 'payments' && showPaymentMenuHint ? { pointerEvents: 'auto' } : {})}}
                 onClick={()=>{
                   if(isLocked){
                     setShowUpgradeModal(true)
@@ -869,7 +1369,7 @@ export default function Students() {
                     if(m.id==='students'){setActiveSide('class-students');setExpanded(['students'])}
                     if(m.id==='settings') navigate('/settings')
                     if(m.id==='dashboard') navigate('/dashboard')
-                    if(m.id==='payments') navigate('/payments')
+                    if(m.id==='payments') { navigate('/payments'); if(showPaymentMenuHint) advance() }
                     if(m.id==='classes') navigate('/classes')
                   }
                 }}>
@@ -1024,7 +1524,7 @@ export default function Students() {
                     </div>
                   </div>
                 </div>
-                <div className="info-panel" ref={infoPanelRef} style={(showSaveCompleteHint || showFamilyHint) ? { pointerEvents: 'none' } : undefined}>
+                <div className="info-panel" ref={infoPanelRef} style={(showSaveCompleteHint || showFamilyHint || showFamilyCompleteHint || showClassTabContentHint) ? { pointerEvents: 'none' } : undefined}>
                   <div className="info-header">
                     <span className="info-title">학생 정보자료</span>
                     <div style={{display:'flex',gap:6}}>
@@ -1136,19 +1636,24 @@ export default function Students() {
                         </div>
                       </div>
                     </div>
-                    <div className="info-tabs-wrap" ref={infoTabsWrapRef} style={(showInfoPanelHint || showRequiredFieldsHint) ? { pointerEvents: 'none' } : undefined}>
-                      <div className="info-tabs">
+                    <div className="info-tabs-wrap" ref={infoTabsWrapRef} style={
+                      (showInfoPanelHint || showRequiredFieldsHint || showFamilyCompleteHint || showClassTabHint) ? { pointerEvents: 'none' } :
+                      showClassTabContentHint ? { pointerEvents: 'auto' } :
+                      undefined
+                    }>
+                      <div className="info-tabs" style={showClassTabContentHint ? { pointerEvents: 'none' } : undefined}>
                         <div className="info-tab-v">V</div>
                         {INFO_TABS.map(t=>(
-                          <button key={t} className={`info-tab ${infoTab===t?'active':''}`}
+                          <button key={t} ref={t === '수강' ? classTabBtnRef : t === '가족' ? familyTabBtnRef : undefined} className={`info-tab ${infoTab===t?'active':''}`}
                             onClick={()=>{
                               if(LOCKED_TABS.includes(t)){
                                 setShowUpgradeModal(true)
                               } else {
                                 setInfoTab(t)
+                                if(t === '수강' && showClassTabHint) handleClassTabConfirm()
                               }
                             }}
-                            style={{position:'relative', ...(LOCKED_TABS.includes(t)?{borderRadius:0}:{})}}>
+                            style={{position:'relative', ...(LOCKED_TABS.includes(t)?{borderRadius:0}:{}), ...(t === '수강' && showClassTabHint ? {pointerEvents:'auto'} : {})}}>
                             {t}
                             {LOCKED_TABS.includes(t) && (
                               <span style={{
@@ -1168,10 +1673,10 @@ export default function Students() {
                           </button>
                         ))}
                       </div>
-                      {selectedStudentId !== null && selectedStudentId !== 'new' && (
+                      {(selectedStudentId !== null && selectedStudentId !== 'new' || tutorialShowInfoTabs) && (
                         <div className="info-tab-content" ref={infoTabContentRef}>
                           {infoTab==='가족'     && <FamilyTab nameInputRef={familyNameInputRef} relationSelectRef={familyRelationSelectRef} phoneInputRef={familyPhoneInputRef} msgTypeSelectRef={familyMsgTypeSelectRef} onMsgTypeChange={handleFamilyMsgTypeChange} onMsgTypeClick={handleFamilyMsgTypeClick} saveBtnRef={familySaveBtnRef} onSaveClick={handleFamilySaveClick} />}
-                          {infoTab==='수강'     && <ClassTab />}
+                          {infoTab==='수강'     && <ClassTab onRegisterClick={handleRegisterBtnClick} tutorialShowEnrollment={showClassRegisterCompleteHint} enrollmentRowRef={classTabEnrollmentRowRef} />}
                           {infoTab==='수납'     && <PaymentTab />}
                           {infoTab==='결제'     && <BillingTab />}
                           {infoTab==='상담'     && <ConsultTab />}

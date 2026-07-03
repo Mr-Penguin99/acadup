@@ -1,9 +1,12 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './Payments.css'
 import TopNav from '../components/TopNav'
 import { MonthPicker, DatePicker } from '../components/DatePicker'
 import BillingTab from '../components/student/BillingTab'
+import TutorialMultiSpotlight from '../components/TutorialMultiSpotlight'
+import TutorialTooltip from '../components/TutorialTooltip'
+import { useTutorial } from '../components/TutorialContext'
 
 const UNLOCKED_MENUS = ['students','payments','classes']
 
@@ -75,18 +78,7 @@ const BULK_DATA = [
   { id:9,  group:'to_반그룹', name:'to_반_XXX_미개강', code:'CLASS00042', status:'개강', count:'0 명', billRound:'미생성', billCnt:'', amount:'',      unpaid:'',      period:'2026.05.01~2026.12.31' },
   { id:10, group:'to_반그룹', name:'from_반_AAA',       code:'CLASS00033', status:'개강', count:'0 명', billRound:'미생성', billCnt:'', amount:'',      unpaid:'',      period:'2025.01.01~2026.12.31' },
 ]
-const SAMPLE_DATA = [
-  { id:1,  name:'수강생01', method:'',            classes:[{cls:'중등부>중등 수학A 1교시',day:'25일'},{cls:'고등부>고등 수학A 1교시',day:'1일'}],  unpaid:2000,  phone:'010-0000-0000', sentDate:'',           rel:'부', guardPhone:'010-3816-3799', guardSent:'' },
-  { id:2,  name:'수강생02', method:'비대면(카드)', classes:[{cls:'중등부>중등 수학A 2교시',day:'25일'}],                                          unpaid:4000,  phone:'010-0000-0000', sentDate:'',           rel:'모', guardPhone:'010-0000-0000', guardSent:'2026-04-24' },
-  { id:3,  name:'수강생03', method:'',            classes:[{cls:'중등부>중등 수학A 2교시',day:'25일'}],                                          unpaid:3000,  phone:'010-0000-0000', sentDate:'',           rel:'모', guardPhone:'010-0000-0000', guardSent:'2026-04-24' },
-  { id:4,  name:'수강생04', method:'',            classes:[{cls:'중등부>중등 수학A 3교시',day:'25일'}],                                          unpaid:3000,  phone:'010-0000-0000', sentDate:'',           rel:'모', guardPhone:'010-0000-0000', guardSent:'2026-04-24' },
-  { id:5,  name:'수강생05', method:'',            classes:[{cls:'중등부>중등 수학A 3교시',day:'1일'}],                                           unpaid:1200,  phone:'010-0000-0000', sentDate:'',           rel:'모', guardPhone:'010-0000-0000', guardSent:'' },
-  { id:6,  name:'수강생06', method:'',            classes:[{cls:'중등부>중등 수학A 3교시',day:'1일'},{cls:'고등부>고등 수학A 1교시',day:'1일'}],   unpaid:4000,  phone:'010-0000-0000', sentDate:'',           rel:'모', guardPhone:'010-0000-0000', guardSent:'' },
-  { id:7,  name:'수강생07', method:'',            classes:[{cls:'고등부>고등 수학A 1교시',day:'1일'}],                                           unpaid:3000,  phone:'010-0000-0000', sentDate:'',           rel:'모', guardPhone:'010-0000-0000', guardSent:'' },
-  { id:8,  name:'수강생08', method:'',            classes:[{cls:'고등부>고등 수학A 1교시',day:'1일'}],                                           unpaid:3000,  phone:'010-0000-0000', sentDate:'',           rel:'모', guardPhone:'010-0000-0000', guardSent:'' },
-  { id:9,  name:'수강생09', method:'',            classes:[{cls:'고등부>고등 수학A 2교시',day:'1일'}],                                           unpaid:4000,  phone:'010-0000-0000', sentDate:'',           rel:'모', guardPhone:'010-0000-0000', guardSent:'' },
-  { id:10, name:'수강생10', method:'',            classes:[{cls:'고등부>고등 수학A 2교시',day:'1일'}],                                           unpaid:1000,  phone:'010-0000-0000', sentDate:'',           rel:'모', guardPhone:'010-0000-0000', guardSent:'' },
-]
+const SAMPLE_DATA = []
 const CLASS_STATUS_DATA = [
   { id:1, cls:'고등_AA > 고등_AA_기초반',            month:'2026-05', billCnt:2, billAmt:'200,000', payCnt:'', payAmt:'', refundCnt:'', refundAmt:'', unpaidCnt:2, unpaidAmt:'200,000' },
   { id:2, cls:'반그룹_수업1 > 수업1_영어(일화목토)', month:'2026-05', billCnt:1, billAmt:'10,000',  payCnt:'', payAmt:'', refundCnt:'', refundAmt:'', unpaidCnt:1, unpaidAmt:'10,000' },
@@ -98,6 +90,7 @@ const CLASS_STATUS_DATA = [
 
 export default function Payments() {
   const navigate = useNavigate()
+  const { activeStep, isOpen, advance } = useTutorial()
   const [activeMenu, setActiveMenu] = useState('payments')
   const [activeSide, setActiveSide] = useState('unpaid')
   const [expanded, setExpanded] = useState(['payment-mgmt'])
@@ -117,6 +110,40 @@ export default function Payments() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [expandedPayId, setExpandedPayId] = useState(null)
   const [menuLockedClickCount, setMenuLockedClickCount] = useState(0)
+
+  const paymentsMainRef = useRef(null)
+  const paymentsPageTitleRef = useRef(null)
+  const [paymentsMainRect, setPaymentsMainRect] = useState(null)
+  const [paymentsPageTitleRect, setPaymentsPageTitleRect] = useState(null)
+  const showPaymentPageHint = isOpen && activeStep?.id === 'payment-page-hint'
+  const showPaymentPageDetailHint = isOpen && activeStep?.id === 'payment-page-detail-hint'
+
+  useEffect(() => {
+    if (!showPaymentPageHint && !showPaymentPageDetailHint) return
+    const measure = () => {
+      if (paymentsMainRef.current) setPaymentsMainRect(paymentsMainRef.current.getBoundingClientRect())
+      if (paymentsPageTitleRef.current) setPaymentsPageTitleRect(paymentsPageTitleRef.current.getBoundingClientRect())
+    }
+    const timer = setTimeout(measure, 80)
+    window.addEventListener('resize', measure)
+    return () => { clearTimeout(timer); window.removeEventListener('resize', measure) }
+  }, [showPaymentPageHint, showPaymentPageDetailHint])
+
+  const handlePaymentPageConfirm = () => advance()
+  useEffect(() => {
+    if (!showPaymentPageHint) return
+    const handleKeyDown = e => { if (e.key !== 'Enter') return; handlePaymentPageConfirm() }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showPaymentPageHint])
+
+  const handlePaymentPageDetailConfirm = () => advance()
+  useEffect(() => {
+    if (!showPaymentPageDetailHint) return
+    const handleKeyDown = e => { if (e.key !== 'Enter') return; handlePaymentPageDetailConfirm() }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showPaymentPageDetailHint])
 
   const toggleGroup   = id => setExpanded(e=>e.includes(id)?[]:  [id])
   const toggleBulkCheck = id => setBulkChecked(c=>c.includes(id)?c.filter(x=>x!==id):[...c,id])
@@ -248,7 +275,7 @@ export default function Payments() {
           </div>
         )}
 
-        <div className="payments-main">
+        <div className="payments-main" ref={paymentsMainRef}>
 
           {/* 미리보기 배너 */}
           {['bulk-bill','class-bill','monthly-pay','daily-status','monthly-status','class-status'].includes(activeSide)&&(
@@ -339,7 +366,7 @@ export default function Payments() {
           {/* 청구/미납내역 */}
           {activeSide==='unpaid'&&(
             <>
-              <div className="pm-page-title"><span style={{color:'#F5C518'}}>⭐</span> 청구/미납내역</div>
+              <div className="pm-page-title"><span ref={paymentsPageTitleRef}><span style={{color:'#F5C518'}}>⭐</span> 청구/미납내역</span></div>
               <div className="pm-section" style={{border:'none',background:'#f8f9fb',borderRadius:5,marginTop:40}}>
                 <div className="pm-sec-head" style={{borderBottom:'none'}}>
                   <div className="pm-sec-title">조건검색</div>
@@ -629,6 +656,33 @@ export default function Payments() {
 
         </div>
       </div>
+      {(showPaymentPageHint || showPaymentPageDetailHint) && paymentsMainRect && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[paymentsMainRect]}
+            pad={0}
+          />
+          <div style={{
+            position: 'fixed',
+            left: paymentsMainRect.left,
+            top: paymentsMainRect.top,
+            width: paymentsMainRect.width,
+            height: paymentsMainRect.height,
+            zIndex: 3001,
+          }} />
+          {paymentsPageTitleRect && (
+            <TutorialTooltip
+              rect={paymentsPageTitleRect}
+              placement="right"
+              message={showPaymentPageHint
+                ? "수납관리 메뉴로 이동하면 청구/미납내역 페이지가 먼저 나옵니다."
+                : "청구/미납내역에서 결제를 진행해보겠습니다."}
+              onConfirm={showPaymentPageHint ? handlePaymentPageConfirm : handlePaymentPageDetailConfirm}
+            />
+          )}
+        </>
+      )}
     </div>
   )
 }

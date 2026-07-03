@@ -33,6 +33,19 @@ export const TUTORIAL_STEPS = [
   { id: 'student-family-msgtype-hint', path: '/students' },
   { id: 'student-family-msgtype-info-hint', path: '/students' },
   { id: 'student-family-save-hint', path: '/students' },
+  { id: 'student-family-complete-hint', path: '/students' },
+  { id: 'student-class-tab-hint', path: '/students' },
+  { id: 'student-class-tab-content-hint', path: '/students' },
+  { id: 'student-class-register-hint', path: '/students' },
+  { id: 'student-class-register-detail-hint', path: '/students' },
+  { id: 'student-class-register-payday-hint', path: '/students' },
+  { id: 'student-class-register-discount-hint', path: '/students' },
+  { id: 'student-class-register-discount-repeat-hint', path: '/students' },
+  { id: 'student-class-register-submit-hint', path: '/students' },
+  { id: 'student-class-register-complete-hint', path: '/students' },
+  { id: 'payment-menu-hint', path: '/students' },
+  { id: 'payment-page-hint', path: '/payments' },
+  { id: 'payment-page-detail-hint', path: '/payments' },
 ]
 
 const STEP_KEY = 'tutorialStep'

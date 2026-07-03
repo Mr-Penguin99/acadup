@@ -1,25 +1,8 @@
 import { useState } from 'react'
 import '../../pages/Students.css'
 
-const SAMPLE = [
-  {
-    id: 1,
-    name: '중등부 > 중등 수학A 1교시',
-    status: '수강',
-    period: '2026.05.20~2999.12.31',
-    teacher: '강사01',
-    room: '101호',
-    time: '15:00 ~ 17:00',
-    days: { 일:false, 월:false, 화:true, 수:false, 목:true, 금:false, 토:true },
-  },
-]
-
-const DAYS = ['일','월','화','수','목','금','토']
-
-export default function ClassTab() {
+export default function ClassTab({ onRegisterClick, tutorialShowEnrollment, enrollmentRowRef }) {
   const [filter, setFilter] = useState('수강+종강')
-  const [checked, setChecked] = useState([])
-  const toggle = id => setChecked(c => c.includes(id) ? c.filter(x=>x!==id) : [...c,id])
 
   return (
     <div>
@@ -33,7 +16,7 @@ export default function ClassTab() {
             <option>수강+종강</option><option>수강</option><option>종강</option>
           </select>
         </div>
-        <button className="family-add-btn" onClick={()=>window.open('/class-register','_blank','width=650,height=800')}><span className="plus">+</span> 수강신청</button>
+        <button className="family-add-btn" onClick={onRegisterClick ?? (()=>window.open('/class-register','_blank','width=650,height=800'))}><span className="plus">+</span> 수강신청</button>
       </div>
 
       {/* 테이블 */}
@@ -50,28 +33,23 @@ export default function ClassTab() {
           </tr>
         </thead>
         <tbody>
-          {SAMPLE.map(row=>(
-            <tr key={row.id} style={{borderBottom:'1px solid #f0f0f0'}}>
-              <td style={{...td,textAlign:'center'}}>
-                <input type="checkbox" checked={checked.includes(row.id)} onChange={()=>toggle(row.id)}/>
-              </td>
-              <td style={td}>{row.name}</td>
-              <td style={{...td,textAlign:'center'}}>{row.status}</td>
-              <td style={{...td,textAlign:'center'}}>{row.period}</td>
-              <td style={{...td,textAlign:'center'}}>{row.teacher}</td>
-              <td style={{...td,textAlign:'center'}}>{row.room}</td>
-              <td style={{...td,textAlign:'center',verticalAlign:'top',borderRight:'1px solid #e0e0e0'}}>
-                <div style={{fontSize:13,color:'#888',margin:'0 -8px',padding:'0 8px 2px',borderBottom:'1px solid #e0e0e0'}}>시간</div>
-                <div style={{paddingTop:2}}>{row.time}</div>
-              </td>
-              {DAYS.map((d,i)=>(
-                <td key={d} style={{...td,textAlign:'center',verticalAlign:'top',borderRight:i<DAYS.length-1?'1px solid #e0e0e0':'none'}}>
-                  <div style={{fontSize:13,color:'#888',margin:'0 -8px',padding:'0 8px 2px',borderBottom:'1px solid #e0e0e0'}}>{d}</div>
-                  <div style={{paddingTop:2}}>{row.days[d] ? <span style={{color:'#333'}}>O</span> : ''}</div>
-                </td>
-              ))}
+          {tutorialShowEnrollment ? (
+            <tr ref={enrollmentRowRef} style={{borderBottom:'1px solid #e0e0e0'}}>
+              <td style={{...td,textAlign:'center'}}><input type="checkbox" defaultChecked readOnly /></td>
+              <td style={td}>중등 수학A 1교시</td>
+              <td style={{...td,textAlign:'center',color:'#29ABE2',fontWeight:600}}>수강</td>
+              <td style={{...td,textAlign:'center'}}>2022.01.01~2999.12.31</td>
+              <td style={{...td,textAlign:'center'}}>강사01</td>
+              <td style={{...td,textAlign:'center'}}>101호</td>
+              <td style={td} colSpan={8} />
             </tr>
-          ))}
+          ) : (
+            <tr>
+              <td colSpan={14} style={{padding:'32px 0',textAlign:'center',fontSize:13,color:'#aaa',borderBottom:'1px solid #e0e0e0'}}>
+                수강 내역이 없습니다.
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </div>
