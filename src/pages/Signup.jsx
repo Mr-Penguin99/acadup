@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { supabase } from '../lib/supabase'
 import './Signup.css'
 
 const logo = '/logo.svg'
@@ -23,6 +24,7 @@ export default function Signup() {
   const [timerActive, setTimerActive] = useState(false)
 
   const [userIdChecked, setUserIdChecked] = useState(false)
+  const [userIdChecking, setUserIdChecking] = useState(false)
   const [form, setForm] = useState({
     userId: '', password: '', passwordConfirm: '',
     bizName: '', bizNum: '', ownerName: '',
@@ -282,14 +284,20 @@ export default function Signup() {
                   placeholder="아이디를 입력해주세요"
                   value={form.userId}
                   onChange={e => { setForm(f => ({ ...f, userId: e.target.value })); setUserIdChecked(false) }}
-                  disabled={userIdChecked}
                 />
-                <button className="btn-inline" onClick={() => {
-                  if (!form.userId) return
-                  alert('사용 가능한 아이디입니다.\n(테스트: 바로 통과)')
+                <button className="btn-inline" disabled={userIdChecked || userIdChecking} onClick={async () => {
+                  if (!form.userId || userIdChecking) return
+                  setUserIdChecking(true)
+                  const { data: exists } = await supabase.rpc('check_user_id_exists', { p_user_id: form.userId })
+                  setUserIdChecking(false)
+                  if (exists) {
+                    alert('중복된 계정입니다. 다른 아이디를 입력해주세요.')
+                    return
+                  }
+                  alert('사용 가능한 아이디입니다.')
                   setUserIdChecked(true)
                 }}>
-                  {userIdChecked ? '확인완료' : '중복확인'}
+                  {userIdChecked ? '확인완료' : userIdChecking ? '확인중...' : '중복확인'}
                 </button>
               </div>
               {userIdChecked && <p className="field-hint" style={{ color: '#2CBB6A' }}>✅ 사용 가능한 아이디입니다.</p>}
@@ -438,7 +446,15 @@ export default function Signup() {
                   referral_code: form.referralCode,
                 })
                 setSignupLoading(false)
-                if (error) { setSignupError(error.message || '회원가입에 실패했습니다.'); return }
+                if (error) {
+                  if (error.code === '23505') {
+                    setSignupError('중복된 계정입니다. 다른 아이디를 입력해주세요.')
+                    setUserIdChecked(false)
+                  } else {
+                    setSignupError(error.message || '회원가입에 실패했습니다.')
+                  }
+                  return
+                }
                 setStep(3)
               }}
             >

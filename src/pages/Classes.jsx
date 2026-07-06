@@ -92,9 +92,10 @@ export default function Classes() {
   const [studentsMenuRect, setStudentsMenuRect] = useState(null)
 
   useEffect(() => {
-    autoStart('class-status-intro')
+    autoStart('tutorial-welcome')
   }, [])
 
+  const showTutorialWelcome = isOpen && activeStep?.id === 'tutorial-welcome'
   const showClassStatusIntro = isOpen && activeStep?.id === 'class-status-intro'
   const showRegisterBtnSpotlight = isOpen && activeStep?.id === 'class-status-register-btn' && activeSide === 'class-status'
   const showCompleteHint = isOpen && activeStep?.id === 'class-status-complete-hint' && activeSide === 'class-status'
@@ -159,16 +160,25 @@ export default function Classes() {
         if(showCompleteHint) advance()
       }}
     >
+      {showTutorialWelcome && (
+        <TutorialOverlay
+          title="반갑습니다. 아카데미업입니다."
+          description={'현재 가입하신 곳은 데모 버전이며, 정식 전환 신청을 통해 아카데미업 정식 버전을 이용하실 수 있습니다. 또한, 아카데미업 서비스는 무료이며 정식 버전 전환에 발생하는 비용은 없습니다.\n\n그럼 기본적인 기능 튜토리얼을 시작하겠습니다. (약 5분 소요)'}
+          nextLabel="시작하기"
+          onNext={advance}
+        />
+      )}
       {showClassStatusIntro && (
         <TutorialOverlay
           title="반 현황 페이지입니다"
-          description={'이곳에서 우리 학원의 모든 반을 한눈에 확인할 수 있어요.\n다음 단계에서는 반을 직접 등록해볼게요.'}
+          description={'이곳에서 우리 학원의 모든 반을 한 눈에 볼 수 있고 등록할 수 있어요. 반을 직접 생성해보겠습니다.'}
           onNext={advance}
         />
       )}
       {showRegisterBtnSpotlight && (
         <TutorialSpotlight
           rect={registerBtnRect}
+          rightAlign
           message="반 등록 버튼을 눌러 반을 생성해보세요."
         />
       )}
@@ -355,7 +365,7 @@ export default function Classes() {
                     <thead><tr><th>출력순서</th><th>반그룹 코드</th><th>반 그룹 명</th><th>사용유무</th></tr></thead>
                     <tbody>
                       {classes.length === 0 && (
-                        <tr><td colSpan={4} style={{textAlign:'center',padding:'32px 0',color:'#aaa',fontSize:13}}>등록된 반 그룹이 없습니다.</td></tr>
+                        <tr className="cl-empty-row"><td colSpan={4} style={{textAlign:'center',padding:'32px 0',color:'#aaa',fontSize:13}}>검색된 자료가 없습니다.</td></tr>
                       )}
                     </tbody>
                   </table>
@@ -556,6 +566,7 @@ export default function Classes() {
                         setShowClassCreateModal(true)
                         advance()
                       } else {
+                        sessionStorage.removeItem('editingClassData')
                         const w = 960, h = 900
                         const left = window.screenX + (window.outerWidth - w) / 2
                         const top = window.screenY + (window.outerHeight - h) / 2
@@ -568,12 +579,21 @@ export default function Classes() {
                   <table className="cl-table">
                     <thead><tr><th>출력순서</th><th>반 그룹</th><th>반 명</th><th>반 코드</th><th>상태</th><th>중분류</th><th>담임</th><th>수강기간</th><th>강의실</th><th>수강생수</th><th>기능</th></tr></thead>
                     <tbody>
+                      {classes.length === 0 && (
+                        <tr className="cl-empty-row"><td colSpan={11} style={{textAlign:'center',padding:'32px 0',color:'#aaa',fontSize:13}}>검색된 자료가 없습니다.</td></tr>
+                      )}
                       {classes.map(d=>(
                         <tr key={d.id} ref={d.id===newClassId ? newRowRef : null}>
                           <td className="td-center">{d.id}</td><td>{d.group}</td><td>{d.name}</td><td>{d.code}</td>
                           <td className="td-center">{d.status}</td><td className="td-center">{d.type}</td>
                           <td>{d.teacher}</td><td>{d.period}</td><td>{d.room}</td><td>{d.count}</td>
-                          <td className="td-center"><button className="cl-edit-btn">반 수정</button></td>
+                          <td className="td-center"><button className="cl-edit-btn" onClick={()=>{
+                            sessionStorage.setItem('editingClassData', JSON.stringify(d))
+                            const w = 960, h = 900
+                            const left = window.screenX + (window.outerWidth - w) / 2
+                            const top = window.screenY + (window.outerHeight - h) / 2
+                            window.open('/class-create','_blank',`width=${w},height=${h},left=${left},top=${top},resizable=yes`)
+                          }}>반 수정</button></td>
                         </tr>
                       ))}
                     </tbody>

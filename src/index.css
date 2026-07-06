@@ -68,10 +68,13 @@ button { cursor: pointer; font-family: inherit; }
 }
 
 .tnav-left, .tnav-right { display: flex; align-items: center; gap: 4px; }
-.tnav-logo { height: 26px; width: auto; }
+.tnav-logo { height: 26px; width: auto; padding: 0 16px; }
 .tnav-sep { width: 1px; height: 14px; background: rgba(255,255,255,0.25); margin: 0 6px; }
-.tnav-item { font-size: 14px; color: #fff; white-space: nowrap; }
-.tnav-link { font-size: 13px; color: #fff; cursor: pointer; white-space: nowrap; padding: 0 4px; }
+.tnav-item { font-size: 14px; font-weight: 400; color: #fff; white-space: nowrap; padding: 0 16px; }
+.tnav-item:not(.tnav-academy) { font-weight: 300; }
+.tnav-link { font-size: 13px; font-weight: 300; color: #fff; cursor: pointer; white-space: nowrap; padding: 0 12px; }
+.tnav-left .tnav-link { padding: 0 16px; }
+.tnav-right .tnav-link { padding: 0 6px; }
 .tnav-link:hover { color: #00AB9A; }
 .tnav-academy { color: #00AB9A !important; }
 .tnav-icon { width: 14px; height: 14px; object-fit: contain; vertical-align: middle; }

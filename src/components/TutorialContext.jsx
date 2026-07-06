@@ -1,74 +1,99 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useState, useEffect, useRef } from 'react'
+import { useAuth } from '../contexts/AuthContext'
+import { supabase } from '../lib/supabase'
 
 // 단계가 추가될 때는 이 배열에만 추가하면 됨
+// stage: 0=시작, 1=반관리, 2=수강생관리, 3=수납관리 (진행도 표시용)
 export const TUTORIAL_STEPS = [
-  { id: 'class-status-intro', path: '/classes' },
-  { id: 'class-status-register-btn', path: '/classes' },
-  { id: 'class-create-code-hint', path: '/classes' },
-  { id: 'class-create-required-fields', path: '/classes' },
-  { id: 'class-create-payday-hint', path: '/classes' },
-  { id: 'class-create-name-hint', path: '/classes' },
-  { id: 'class-create-subject-hint', path: '/classes' },
-  { id: 'class-create-paycycle-hint', path: '/classes' },
-  { id: 'class-create-optype-hint', path: '/classes' },
-  { id: 'class-create-period-hint', path: '/classes' },
-  { id: 'class-create-payment-hint', path: '/classes' },
-  { id: 'class-create-save-hint', path: '/classes' },
-  { id: 'class-create-new-register-hint', path: '/classes' },
-  { id: 'class-create-closing', path: '/classes' },
-  { id: 'class-status-complete-hint', path: '/classes' },
-  { id: 'class-status-student-menu-hint', path: '/classes' },
-  { id: 'student-class-list-intro', path: '/students' },
-  { id: 'student-required-fields', path: '/students' },
-  { id: 'student-name-hint', path: '/students' },
-  { id: 'student-enroll-hint', path: '/students' },
-  { id: 'student-phone-hint', path: '/students' },
-  { id: 'student-birth-hint', path: '/students' },
-  { id: 'student-save-hint', path: '/students' },
-  { id: 'student-save-complete-hint', path: '/students' },
-  { id: 'student-family-hint', path: '/students' },
-  { id: 'student-family-name-hint', path: '/students' },
-  { id: 'student-family-relation-hint', path: '/students' },
-  { id: 'student-family-phone-hint', path: '/students' },
-  { id: 'student-family-msgtype-hint', path: '/students' },
-  { id: 'student-family-msgtype-info-hint', path: '/students' },
-  { id: 'student-family-save-hint', path: '/students' },
-  { id: 'student-family-complete-hint', path: '/students' },
-  { id: 'student-class-tab-hint', path: '/students' },
-  { id: 'student-class-tab-content-hint', path: '/students' },
-  { id: 'student-class-register-hint', path: '/students' },
-  { id: 'student-class-register-detail-hint', path: '/students' },
-  { id: 'student-class-register-payday-hint', path: '/students' },
-  { id: 'student-class-register-discount-hint', path: '/students' },
-  { id: 'student-class-register-discount-repeat-hint', path: '/students' },
-  { id: 'student-class-register-submit-hint', path: '/students' },
-  { id: 'student-class-register-complete-hint', path: '/students' },
-  { id: 'payment-menu-hint', path: '/students' },
-  { id: 'payment-page-hint', path: '/payments' },
-  { id: 'payment-page-detail-hint', path: '/payments' },
+  { id: 'tutorial-welcome', path: '/classes', stage: 0 },
+  { id: 'class-status-intro', path: '/classes', stage: 1 },
+  { id: 'class-status-register-btn', path: '/classes', stage: 1 },
+  { id: 'class-create-code-hint', path: '/classes', stage: 1 },
+  { id: 'class-create-required-fields', path: '/classes', stage: 1 },
+  { id: 'class-create-payday-hint', path: '/classes', stage: 1 },
+  { id: 'class-create-name-hint', path: '/classes', stage: 1 },
+  { id: 'class-create-subject-hint', path: '/classes', stage: 1 },
+  { id: 'class-create-paycycle-hint', path: '/classes', stage: 1 },
+  { id: 'class-create-optype-hint', path: '/classes', stage: 1 },
+  { id: 'class-create-period-hint', path: '/classes', stage: 1 },
+  { id: 'class-create-payment-hint', path: '/classes', stage: 1 },
+  { id: 'class-create-save-hint', path: '/classes', stage: 1 },
+  { id: 'class-create-new-register-hint', path: '/classes', stage: 1 },
+  { id: 'class-create-closing', path: '/classes', stage: 1 },
+  { id: 'class-status-complete-hint', path: '/classes', stage: 1 },
+  { id: 'class-status-student-menu-hint', path: '/classes', stage: 1 },
+  { id: 'student-class-list-intro', path: '/students', stage: 2 },
+  { id: 'student-required-fields', path: '/students', stage: 2 },
+  { id: 'student-name-hint', path: '/students', stage: 2 },
+  { id: 'student-enroll-hint', path: '/students', stage: 2 },
+  { id: 'student-phone-hint', path: '/students', stage: 2 },
+  { id: 'student-birth-hint', path: '/students', stage: 2 },
+  { id: 'student-save-hint', path: '/students', stage: 2 },
+  { id: 'student-save-complete-hint', path: '/students', stage: 2 },
+  { id: 'student-family-hint', path: '/students', stage: 2 },
+  { id: 'student-family-name-hint', path: '/students', stage: 2 },
+  { id: 'student-family-relation-hint', path: '/students', stage: 2 },
+  { id: 'student-family-phone-hint', path: '/students', stage: 2 },
+  { id: 'student-family-msgtype-hint', path: '/students', stage: 2 },
+  { id: 'student-family-msgtype-info-hint', path: '/students', stage: 2 },
+  { id: 'student-family-save-hint', path: '/students', stage: 2 },
+  { id: 'student-family-complete-hint', path: '/students', stage: 2 },
+  { id: 'student-class-tab-hint', path: '/students', stage: 2 },
+  { id: 'student-class-tab-content-hint', path: '/students', stage: 2 },
+  { id: 'student-class-register-hint', path: '/students', stage: 2 },
+  { id: 'student-class-register-detail-hint', path: '/students', stage: 2 },
+  { id: 'student-class-register-payday-hint', path: '/students', stage: 2 },
+  { id: 'student-class-register-discount-hint', path: '/students', stage: 2 },
+  { id: 'student-class-register-discount-repeat-hint', path: '/students', stage: 2 },
+  { id: 'student-class-register-submit-hint', path: '/students', stage: 2 },
+  { id: 'student-class-register-complete-hint', path: '/students', stage: 2 },
+  { id: 'payment-menu-hint', path: '/students', stage: 2 },
+  { id: 'payment-page-hint', path: '/payments', stage: 3 },
+  { id: 'payment-page-detail-hint', path: '/payments', stage: 3 },
 ]
-
-const STEP_KEY = 'tutorialStep'
-const STARTED_KEY = 'tutorialStarted'
 
 const TutorialContext = createContext(null)
 
 export function TutorialProvider({ children }) {
-  const [step, setStep] = useState(() => Number(localStorage.getItem(STEP_KEY) || 0))
-  const [started, setStarted] = useState(() => localStorage.getItem(STARTED_KEY) === 'true')
+  const { user, profile } = useAuth()
+  const [step, setStep] = useState(0)
+  const [started, setStarted] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
+  // 이 계정에 대해 이미 초기 동기화를 했는지 추적 - 이후 프로필이 다른 이유로
+  // (설정 저장, 토큰 갱신 등) 다시 로드되어도 진행 중인 튜토리얼 단계를 덮어쓰지 않기 위함
+  const syncedUserIdRef = useRef(null)
+
+  // 계정(profile)이 "새로" 로드/전환됐을 때 그 계정의 튜토리얼 진행상태로 동기화 (계정당 1회)
+  useEffect(() => {
+    if (!profile) { syncedUserIdRef.current = null; return }
+    if (syncedUserIdRef.current === profile.id) return
+    syncedUserIdRef.current = profile.id
+    // DB 전환 이전(localStorage 기준)에 이미 진행 중이던 진행도를 1회 복구
+    if (!profile.tutorial_started) {
+      const legacyStarted = localStorage.getItem('tutorialStarted') === 'true'
+      const legacyStep = Number(localStorage.getItem('tutorialStep') || 0)
+      if (legacyStarted) {
+        setStep(legacyStep)
+        setStarted(true)
+        if (user) supabase.from('profiles').update({ tutorial_started: true, tutorial_step: legacyStep }).eq('id', user.id)
+        return
+      }
+    }
+    setStep(profile.tutorial_step || 0)
+    setStarted(profile.tutorial_started || false)
+  }, [profile])
 
   const totalSteps = TUTORIAL_STEPS.length
   const activeStep = TUTORIAL_STEPS[step] || null
 
   const persistStep = (n) => {
     setStep(n)
-    localStorage.setItem(STEP_KEY, String(n))
+    if (user) supabase.from('profiles').update({ tutorial_step: n }).eq('id', user.id)
   }
 
   const markStarted = () => {
     setStarted(true)
-    localStorage.setItem(STARTED_KEY, 'true')
+    if (user) supabase.from('profiles').update({ tutorial_started: true }).eq('id', user.id)
   }
 
   // 로그인/가입 후 처음 진입했을 때 자동으로 한 번만 띄움
@@ -94,6 +119,12 @@ export function TutorialProvider({ children }) {
     if (step > 0) persistStep(step - 1)
   }
 
+  // 특정 단계를 건너뛰고 임의의 인덱스로 바로 이동
+  const skipTo = (n) => {
+    persistStep(n)
+    if (n >= totalSteps) setIsOpen(false)
+  }
+
   // 플로팅 박스에서 이어보기 (완료된 경우 처음부터 다시 시작)
   const resume = () => {
     if (step >= totalSteps) {
@@ -107,7 +138,7 @@ export function TutorialProvider({ children }) {
   return (
     <TutorialContext.Provider value={{
       step, totalSteps, activeStep, isOpen, started,
-      autoStart, advance, resume, close, goBack,
+      autoStart, advance, resume, close, goBack, skipTo,
     }}>
       {children}
     </TutorialContext.Provider>

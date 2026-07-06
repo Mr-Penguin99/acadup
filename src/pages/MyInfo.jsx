@@ -1,26 +1,51 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useAuth } from '../contexts/AuthContext'
+
+const formatJoinDate = (isoDate) => {
+  if (!isoDate) return '2026.01.01'
+  const d = new Date(isoDate)
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
+}
 
 export default function MyInfo() {
+  const { profile } = useAuth()
   const [form, setForm] = useState({
     empNo: localStorage.getItem('userEmpNo') || '200001',
-    name: localStorage.getItem('userName') || '원장',
+    name: profile?.owner_name || localStorage.getItem('userName') || '원장',
     resId1: '000000', resId2: '1111111',
-    id: '10102093',
+    id: profile?.user_id || '10102093',
     pw: '',
-    phone: '010-0000-0000',
+    phone: profile?.phone || '010-0000-0000',
     msgType: 'SMS수신',
     emergency: '',
     extension: '',
-    email1: 'abcdefg123', email2: 'naver.com', emailType: '직접입력',
-    zip: '', addr: '', addrDetail: '',
+    email1: profile?.email?.split('@')[0] || 'abcdefg123',
+    email2: profile?.email?.split('@')[1] || 'naver.com',
+    emailType: '직접입력',
+    zip: '', addr: profile?.address || '', addrDetail: profile?.address_detail || '',
     empStatus: '재직',
     stateType: '',
     dept: '관리 부문 1급,원장',
     workType: '원장',
-    joinDate: '2026.01.01',
+    joinDate: formatJoinDate(profile?.created_at),
     leaveDate: '',
     career: '',
   })
+
+  useEffect(() => {
+    if (!profile) return
+    setForm(f => ({
+      ...f,
+      name: profile.owner_name || f.name,
+      id: profile.user_id || f.id,
+      phone: profile.phone || f.phone,
+      email1: profile.email?.split('@')[0] || f.email1,
+      email2: profile.email?.split('@')[1] || f.email2,
+      addr: profile.address || f.addr,
+      addrDetail: profile.address_detail || f.addrDetail,
+      joinDate: profile.created_at ? formatJoinDate(profile.created_at) : f.joinDate,
+    }))
+  }, [profile])
 
   return (
     <div style={{

@@ -4,9 +4,11 @@ import './Payments.css'
 import TopNav from '../components/TopNav'
 import { MonthPicker, DatePicker } from '../components/DatePicker'
 import BillingTab from '../components/student/BillingTab'
+import PaymentTab from '../components/student/PaymentTab'
 import TutorialMultiSpotlight from '../components/TutorialMultiSpotlight'
 import TutorialTooltip from '../components/TutorialTooltip'
 import { useTutorial } from '../components/TutorialContext'
+import { useAppData } from '../contexts/AppDataContext'
 
 const UNLOCKED_MENUS = ['students','payments','classes']
 
@@ -40,7 +42,6 @@ const SIDE_MENUS = [
     { id:'class-status',   label:'반별 수납현황' },
   ]},
 ]
-const PAY_HISTORY_DATA = []
 const MONTHLY_PAY_DATA = [
   { id:1,  name:'@이순신',    cls:'to_반그룹 > from_반_CCC',    billAmt:'222',     tradeDate:'', payMethod:'', status:'미납', payAmt:'',  unpaid:'222',     created:'일괄수동' },
   { id:2,  name:'@하늘땅',    cls:'to_반그룹 > from_반_CCC',    billAmt:'222',     tradeDate:'', payMethod:'', status:'미납', payAmt:'',  unpaid:'222',     created:'일괄수동' },
@@ -72,7 +73,6 @@ const BULK_DATA = [
   { id:9,  group:'to_반그룹', name:'to_반_XXX_미개강', code:'CLASS00042', status:'개강', count:'0 명', billRound:'미생성', billCnt:'', amount:'',      unpaid:'',      period:'2026.05.01~2026.12.31' },
   { id:10, group:'to_반그룹', name:'from_반_AAA',       code:'CLASS00033', status:'개강', count:'0 명', billRound:'미생성', billCnt:'', amount:'',      unpaid:'',      period:'2025.01.01~2026.12.31' },
 ]
-const SAMPLE_DATA = []
 const CLASS_STATUS_DATA = [
   { id:1, cls:'고등_AA > 고등_AA_기초반',            month:'2026-05', billCnt:2, billAmt:'200,000', payCnt:'', payAmt:'', refundCnt:'', refundAmt:'', unpaidCnt:2, unpaidAmt:'200,000' },
   { id:2, cls:'반그룹_수업1 > 수업1_영어(일화목토)', month:'2026-05', billCnt:1, billAmt:'10,000',  payCnt:'', payAmt:'', refundCnt:'', refundAmt:'', unpaidCnt:1, unpaidAmt:'10,000' },
@@ -85,6 +85,7 @@ const CLASS_STATUS_DATA = [
 export default function Payments() {
   const navigate = useNavigate()
   const { activeStep, isOpen, advance } = useTutorial()
+  const { students, enrollments, payments: paymentRecords } = useAppData()
   const [activeMenu, setActiveMenu] = useState('payments')
   const [activeSide, setActiveSide] = useState('unpaid')
   const [expanded, setExpanded] = useState(['payment-mgmt'])
@@ -103,6 +104,7 @@ export default function Payments() {
 
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [expandedPayId, setExpandedPayId] = useState(null)
+  const [expandedUnpaidId, setExpandedUnpaidId] = useState(null)
   const [menuLockedClickCount, setMenuLockedClickCount] = useState(0)
 
   const paymentsMainRef = useRef(null)
@@ -143,7 +145,51 @@ export default function Payments() {
   const toggleBulkCheck = id => setBulkChecked(c=>c.includes(id)?c.filter(x=>x!==id):[...c,id])
   const toggleBulkAll   = () => setBulkChecked(bulkChecked.length===BULK_DATA.length?[]:BULK_DATA.map(d=>d.id))
   const toggleCheck   = id => setChecked(c=>c.includes(id)?c.filter(x=>x!==id):[...c,id])
-  const toggleAll     = () => setChecked(checked.length===SAMPLE_DATA.length?[]:SAMPLE_DATA.map(d=>d.id))
+
+  const unpaidData = students.map(s => {
+    const rows = enrollments
+      .filter(e => e.studentId === s.id)
+      .map(e => {
+        const fee = parseInt(String(e.fee).replace(/[^0-9]/g, ''), 10) || 0
+        const paid = paymentRecords.filter(p => p.enrollmentId === e.id).reduce((sum, p) => sum + p.amount, 0)
+        return { ...e, remaining: Math.max(fee - paid, 0) }
+      })
+      .filter(e => e.remaining > 0)
+    if (rows.length === 0) return null
+    const guardian = s.family?.find(f => f.isPrimary) || s.family?.[0]
+    const unpaid = rows.reduce((sum, e) => sum + e.remaining, 0)
+    return {
+      id: s.id,
+      name: s.name,
+      method: '-',
+      classes: rows.map(e => ({ cls: e.className, day: `매월 ${e.payDay || '1'}일` })),
+      unpaid,
+      phone: s.phone,
+      sentDate: '',
+      rel: guardian?.relation || '',
+      guardPhone: guardian?.phone || '',
+      guardSent: '',
+    }
+  }).filter(Boolean)
+
+  const payHistoryData = students.map(s => {
+    const studentPayments = paymentRecords.filter(p => p.studentId === s.id)
+    if (studentPayments.length === 0) return null
+    const guardian = s.family?.find(f => f.isPrimary) || s.family?.[0]
+    const payAmt = studentPayments.reduce((sum, p) => sum + p.amount, 0)
+    return {
+      id: s.id,
+      name: s.name,
+      classes: [...new Set(studentPayments.map(p => p.className))],
+      payAmt,
+      refund: 0,
+      phone: s.phone,
+      guardRel: guardian?.relation || '',
+      guardPhone: guardian?.phone || '',
+    }
+  }).filter(Boolean)
+
+  const toggleAll = () => setChecked(checked.length===unpaidData.length?[]:unpaidData.map(d=>d.id))
 
   return (
     <div className="payments-wrap">
@@ -390,29 +436,35 @@ export default function Payments() {
                 </div>
                 <div className="pm-table-wrap">
                   <table className="pm-table">
-                    <thead><tr><th><input type="checkbox" checked={checked.length===SAMPLE_DATA.length} onChange={toggleAll}/></th><th>번호</th><th>성명</th><th>주 결제방법</th><th>반명 / 납부기준일</th><th>미납금액</th><th>수강생휴대폰</th><th>문자전송일</th><th>보호자관계</th><th>보호자휴대폰</th><th>문자전송일</th></tr></thead>
+                    <thead><tr><th><input type="checkbox" checked={unpaidData.length>0 && checked.length===unpaidData.length} onChange={toggleAll}/></th><th>번호</th><th>성명</th><th>주 결제방법</th><th>반명 / 납부기준일</th><th>미납금액</th><th>수강생휴대폰</th><th>문자전송일</th><th>보호자관계</th><th>보호자휴대폰</th><th>문자전송일</th></tr></thead>
                     <tbody>
-                      {SAMPLE_DATA.map(d=>(
-                        <tr key={d.id} className={checked.includes(d.id)?'checked-row':''}>
-                          <td><input type="checkbox" checked={checked.includes(d.id)} onChange={()=>toggleCheck(d.id)}/></td>
-                          <td>{d.id}</td>
-                          <td><div style={{display:'flex',alignItems:'center',gap:4}}><span className="student-icon">👤</span><span>{d.name}</span></div></td>
-                          <td>{d.method}</td>
-                          <td>{d.classes.map((c,i)=><div key={i} className="cls-row"><span className="cls-name">{c.cls}</span><span className="cls-day">{c.day}</span></div>)}</td>
-                          <td className="unpaid-amt">{d.unpaid.toLocaleString()}</td>
-                          <td>{d.phone}</td>
-                          <td className={d.sentDate?'sent-date':''}>{d.sentDate}</td>
-                          <td>{d.rel}</td><td>{d.guardPhone}</td>
-                          <td className={d.guardSent?'sent-date-red':''}>{d.guardSent}</td>
-                        </tr>
+                      {unpaidData.filter(d=>expandedUnpaidId===null||expandedUnpaidId===d.id).map((d,idx)=>(
+                        <>
+                          <tr key={d.id} className={checked.includes(d.id)?'checked-row':''}>
+                            <td><input type="checkbox" checked={checked.includes(d.id)} onChange={()=>toggleCheck(d.id)}/></td>
+                            <td>{idx+1}</td>
+                            <td><span className="sts-name-link" onClick={()=>setExpandedUnpaidId(expandedUnpaidId===d.id?null:d.id)}>{d.name}</span></td>
+                            <td>{d.method}</td>
+                            <td>{d.classes.map((c,i)=><div key={i} className="cls-row"><span className="cls-name">{c.cls}</span><span className="cls-day">{c.day}</span></div>)}</td>
+                            <td className="unpaid-amt">{d.unpaid.toLocaleString()}</td>
+                            <td>{d.phone}</td>
+                            <td className={d.sentDate?'sent-date':''}>{d.sentDate}</td>
+                            <td>{d.rel}</td><td>{d.guardPhone}</td>
+                            <td className={d.guardSent?'sent-date-red':''}>{d.guardSent}</td>
+                          </tr>
+                          {expandedUnpaidId===d.id && (
+                            <tr key={`unpaid-detail-${d.id}`}>
+                              <td colSpan={11} style={{padding:'0 10px',background:'#fff'}}>
+                                <div style={{marginTop:40}}><PaymentTab studentId={d.id} studentName={d.name} defaultFilter="미납+완납(환불)" /></div>
+                              </td>
+                            </tr>
+                          )}
+                        </>
                       ))}
                     </tbody>
                   </table>
                 </div>
-                <div className="pm-pagination">
-                  <div className="pm-pages">{[1,2].map(p=><button key={p} className={`pm-page-btn ${p===1?'active':''}`}>{p}</button>)}</div>
-                  <span className="pm-page-info">1 / 2 Pages</span>
-                </div>
+                {unpaidData.length === 0 && <div className="pm-empty-footer">검색된 데이터가 없습니다.</div>}
               </div>
             </>
           )}
@@ -516,9 +568,9 @@ export default function Payments() {
                     </colgroup>
                     <thead><tr><th>번호</th><th>성명</th><th>반명</th><th>결제금액</th><th>환불금액</th><th>수강생휴대폰</th><th>보호자관계</th><th>보호자휴대폰</th></tr></thead>
                     <tbody>
-                      {PAY_HISTORY_DATA.length === 0
-                        ? <tr><td colSpan={8} style={{textAlign:'center',padding:'30px',color:'#bbb',fontSize:13}}>결제 내역이 없습니다.</td></tr>
-                        : PAY_HISTORY_DATA.filter(d=>expandedPayId===null||expandedPayId===d.id).map(d=>(
+                      {payHistoryData.length === 0
+                        ? <tr><td colSpan={8} style={{textAlign:'center',padding:'30px',color:'#bbb',fontSize:13}}>검색된 데이터가 없습니다.</td></tr>
+                        : payHistoryData.filter(d=>expandedPayId===null||expandedPayId===d.id).map(d=>(
                           <>
                             <tr key={d.id}>
                               <td style={{textAlign:'center'}}>{d.id}</td>
@@ -529,14 +581,14 @@ export default function Payments() {
                                 </span>
                               </td>
                               <td style={{textAlign:'center'}}>{d.classes.map((c,i)=><div key={i} style={{fontSize:13,color:'#444',lineHeight:'1.6'}}>{c}</div>)}</td>
-                              <td style={{textAlign:'center',color:'#0100FF',fontWeight:400}}>{d.payAmt}</td>
-                              <td style={{textAlign:'center'}}>{d.refund}</td>
+                              <td style={{textAlign:'center',color:'#0100FF',fontWeight:400}}>{d.payAmt.toLocaleString()}</td>
+                              <td style={{textAlign:'center'}}>{d.refund || ''}</td>
                               <td style={{textAlign:'center'}}>{d.phone}</td><td style={{textAlign:'center'}}>{d.guardRel}</td><td style={{textAlign:'center'}}>{d.guardPhone}</td>
                             </tr>
                             {expandedPayId===d.id && (
                               <tr key={`billing-${d.id}`}>
-                                <td colSpan={8} style={{padding:'0 20px',background:'#fff'}}>
-                                  <div style={{marginTop:80}}><BillingTab /></div>
+                                <td colSpan={8} style={{padding:'0 10px',background:'#fff'}}>
+                                  <div style={{marginTop:40}}><BillingTab studentId={d.id} studentName={d.name} /></div>
                                 </td>
                               </tr>
                             )}

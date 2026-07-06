@@ -1,18 +1,50 @@
 import { useState } from 'react'
-
-const SAMPLE_CLASSES = [
-  { id: 1, month: '2026-06', name: '중등부 > 중등 수학A 3교시', fee: '100' },
-]
+import { useAppData } from '../contexts/AppDataContext'
 
 const PAY_METHODS = ['수납방법', '카드', '현금', '계좌', '제로페이', '카카오페이']
 
 export default function PaymentRegister() {
-  const [payDate, setPayDate] = useState('2026-06-05')
+  const { addPayment } = useAppData()
+  const [data] = useState(() => {
+    try { return JSON.parse(sessionStorage.getItem('paymentRegisterData')) } catch { return null }
+  })
+  const classes = data ? [{
+    id: data.enrollmentId,
+    month: data.month,
+    name: data.className,
+    fee: data.billAmt || 0,
+  }] : []
+
+  const [payDate, setPayDate] = useState(new Date().toISOString().slice(0, 10))
   const [payMethod, setPayMethod] = useState('수납방법')
-  const [classAmt, setClassAmt] = useState('100')
-  const [payAmt, setPayAmt] = useState('100')
+  const [classAmt, setClassAmt] = useState(String(data?.billAmt ?? ''))
+  const [payAmt, setPayAmt] = useState(String(data?.unpaid ?? ''))
   const [receipt, setReceipt] = useState(true)
   const [memo, setMemo] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  const handlePay = async () => {
+    if (!data) { alert('결제할 대상 정보가 없습니다.'); return }
+    const amount = parseInt(String(payAmt).replace(/[^0-9]/g, ''), 10) || 0
+    if (amount <= 0) { alert('수납금액을 입력해 주세요.'); return }
+    setSaving(true)
+    const { error } = await addPayment({
+      studentId: data.studentId,
+      enrollmentId: data.enrollmentId,
+      className: data.className,
+      month: data.month,
+      item: data.item,
+      payDate,
+      method: payMethod,
+      amount,
+      memo,
+    })
+    setSaving(false)
+    if (error) { alert(error.message || '수납 처리에 실패했습니다.'); return }
+    try { if (window.opener && !window.opener.closed) window.opener.__refreshAppData?.() } catch {}
+    alert('정상적으로 처리되었습니다.')
+    window.close()
+  }
 
   return (
     <div style={{ fontFamily: "'Noto Sans KR', sans-serif", padding: '20px 24px', fontSize: 13, color: '#333', minWidth: 520 }}>
@@ -20,7 +52,7 @@ export default function PaymentRegister() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <span style={{ fontSize: 17, fontWeight: 700 }}>수납 등록</span>
         <div style={{ display: 'flex', gap: 6 }}>
-          <button style={btnStyle('#F5841F')}>결제하기</button>
+          <button style={btnStyle('#F5841F')} disabled={saving} onClick={handlePay}>결제하기</button>
           <button style={btnStyle('#888')} onClick={() => window.close()}>닫기</button>
         </div>
       </div>
@@ -30,7 +62,7 @@ export default function PaymentRegister() {
         <tbody>
           <tr style={{ borderBottom: '1px solid #e0e0e0' }}>
             <td style={labelCell}>수강생 정보</td>
-            <td style={valueCell}><strong>학생01 (01.01.01)</strong></td>
+            <td style={valueCell}><strong>{data?.studentName || '수강생 미지정'}</strong></td>
           </tr>
         </tbody>
       </table>
@@ -40,19 +72,21 @@ export default function PaymentRegister() {
       <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 20 }}>
         <thead>
           <tr style={{ borderTop: '1px solid #ccc', borderBottom: '1px solid #e0e0e0', background: '#f8f9fb' }}>
-            <th style={th}>번호</th>
             <th style={th}>수강월</th>
             <th style={th}>수강반</th>
             <th style={th}>수강료</th>
+            <th style={th}>미납잔액</th>
           </tr>
         </thead>
         <tbody>
-          {SAMPLE_CLASSES.map(c => (
+          {classes.length === 0 ? (
+            <tr><td colSpan={4} style={{ textAlign: 'center', padding: '20px 0', color: '#aaa' }}>결제할 대상이 없습니다.</td></tr>
+          ) : classes.map(c => (
             <tr key={c.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
-              <td style={{ ...td, textAlign: 'center' }}>{c.id}</td>
               <td style={{ ...td, textAlign: 'center' }}>{c.month}</td>
               <td style={td}>{c.name}</td>
-              <td style={{ ...td, textAlign: 'right' }}>{c.fee}</td>
+              <td style={{ ...td, textAlign: 'right' }}>{Number(c.fee).toLocaleString()}</td>
+              <td style={{ ...td, textAlign: 'right', color: '#0100FF' }}>{Number(data.unpaid).toLocaleString()}</td>
             </tr>
           ))}
         </tbody>
@@ -95,6 +129,7 @@ export default function PaymentRegister() {
                 <input style={{ ...inputStyle, textAlign: 'right', width: 200 }} value={payAmt} onChange={e => setPayAmt(e.target.value)} />
                 <span>원</span>
               </div>
+              <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>미납잔액보다 적게 입력하면 나머지는 계속 미납으로 남습니다.</div>
             </td>
           </tr>
           {payMethod === '카드' && (

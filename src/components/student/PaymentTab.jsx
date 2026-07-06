@@ -1,26 +1,36 @@
 import { useState } from 'react'
 import '../../pages/Students.css'
+import { useAppData } from '../../contexts/AppDataContext'
 
-const SAMPLE = [
-  {
-    id: 1,
-    month: '2026-06',
-    className: '중등부 > 중등 수학A 1교시',
-    item: '수강료01',
-    billAmt: '1,000',
-    tradeDate: '',
-    payMethod: '',
-    status: '미납',
-    payAmt: '',
-    refund: '',
-    unpaid: '1,000',
-  },
-]
-
-export default function PaymentTab() {
-  const [filter, setFilter] = useState('미납+완납(환불)')
+export default function PaymentTab({ studentId, studentName, defaultFilter = '미납' }) {
+  const { enrollments, payments } = useAppData()
+  const [filter, setFilter] = useState(defaultFilter)
   const [checked, setChecked] = useState([])
-  const toggleAll = () => setChecked(c => c.length === SAMPLE.length ? [] : SAMPLE.map(d => d.id))
+
+  const allRows = enrollments.filter(e => e.studentId === studentId).map(e => {
+    const fee = parseInt(String(e.fee).replace(/[^0-9]/g, ''), 10) || 0
+    const paid = payments.filter(p => p.enrollmentId === e.id).reduce((sum, p) => sum + p.amount, 0)
+    const unpaid = Math.max(fee - paid, 0)
+    return {
+      id: e.id,
+      month: (e.startDate || '').slice(0, 7),
+      className: e.className,
+      item: '수강료01',
+      billAmt: fee,
+      tradeDate: paid > 0 ? (payments.find(p => p.enrollmentId === e.id)?.payDate || '') : '',
+      payMethod: paid > 0 ? (payments.find(p => p.enrollmentId === e.id)?.method || '') : '',
+      status: unpaid > 0 ? '미납' : '완납',
+      payAmt: paid,
+      refund: 0,
+      unpaid,
+    }
+  })
+
+  const rows = filter === '삭제' ? [] : allRows.filter(r =>
+    filter === '미납+완납(환불)' ? true : filter === '미납' ? r.status === '미납' : r.status === '완납'
+  )
+
+  const toggleAll = () => setChecked(c => c.length === rows.length ? [] : rows.map(d => d.id))
   const toggle = id => setChecked(c => c.includes(id) ? c.filter(x => x !== id) : [...c, id])
 
   return (
@@ -37,15 +47,37 @@ export default function PaymentTab() {
         </div>
         <div style={{display:'flex',gap:6}}>
           <button className="family-add-btn" onClick={()=>{
-            if(checked.length > 0){
-              const row = SAMPLE.find(d=>d.id===checked[0])
-              sessionStorage.setItem('manualRegisterData', JSON.stringify(row))
+            const target = checked.length > 0 ? rows.find(d=>d.id===checked[0]) : rows.find(r=>r.status==='미납')
+            if (target) {
+              sessionStorage.setItem('manualRegisterData', JSON.stringify(target))
             } else {
               sessionStorage.removeItem('manualRegisterData')
             }
-            window.open('/manual-register','_blank','width=650,height=800')
+            const w = 650, h = 800
+            const left = window.screenX + (window.outerWidth - w) / 2
+            const top = window.screenY + (window.outerHeight - h) / 2
+            window.open('/manual-register','_blank',`width=${w},height=${h},left=${left},top=${top},resizable=yes`)
           }}><span className="plus">+</span> 수기등록</button>
-          <button className="family-add-btn" onClick={()=>window.open('/payment-register','_blank','width=650,height=800')}><span className="plus">+</span> 수납</button>
+          <button className="family-add-btn" onClick={()=>{
+            const target = checked.length > 0 ? rows.find(d=>d.id===checked[0]) : rows.find(r=>r.status==='미납')
+            if (target) {
+              sessionStorage.setItem('paymentRegisterData', JSON.stringify({
+                studentId, studentName,
+                enrollmentId: target.id,
+                className: target.className,
+                month: target.month,
+                item: target.item,
+                billAmt: target.billAmt,
+                unpaid: target.unpaid,
+              }))
+            } else {
+              sessionStorage.removeItem('paymentRegisterData')
+            }
+            const w = 650, h = 800
+            const left = window.screenX + (window.outerWidth - w) / 2
+            const top = window.screenY + (window.outerHeight - h) / 2
+            window.open('/payment-register','_blank',`width=${w},height=${h},left=${left},top=${top},resizable=yes`)
+          }}><span className="plus">+</span> 수납</button>
         </div>
       </div>
 
@@ -53,7 +85,7 @@ export default function PaymentTab() {
       <table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}>
         <thead>
           <tr style={{borderTop:'2px solid #666',borderBottom:'1px solid #e0e0e0',background:'#f8f9fb'}}>
-            <th style={th}><input type="checkbox" checked={checked.length===SAMPLE.length} onChange={toggleAll}/></th>
+            <th style={th}><input type="checkbox" checked={rows.length>0 && checked.length===rows.length} onChange={toggleAll}/></th>
             <th style={th}>수강월</th>
             <th style={th}>반명</th>
             <th style={th}>항목</th>
@@ -67,7 +99,9 @@ export default function PaymentTab() {
           </tr>
         </thead>
         <tbody>
-          {SAMPLE.map(row=>(
+          {rows.length === 0 ? (
+            <tr><td colSpan={11} style={{textAlign:'center',padding:'24px 0',color:'#aaa',fontSize:13}}>수납 내역이 없습니다.</td></tr>
+          ) : rows.map(row=>(
             <tr key={row.id} style={{borderBottom:'1px solid #f0f0f0'}}>
               <td style={{...td,textAlign:'center'}}>
                 <input type="checkbox" checked={checked.includes(row.id)} onChange={()=>toggle(row.id)}/>
@@ -75,13 +109,13 @@ export default function PaymentTab() {
               <td style={{...td,textAlign:'center'}}>{row.month}</td>
               <td style={td}>{row.className}</td>
               <td style={{...td,textAlign:'center'}}>{row.item}</td>
-              <td style={{...td,textAlign:'center'}}>{row.billAmt}</td>
+              <td style={{...td,textAlign:'center'}}>{row.billAmt.toLocaleString()}</td>
               <td style={{...td,textAlign:'center'}}>{row.tradeDate}</td>
               <td style={{...td,textAlign:'center'}}>{row.payMethod}</td>
-              <td style={{...td,textAlign:'center',color:row.status==='미납'?'#29ABE2':'#333'}}>{row.status}</td>
-              <td style={{...td,textAlign:'center'}}>{row.payAmt}</td>
-              <td style={{...td,textAlign:'center'}}>{row.refund}</td>
-              <td style={{...td,textAlign:'center'}}>{row.unpaid}</td>
+              <td style={{...td,textAlign:'center',color:row.status==='미납'?'#0100FF':'#333'}}>{row.status}</td>
+              <td style={{...td,textAlign:'center'}}>{row.payAmt ? row.payAmt.toLocaleString() : ''}</td>
+              <td style={{...td,textAlign:'center'}}>{row.refund || ''}</td>
+              <td style={{...td,textAlign:'center'}}>{row.unpaid ? row.unpaid.toLocaleString() : ''}</td>
             </tr>
           ))}
         </tbody>
@@ -89,11 +123,6 @@ export default function PaymentTab() {
     </div>
   )
 }
-
-const btnStyle = (bg) => ({
-  padding:'6px 14px', background:bg, color:'#fff', border:'none',
-  borderRadius:4, fontSize:13, fontWeight:500, cursor:'pointer', fontFamily:'inherit',
-})
 
 const th = {
   padding:'8px 10px', textAlign:'center', fontSize:13,

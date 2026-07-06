@@ -56,26 +56,53 @@ const mapEnrollment = (e) => ({
   fee: e.fee || '',
 })
 
+const mapPayment = (p) => ({
+  id: p.id,
+  studentId: p.student_id,
+  enrollmentId: p.enrollment_id,
+  className: p.class_name || '',
+  month: p.month || '',
+  item: p.item || '',
+  payDate: p.pay_date || '',
+  method: p.method || '',
+  amount: Number(p.amount) || 0,
+  memo: p.memo || '',
+})
+
 export function AppDataProvider({ children }) {
   const { user } = useAuth()
   const [classes, setClasses] = useState([])
   const [students, setStudents] = useState([])
   const [enrollments, setEnrollments] = useState([])
+  const [payments, setPayments] = useState([])
+
+  const refresh = async (userId) => {
+    const [cr, sr, er, pr] = await Promise.all([
+      supabase.from('classes').select('*').eq('user_id', userId).order('created_at'),
+      supabase.from('students').select('*').eq('user_id', userId).order('created_at'),
+      supabase.from('enrollments').select('*').eq('user_id', userId).order('created_at'),
+      supabase.from('payments').select('*').eq('user_id', userId).order('created_at'),
+    ])
+    if (cr.data) setClasses(cr.data.map(mapClass))
+    if (sr.data) setStudents(sr.data.map(mapStudent))
+    if (er.data) setEnrollments(er.data.map(mapEnrollment))
+    if (pr.data) setPayments(pr.data.map(mapPayment))
+  }
 
   useEffect(() => {
     if (!user) {
-      setClasses([]); setStudents([]); setEnrollments([])
+      setClasses([]); setStudents([]); setEnrollments([]); setPayments([])
       return
     }
-    Promise.all([
-      supabase.from('classes').select('*').eq('user_id', user.id).order('created_at'),
-      supabase.from('students').select('*').eq('user_id', user.id).order('created_at'),
-      supabase.from('enrollments').select('*').eq('user_id', user.id).order('created_at'),
-    ]).then(([cr, sr, er]) => {
-      if (cr.data) setClasses(cr.data.map(mapClass))
-      if (sr.data) setStudents(sr.data.map(mapStudent))
-      if (er.data) setEnrollments(er.data.map(mapEnrollment))
-    })
+    refresh(user.id)
+  }, [user])
+
+  // 반 등록/수강신청 등을 별도 팝업창에서 처리한 뒤, 페이지 전체 새로고침 없이
+  // 이 창의 데이터만 갱신할 수 있도록 전역에 노출 (팝업에서 window.opener.__refreshAppData?.() 로 호출)
+  useEffect(() => {
+    if (!user) return
+    window.__refreshAppData = () => refresh(user.id)
+    return () => { delete window.__refreshAppData }
   }, [user])
 
   const addClass = async (row) => {
@@ -90,6 +117,24 @@ export function AppDataProvider({ children }) {
     }).select().single()
     if (!error && data) setClasses(prev => [...prev, mapClass(data)])
     return { data: data ? mapClass(data) : null, error }
+  }
+
+  const updateClass = async (id, row) => {
+    const { data, error } = await supabase.from('classes').update({
+      name: row.name, group_name: row.group, code: row.code,
+      type: row.subject, room: row.room, subject: row.subject,
+      op_from: row.opFrom, op_to: row.opTo, pay_day: row.payDay,
+      op_type: row.opType, payments: row.payments,
+      period: `${row.opFrom || ''}~${row.opTo || ''}`,
+    }).eq('id', id).eq('user_id', user.id).select().single()
+    if (!error && data) setClasses(prev => prev.map(c => c.id === id ? mapClass(data) : c))
+    return { data: data ? mapClass(data) : null, error }
+  }
+
+  const deleteClass = async (id) => {
+    const { error } = await supabase.from('classes').delete().eq('id', id).eq('user_id', user.id)
+    if (!error) setClasses(prev => prev.filter(c => c.id !== id))
+    return { error }
   }
 
   const addStudent = async (row) => {
@@ -120,6 +165,17 @@ export function AppDataProvider({ children }) {
     return { data: data ? mapStudent(data) : null, error }
   }
 
+  const deleteStudent = async (id) => {
+    const { error: enrollError } = await supabase.from('enrollments').delete().eq('student_id', id).eq('user_id', user.id)
+    if (enrollError) return { error: enrollError }
+    const { error } = await supabase.from('students').delete().eq('id', id).eq('user_id', user.id)
+    if (!error) {
+      setStudents(prev => prev.filter(s => s.id !== id))
+      setEnrollments(prev => prev.filter(e => e.studentId !== id))
+    }
+    return { error }
+  }
+
   const addEnrollment = async (row) => {
     const { data, error } = await supabase.from('enrollments').insert({
       user_id: user.id,
@@ -132,8 +188,47 @@ export function AppDataProvider({ children }) {
     return { data: data ? mapEnrollment(data) : null, error }
   }
 
+  const updateEnrollment = async (id, row) => {
+    const { data, error } = await supabase.from('enrollments').update({
+      class_name: row.className, group_name: row.group,
+      start_date: row.startDate, end_date: row.endDate, pay_day: row.payDay,
+      status: row.status, teacher: row.teacher, room: row.room, fee: row.fee,
+    }).eq('id', id).eq('user_id', user.id).select().single()
+    if (!error && data) setEnrollments(prev => prev.map(e => e.id === id ? mapEnrollment(data) : e))
+    return { data: data ? mapEnrollment(data) : null, error }
+  }
+
+  const deleteEnrollment = async (id) => {
+    const { error } = await supabase.from('enrollments').delete().eq('id', id).eq('user_id', user.id)
+    if (!error) setEnrollments(prev => prev.filter(e => e.id !== id))
+    return { error }
+  }
+
+  const addPayment = async (row) => {
+    const { data, error } = await supabase.from('payments').insert({
+      user_id: user.id,
+      student_id: row.studentId,
+      enrollment_id: row.enrollmentId,
+      class_name: row.className,
+      month: row.month,
+      item: row.item,
+      pay_date: row.payDate,
+      method: row.method,
+      amount: row.amount,
+      memo: row.memo || '',
+    }).select().single()
+    if (!error && data) setPayments(prev => [...prev, mapPayment(data)])
+    return { data: data ? mapPayment(data) : null, error }
+  }
+
+  const deletePayment = async (id) => {
+    const { error } = await supabase.from('payments').delete().eq('id', id).eq('user_id', user.id)
+    if (!error) setPayments(prev => prev.filter(p => p.id !== id))
+    return { error }
+  }
+
   return (
-    <AppDataContext.Provider value={{ classes, students, enrollments, addClass, addStudent, updateStudent, addEnrollment }}>
+    <AppDataContext.Provider value={{ classes, students, enrollments, payments, addClass, updateClass, deleteClass, addStudent, updateStudent, deleteStudent, addEnrollment, updateEnrollment, deleteEnrollment, addPayment, deletePayment }}>
       {children}
     </AppDataContext.Provider>
   )

@@ -21,6 +21,7 @@ export default function StudentDetail() {
   const [infoTab, setInfoTab] = useState('가족')
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [isNew, setIsNew] = useState(false)
+  const [studentDbId, setStudentDbId] = useState(null)
   const fileInputRef = useRef(null)
 
   const emptyForm = {
@@ -43,6 +44,7 @@ export default function StudentDetail() {
     const data = sessionStorage.getItem('studentDetailData')
     if (!data) return
     const s = JSON.parse(data)
+    setStudentDbId(s.id ?? null)
     setForm(f => ({
       ...f,
       name:      s.name    || '',
@@ -242,8 +244,8 @@ export default function StudentDetail() {
             <div className="info-tab-content">
               {infoTab==='가족'     && <FamilyTab />}
               {infoTab==='수강'     && <ClassTab />}
-              {infoTab==='수납'     && <PaymentTab />}
-              {infoTab==='결제'     && <BillingTab />}
+              {infoTab==='수납'     && <PaymentTab studentId={studentDbId} studentName={form.name} />}
+              {infoTab==='결제'     && <BillingTab studentId={studentDbId} studentName={form.name} />}
               {infoTab==='상담'     && <ConsultTab />}
               {infoTab==='출결'     && <AttendTab />}
               {infoTab==='학원성적' && <AcademyScoreTab />}

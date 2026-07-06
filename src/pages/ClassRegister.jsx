@@ -4,8 +4,19 @@ import { useAppData } from '../contexts/AppDataContext'
 const REPEAT_OPTIONS = ['선택', '월납', '일시납']
 const DISCOUNT_OPTIONS = ['선택', '형제할인', '장기할인', '성적우수할인', '일수할인', '기타(특별)할인']
 
-export default function ClassRegister({ classSectionRef, classNameRowRef, onClassSelect, classPaydayRowRef, classDiscountRowRef, classDiscountRepeatSelectRef, classSubmitBtnRef, onSubmitClick, autoSelectFirstClass }) {
-  const { classes: contextClasses } = useAppData()
+export default function ClassRegister({ classSectionRef, classNameRowRef, classSelectRef, onClassSelect, classPaydayRowRef, classDiscountRowRef, classDiscountRepeatSelectRef, classSubmitBtnRef, onSubmitClick, autoSelectFirstClass, onRepeatFocus, onRepeatChange }) {
+  const { classes: contextClasses, students, enrollments, addEnrollment, updateEnrollment, deleteEnrollment } = useAppData()
+
+  // 독립 창(팝업)으로 열렸을 때만 사용 - 임베디드(튜토리얼) 모드에서는 onSubmitClick prop으로 동작
+  const [context] = useState(() => {
+    if (onSubmitClick) return null
+    try { return JSON.parse(sessionStorage.getItem('classRegisterContext')) } catch { return null }
+  })
+  const studentInfo = context ? students.find(s => s.id === context.studentId) : null
+  const explicitEnrollment = context?.enrollmentId ? enrollments.find(e => e.id === context.enrollmentId) : null
+
+  // 메인 창을 통째로 새로고침하지 않고, 데이터만 다시 불러오도록 요청 (선택된 학생/탭 등 화면 상태 유지)
+  const reloadOpener = () => { try { if (window.opener && !window.opener.closed) window.opener.__refreshAppData?.() } catch {} }
 
   const GROUPS = [...new Set(contextClasses.map(c => c.group || '반 그룹'))].filter(Boolean)
   const CLASS_OPTIONS = contextClasses.reduce((acc, c) => {
@@ -25,9 +36,9 @@ export default function ClassRegister({ classSectionRef, classNameRowRef, onClas
     }
     return acc
   }, {})
-  const [group, setGroup] = useState('반 그룹')
+  const [group, setGroup] = useState(explicitEnrollment?.group || '반 그룹')
   const [submitHover, setSubmitHover] = useState(false)
-  const [className, setClassName] = useState('')
+  const [className, setClassName] = useState(explicitEnrollment?.className || '')
   const [round, setRound] = useState('신규')
 
   useEffect(() => {
@@ -35,9 +46,43 @@ export default function ClassRegister({ classSectionRef, classNameRowRef, onClas
     const options = CLASS_OPTIONS[group] || []
     if (options.length > 0) setClassName(options[0])
   }, [autoSelectFirstClass])
-  const [startDate, setStartDate] = useState('2026-06-05')
-  const [endDate, setEndDate] = useState('2999-12-31')
-  const [payDay, setPayDay] = useState('1')
+  const [startDate, setStartDate] = useState(explicitEnrollment?.startDate || '2026-06-05')
+  const [endDate, setEndDate] = useState(explicitEnrollment?.endDate || '2999-12-31')
+  const [payDay, setPayDay] = useState(explicitEnrollment?.payDay || '1')
+
+  // enrollments가 비동기로 늦게 로드되는 경우(독립 창 새로고침 직후 등) 대비 - 로드되면 폼에 반영
+  useEffect(() => {
+    if (!explicitEnrollment) return
+    setGroup(explicitEnrollment.group || '반 그룹')
+    setClassName(explicitEnrollment.className || '')
+    setStartDate(explicitEnrollment.startDate || '2026-06-05')
+    setEndDate(explicitEnrollment.endDate || '2999-12-31')
+    setPayDay(explicitEnrollment.payDay || '1')
+  }, [explicitEnrollment])
+
+  // 지금 선택된 반에 이미 이 학생의 수강신청이 있으면(독립 창 모드) 자동으로 수정/삭제 모드로 전환
+  const editTarget = !onSubmitClick && context
+    ? enrollments.find(e => e.studentId === context.studentId && e.className === className)
+    : null
+
+  const handleRegister = async (payload) => {
+    await addEnrollment({ studentId: context.studentId, ...payload })
+    reloadOpener()
+    alert('처리 완료.')
+    window.close()
+  }
+  const handleUpdate = async (payload) => {
+    await updateEnrollment(editTarget.id, payload)
+    reloadOpener()
+    alert('처리 완료.')
+  }
+  const handleDeleteEnrollment = async () => {
+    if (!window.confirm('삭제하는 경우 자료를 복구할 수 없습니다. 삭제하려면 확인을 선택해 주세요.')) return
+    await deleteEnrollment(editTarget.id)
+    reloadOpener()
+    alert('정상적으로 처리되었습니다.')
+    window.close()
+  }
   const [payItems, setPayItems] = useState([
     { id: 1, checked: true, item: '수강료01', amt: '1,000', repeat: '월납' },
   ])
@@ -63,23 +108,46 @@ export default function ClassRegister({ classSectionRef, classNameRowRef, onClas
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <span style={{ fontSize: 18, fontWeight: 700 }}>수강신청</span>
         {info && (
-          <button
-            ref={classSubmitBtnRef}
-            onClick={() => onSubmitClick?.({
-              className,
-              group: group || '반 그룹',
-              startDate,
-              endDate,
-              payDay,
-              status: '수강',
-              teacher: info.teacher,
-              room: info.room,
-              fee: info.fee,
-            })}
-            onMouseEnter={() => setSubmitHover(true)}
-            onMouseLeave={() => setSubmitHover(false)}
-            style={submitHover ? submitBtnHoverStyle : submitBtnStyle}
-          >등록</button>
+          onSubmitClick ? (
+            <button
+              ref={classSubmitBtnRef}
+              onClick={() => onSubmitClick({
+                className,
+                group: group || '반 그룹',
+                startDate,
+                endDate,
+                payDay,
+                status: '수강',
+                teacher: info.teacher,
+                room: info.room,
+                fee: info.fee,
+              })}
+              onMouseEnter={() => setSubmitHover(true)}
+              onMouseLeave={() => setSubmitHover(false)}
+              style={submitHover ? submitBtnHoverStyle : submitBtnStyle}
+            >등록</button>
+          ) : editTarget ? (
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button
+                onClick={() => handleUpdate({
+                  className, group: group || '반 그룹', startDate, endDate, payDay,
+                  status: '수강', teacher: info.teacher, room: info.room, fee: info.fee,
+                })}
+                style={submitBtnStyle}
+              >수정</button>
+              <button onClick={handleDeleteEnrollment} style={submitBtnStyle}>삭제</button>
+            </div>
+          ) : (
+            <button
+              onClick={() => handleRegister({
+                className, group: group || '반 그룹', startDate, endDate, payDay,
+                status: '수강', teacher: info.teacher, room: info.room, fee: info.fee,
+              })}
+              onMouseEnter={() => setSubmitHover(true)}
+              onMouseLeave={() => setSubmitHover(false)}
+              style={submitHover ? submitBtnHoverStyle : submitBtnStyle}
+            >등록</button>
+          )
         )}
       </div>
 
@@ -88,7 +156,7 @@ export default function ClassRegister({ classSectionRef, classNameRowRef, onClas
         <tbody>
           <tr style={{ borderBottom: '1px solid #e0e0e0' }}>
             <td style={labelCell}>수강생 정보</td>
-            <td style={valueCell}>학생01 (01.01.01)</td>
+            <td style={valueCell}>{studentInfo ? `${studentInfo.name} (${studentInfo.birth || '-'})` : '학생01 (01.01.01)'}</td>
           </tr>
         </tbody>
       </table>
@@ -111,7 +179,7 @@ export default function ClassRegister({ classSectionRef, classNameRowRef, onClas
                   {GROUPS.map(g => <option key={g}>{g}</option>)}
                 </select>
                 <span style={{ color: '#888' }}>{'>'}</span>
-                <select style={selectStyle} value={className} onChange={e => { setClassName(e.target.value); if (e.target.value) onClassSelect?.() }}>
+                <select ref={classSelectRef} style={selectStyle} value={className} onChange={e => { setClassName(e.target.value); if (e.target.value) onClassSelect?.() }}>
                   <option value="">반 선택</option>
                   {(CLASS_OPTIONS[group] || []).map(c => <option key={c}>{c}</option>)}
                 </select>
@@ -229,7 +297,16 @@ export default function ClassRegister({ classSectionRef, classNameRowRef, onClas
                           <input style={{ ...inputStyle, width: 80 }} value={row.amt} onChange={e => updateDiscount(row.id, 'amt', e.target.value)} />
                         </td>
                         <td style={subTd}>
-                          <select ref={index === 0 ? classDiscountRepeatSelectRef : undefined} style={{ ...selectStyle, width: 80 }} value={row.repeat} onChange={e => updateDiscount(row.id, 'repeat', e.target.value)}>
+                          <select
+                            ref={index === 0 ? classDiscountRepeatSelectRef : undefined}
+                            style={{ ...selectStyle, width: 80 }}
+                            value={row.repeat}
+                            onFocus={index === 0 ? onRepeatFocus : undefined}
+                            onChange={e => {
+                              updateDiscount(row.id, 'repeat', e.target.value)
+                              if (index === 0) onRepeatChange?.(e.target.value)
+                            }}
+                          >
                             {REPEAT_OPTIONS.map(o => <option key={o}>{o}</option>)}
                           </select>
                         </td>

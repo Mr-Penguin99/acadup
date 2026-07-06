@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import '../../pages/Students.css'
 
-export default function ClassTab({ onRegisterClick, enrollments = [], enrollmentRowRef }) {
+export default function ClassTab({ onRegisterClick, enrollments = [], enrollmentRowRef, registerBtnRef, onEnrollmentClick }) {
   const [filter, setFilter] = useState('수강+종강')
 
   return (
@@ -16,7 +16,7 @@ export default function ClassTab({ onRegisterClick, enrollments = [], enrollment
             <option>수강+종강</option><option>수강</option><option>종강</option>
           </select>
         </div>
-        <button className="family-add-btn" onClick={onRegisterClick ?? (()=>window.open('/class-register','_blank','width=650,height=800'))}><span className="plus">+</span> 수강신청</button>
+        <button ref={registerBtnRef} className="family-add-btn" onClick={onRegisterClick ?? (()=>window.open('/class-register','_blank','width=650,height=800'))}><span className="plus">+</span> 수강신청</button>
       </div>
 
       {/* 테이블 */}
@@ -41,9 +41,9 @@ export default function ClassTab({ onRegisterClick, enrollments = [], enrollment
             </tr>
           ) : enrollments.map((e, i) => (
             <tr key={e.id} ref={i === 0 ? enrollmentRowRef : undefined} style={{borderBottom:'1px solid #e0e0e0'}}>
-              <td style={{...td,textAlign:'center'}}><input type="checkbox" defaultChecked readOnly /></td>
-              <td style={td}>{e.className}</td>
-              <td style={{...td,textAlign:'center',color:'#29ABE2',fontWeight:600}}>{e.status}</td>
+              <td style={{...td,textAlign:'center'}}><input type="checkbox" readOnly /></td>
+              <td style={td}><span className="sts-name-link" onClick={()=>onEnrollmentClick?.(e)}>{e.className}</span></td>
+              <td style={{...td,textAlign:'center'}}>{e.status}</td>
               <td style={{...td,textAlign:'center'}}>{e.startDate}~{e.endDate}</td>
               <td style={{...td,textAlign:'center'}}>{e.teacher}</td>
               <td style={{...td,textAlign:'center'}}>{e.room}</td>

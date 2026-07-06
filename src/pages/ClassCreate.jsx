@@ -4,6 +4,7 @@ import { FreeDatePicker } from '../components/DatePicker'
 import { useTutorial } from '../components/TutorialContext'
 import TutorialTooltip from '../components/TutorialTooltip'
 import TutorialMultiSpotlight from '../components/TutorialMultiSpotlight'
+import { useAppData } from '../contexts/AppDataContext'
 
 const START_HOURS = Array.from({length:19},(_,i)=>String(i+5).padStart(2,'0'))  // 05~23
 const END_HOURS   = Array.from({length:19},(_,i)=>String(i+6).padStart(2,'0'))  // 06~24
@@ -24,7 +25,21 @@ const INPUT_LOCKED_STEP_IDS = [
 ]
 
 export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) {
-  const [form, setForm] = useState({
+  const { classes, addClass, updateClass, deleteClass } = useAppData()
+  const [editingClass, setEditingClass] = useState(() => {
+    if (embedded) return null
+    try {
+      const parsed = JSON.parse(sessionStorage.getItem('editingClassData'))
+      sessionStorage.removeItem('editingClassData')
+      return parsed
+    } catch { return null }
+  })
+  const [form, setForm] = useState(() => editingClass ? {
+    code: editingClass.code || '', group: editingClass.group || '', name: editingClass.name || '',
+    subject: editingClass.subject || '', room: editingClass.room || '', capacity: '',
+    payCycle: '1개월납', payDay: editingClass.payDay || '1',
+    opType: editingClass.opType || '기간반', opFrom: editingClass.opFrom || '', opTo: editingClass.opTo || '',
+  } : {
     code:'', group:'', name:'',
     subject:'', room:'', capacity:'',
     payCycle:'1개월납', payDay:'1',
@@ -32,7 +47,7 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
   })
   const [lessons,  setLessons]  = useState([emptyLesson()])
   const [teachers, setTeachers] = useState([emptyTeacher()])
-  const [payments, setPayments] = useState([emptyPayment()])
+  const [payments, setPayments] = useState(() => editingClass?.payments?.length ? editingClass.payments : [emptyPayment()])
 
   const { activeStep, isOpen, advance } = useTutorial()
   const inputsLocked = isOpen && INPUT_LOCKED_STEP_IDS.includes(activeStep?.id)
@@ -214,6 +229,7 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
   const opTypeCellRef = useRef(null)
   const opPeriodLabelRef = useRef(null)
   const opPeriodCellRef = useRef(null)
+  const opToDateRef = useRef(null)
   const paymentsSectionRef = useRef(null)
   const newRegisterBtnRef = useRef(null)
   const [requiredFieldsRects, setRequiredFieldsRects] = useState({ bounds: null, holes: [], nameRect: null, newRegisterRect: null })
@@ -334,14 +350,23 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
 
   const [periodHintRect, setPeriodHintRect] = useState(null)
   const [periodHoleRect, setPeriodHoleRect] = useState(null)
+  const [periodTailLeftPx, setPeriodTailLeftPx] = useState(16)
   const [periodEnterWarning, setPeriodEnterWarning] = useState(false)
   const showPeriodHint = isOpen && activeStep?.id === 'class-create-period-hint'
 
   useEffect(() => {
     if (!showPeriodHint) return
     const measure = () => {
-      if (opPeriodLabelRef.current) setPeriodHintRect(opPeriodLabelRef.current.getBoundingClientRect())
-      setPeriodHoleRect(unionRects(opPeriodLabelRef.current?.getBoundingClientRect(), opPeriodCellRef.current?.getBoundingClientRect()))
+      const labelRect = opPeriodLabelRef.current?.getBoundingClientRect()
+      const opToRect = opToDateRef.current?.getBoundingClientRect()
+      const holeRect = unionRects(labelRect, opPeriodCellRef.current?.getBoundingClientRect())
+      if (labelRect && holeRect) {
+        const shiftedLeft = labelRect.left + 60
+        const shiftedTop = holeRect.top
+        setPeriodHintRect({ ...holeRect, left: shiftedLeft, right: shiftedLeft + holeRect.width, top: shiftedTop })
+        if (opToRect) setPeriodTailLeftPx(opToRect.left + opToRect.width / 2 - shiftedLeft)
+      }
+      setPeriodHoleRect(holeRect)
     }
     measure()
     window.addEventListener('resize', measure)
@@ -436,18 +461,57 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
 
   const formatPrice = val => val.replace(/[^\d]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 
+  const reloadOpener = () => { try { if (window.opener && !window.opener.closed) window.opener.__refreshAppData?.() } catch {} }
+
   const resetForm = () => {
     setForm({code:'',group:'',name:'',subject:'',room:'',capacity:'',payCycle:'1개월납',payDay:'1',opType:'기간반',opFrom:'',opTo:''})
     setLessons([emptyLesson()]); setTeachers([emptyTeacher()]); setPayments([emptyPayment()])
   }
   const handleNew  = () => {
     resetForm()
+    setEditingClass(null)
+    sessionStorage.removeItem('editingClassData')
     if (activeStep?.id === 'class-create-new-register-hint') advance()
   }
   const handleSave = async () => {
-    await onSave?.({ ...form, payments })
+    if (onSave) {
+      await onSave({ ...form, payments })
+    } else {
+      const { error } = await addClass({
+        group: form.group || '',
+        name: form.name || '(이름 없음)',
+        code: form.code || `CLASS${String(classes.length + 1).padStart(5, '0')}`,
+        status: '개강',
+        type: form.subject || '',
+        teacher: '',
+        period: `${form.opFrom || ''}~${form.opTo || ''}`,
+        room: form.room || '',
+        subject: form.subject || '',
+        opFrom: form.opFrom || '',
+        opTo: form.opTo || '',
+        payDay: form.payDay || '1',
+        opType: form.opType || '기간반',
+        payments: payments || [],
+      })
+      if (error) { alert(error.message || '반 등록에 실패했습니다.'); return }
+      reloadOpener()
+    }
     alert('저장되었습니다.')
     if (activeStep?.id === 'class-create-save-hint') advance()
+  }
+  const handleUpdate = async () => {
+    const { error } = await updateClass(editingClass.id, { ...form, payments })
+    if (error) { alert(error.message || '수정에 실패했습니다.'); return }
+    reloadOpener()
+    alert('정상적으로 처리되었습니다.')
+  }
+  const handleDelete = async () => {
+    if (!window.confirm('삭제하는 경우 자료를 복구할 수 없습니다. 삭제하려면 확인을 선택해 주세요.')) return
+    const { error } = await deleteClass(editingClass.id)
+    if (error) { alert('삭제에 실패했습니다.'); return }
+    reloadOpener()
+    alert('정상적으로 처리되었습니다.')
+    window.close()
   }
 
   return (
@@ -544,6 +608,7 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
           <TutorialTooltip
             rect={periodHintRect}
             placement="top"
+            tailLeftPx={periodTailLeftPx}
             message={periodEnterWarning
               ? <span style={{ color: '#ff3c00' }}>운영기간을 설정하고 확인[Enter]을 누르세요.</span>
               : '운영기간을 길게 유지하고 싶을 경우 2999-12-31로 입력하시면 됩니다.'}
@@ -614,8 +679,18 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
       </div>
 
       <div className="cc-btn-row">
-        <button ref={saveBtnRef} className="cc-btn cc-btn-save" onClick={handleSave}>저장</button>
-        <button ref={newRegisterBtnRef} className="cc-btn cc-btn-new"  onClick={handleNew}>신규 반 등록</button>
+        {editingClass ? (
+          <>
+            <button className="cc-btn cc-btn-edit" onClick={handleUpdate}>수정</button>
+            <button className="cc-btn cc-btn-delete" onClick={handleDelete}>삭제</button>
+            <button ref={newRegisterBtnRef} className="cc-btn cc-btn-new" onClick={handleNew}>신규 반 등록</button>
+          </>
+        ) : (
+          <>
+            <button ref={saveBtnRef} className="cc-btn cc-btn-save" onClick={handleSave}>저장</button>
+            <button ref={newRegisterBtnRef} className="cc-btn cc-btn-new"  onClick={handleNew}>신규 반 등록</button>
+          </>
+        )}
       </div>
 
       <div className="cc-body">
@@ -676,7 +751,9 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
               <td className="cc-cell" ref={opPeriodCellRef}>
                 <FreeDatePicker value={form.opFrom} onChange={v=>{setF('opFrom',v); setPeriodEnterWarning(false)}} className="cc-input cc-input-date" onInputFocus={handlePeriodClick}/>
                 <span style={{margin:'0 6px',color:'#999'}}>~</span>
-                <FreeDatePicker value={form.opTo} onChange={v=>{setF('opTo',v); setPeriodEnterWarning(false)}} className="cc-input cc-input-date" onInputFocus={handlePeriodClick}/>
+                <span ref={opToDateRef} style={{display:'inline-block'}}>
+                  <FreeDatePicker value={form.opTo} onChange={v=>{setF('opTo',v); setPeriodEnterWarning(false)}} className="cc-input cc-input-date" onInputFocus={handlePeriodClick}/>
+                </span>
               </td>
             </tr>
           </tbody>

@@ -1,25 +1,28 @@
 import { useState } from 'react'
 import '../../pages/Students.css'
+import { useAppData } from '../../contexts/AppDataContext'
 
-const SAMPLE = [
-  {
-    id: 1,
-    date: '2026.04.03',
+export default function BillingTab({ studentId, studentName }) {
+  const { payments } = useAppData()
+  const [filter, setFilter] = useState('전체')
+  const [checked, setChecked] = useState([])
+
+  const rows = payments.filter(p => p.studentId === studentId).map(p => ({
+    id: p.id,
+    date: p.payDate,
     processStatus: '정상',
     payStatus: '수납',
     payDiv: '현장결제',
-    payMethod: '카드',
-    payAmt: '1,000',
+    payMethod: p.method,
+    payAmt: p.amount,
     refund: '',
     cardNo: '',
     approvalNo: '',
-  },
-]
+    month: p.month,
+    className: p.className,
+  }))
 
-export default function BillingTab() {
-  const [filter, setFilter] = useState('전체')
-  const [checked, setChecked] = useState([])
-  const toggleAll = () => setChecked(c => c.length===SAMPLE.length ? [] : SAMPLE.map(d=>d.id))
+  const toggleAll = () => setChecked(c => c.length===rows.length ? [] : rows.map(d=>d.id))
   const toggle = id => setChecked(c => c.includes(id) ? c.filter(x=>x!==id) : [...c,id])
 
   return (
@@ -35,18 +38,22 @@ export default function BillingTab() {
           </select>
         </div>
         <button className="family-add-btn" onClick={()=>{
-          const target = checked.length > 0 ? SAMPLE.find(d=>d.id===checked[0]) : SAMPLE[0]
+          const target = checked.length > 0 ? rows.find(d=>d.id===checked[0]) : rows[0]
+          if (!target) { alert('결제취소할 내역을 선택해주세요.'); return }
           sessionStorage.setItem('paymentCancelData', JSON.stringify({
+            paymentId: target.id,
             date: target.date,
             payDiv: target.payDiv,
             payMethod: target.payMethod,
             payAmt: target.payAmt,
-            month: '2026-06',
-            className: '이동완로_매뉴얼반',
-            studentName: '반이동_매뉴얼',
-            birth: '01.01.01',
+            month: target.month,
+            className: target.className,
+            studentName,
           }))
-          window.open('/payment-cancel','_blank','width=600,height=660')
+          const w = 600, h = 660
+          const left = window.screenX + (window.outerWidth - w) / 2
+          const top = window.screenY + (window.outerHeight - h) / 2
+          window.open('/payment-cancel','_blank',`width=${w},height=${h},left=${left},top=${top},resizable=yes`)
         }}><span className="plus">+</span> 결제취소</button>
       </div>
 
@@ -54,7 +61,7 @@ export default function BillingTab() {
       <table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}>
         <thead>
           <tr style={{borderTop:'2px solid #666',borderBottom:'1px solid #e0e0e0',background:'#f8f9fb'}}>
-            <th style={th}><input type="checkbox" checked={checked.length===SAMPLE.length} onChange={toggleAll}/></th>
+            <th style={th}><input type="checkbox" checked={rows.length>0 && checked.length===rows.length} onChange={toggleAll}/></th>
             <th style={th}>결제일자</th>
             <th style={th}>처리상태</th>
             <th style={th}>결제상태</th>
@@ -69,7 +76,9 @@ export default function BillingTab() {
           </tr>
         </thead>
         <tbody>
-          {SAMPLE.map(row=>(
+          {rows.length === 0 ? (
+            <tr><td colSpan={12} style={{textAlign:'center',padding:'24px 0',color:'#aaa',fontSize:13}}>결제 내역이 없습니다.</td></tr>
+          ) : rows.map(row=>(
             <tr key={row.id} style={{borderBottom:'1px solid #f0f0f0'}}>
               <td style={{...td,textAlign:'center'}}>
                 <input type="checkbox" checked={checked.includes(row.id)} onChange={()=>toggle(row.id)}/>
@@ -79,7 +88,7 @@ export default function BillingTab() {
               <td style={{...td,textAlign:'center'}}>{row.payStatus}</td>
               <td style={{...td,textAlign:'center'}}>{row.payDiv}</td>
               <td style={{...td,textAlign:'center'}}>{row.payMethod}</td>
-              <td style={{...td,textAlign:'center'}}>{row.payAmt}</td>
+              <td style={{...td,textAlign:'center'}}>{row.payAmt.toLocaleString()}</td>
               <td style={{...td,textAlign:'center'}}>{row.refund}</td>
               <td style={{...td,textAlign:'center'}}>{row.cardNo}</td>
               <td style={{...td,textAlign:'center'}}>{row.approvalNo}</td>
@@ -99,11 +108,6 @@ export default function BillingTab() {
     </div>
   )
 }
-
-const btnStyle = (bg) => ({
-  padding:'5px 12px', background:bg, color:'#fff', border:'none',
-  borderRadius:4, fontSize:13, fontWeight:500, cursor:'pointer', fontFamily:'inherit',
-})
 
 const outlineBtn = {
   padding:'4px 10px', background:'#fff', color:'#555',

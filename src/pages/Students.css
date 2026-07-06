@@ -690,6 +690,14 @@
   position: relative;
 }
 
+.sts-empty-footer {
+  border-bottom: 1px solid #e0e0e0;
+  text-align: center;
+  padding: 40px;
+  color: #bbb;
+  font-size: 13px;
+}
+
 .sts-pages { display: flex; gap: 4px; }
 
 .sts-page-btn {

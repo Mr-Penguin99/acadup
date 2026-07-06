@@ -18,7 +18,7 @@
 
 /* 사이드바 */
 .settings-sidebar {
-  width: 180px;
+  width: 220px;
   flex-shrink: 0;
   background: #fff;
   border-right: 1px solid #e0e0e0;
@@ -98,6 +98,16 @@
   font-weight: 500;
   cursor: pointer;
   font-family: inherit;
+}
+
+.sm-basic-edit-btn {
+  background: #ff3c00;
+  border: 1px solid #ff3c00;
+}
+.sm-basic-edit-btn:hover {
+  background: #fff;
+  border-color: #ff3c00;
+  color: #000;
 }
 
 /* 폼 */

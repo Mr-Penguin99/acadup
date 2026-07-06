@@ -226,21 +226,22 @@
   display: flex;
   gap: 8px;
   align-items: center;
-  font-size: 11px;
+  justify-content: center;
+  font-size: 13px;
   margin-bottom: 2px;
 }
 
 .cls-name { color: #444; }
 .cls-day  { color: #888; white-space: nowrap; }
 
-.unpaid-amt {
+.pm-table td.unpaid-amt {
   color: #0100FF;
   font-weight: 400;
   text-align: center;
 }
 
-.sent-date     { color: #555; font-size: 11px; }
-.sent-date-red { color: #E8445A; font-size: 11px; }
+.sent-date     { color: #555; font-size: 13px; }
+.sent-date-red { color: #E8445A; font-size: 13px; }
 
 /* 페이지네이션 */
 .pm-pagination {
@@ -250,6 +251,14 @@
   padding: 14px;
   gap: 6px;
   position: relative;
+}
+
+.pm-empty-footer {
+  border-bottom: 1px solid #e0e0e0;
+  text-align: center;
+  padding: 40px;
+  color: #bbb;
+  font-size: 13px;
 }
 
 .pm-pages { display: flex; gap: 4px; }

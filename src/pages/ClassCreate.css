@@ -51,6 +51,8 @@
 .cc-btn-save:hover { background: transparent; border-color: #ff3c00; color: #000; }
 .cc-btn-new  { background: #00a2ff; border: 1px solid #00a2ff; }
 .cc-btn-new:hover { background: transparent; border-color: #00a2ff; color: #000; }
+.cc-btn-edit, .cc-btn-delete { background: #6e7576; border: 1px solid #6e7576; }
+.cc-btn-edit:hover, .cc-btn-delete:hover { background: transparent; border-color: #6e7576; color: #000; }
 
 /* 통합 박스 */
 .cc-box {

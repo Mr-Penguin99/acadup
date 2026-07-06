@@ -1,6 +1,13 @@
 import { useState } from 'react'
 import '../../pages/Students.css'
 
+const formatPhone = (val) => {
+  const digits = val.replace(/\D/g, '').slice(0, 11)
+  if (digits.length < 4) return digits
+  if (digits.length < 8) return `${digits.slice(0, 3)}-${digits.slice(3)}`
+  return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`
+}
+
 const defaultRow = () => ({
   id: Date.now(),
   name: '', relation: '', isPrimary: false,
@@ -65,7 +72,7 @@ export default function FamilyTab({ nameInputRef, relationSelectRef, phoneInputR
                 <input type="checkbox" checked={row.isPrimary} onChange={e => updateRow(row.id,'isPrimary',e.target.checked)}/>
               </td>
               <td style={td}>
-                <input ref={idx === 0 ? phoneInputRef : undefined} style={inputStyle} placeholder="010-0000-0000" value={row.phone} onChange={e => updateRow(row.id,'phone',e.target.value)}/>
+                <input ref={idx === 0 ? phoneInputRef : undefined} style={inputStyle} placeholder="010-0000-0000" value={row.phone} onChange={e => updateRow(row.id,'phone',formatPhone(e.target.value))}/>
               </td>
               <td style={td}>
                 <div style={{display:'flex',alignItems:'center',gap:4}}>

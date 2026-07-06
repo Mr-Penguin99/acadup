@@ -122,10 +122,10 @@ export default function Students() {
   const [talkChecked, setTalkChecked] = useState([])
   const [noticeChecked, setNoticeChecked] = useState([])
   const [selectedStudentId, setSelectedStudentId] = useState(null) // null | 'new' | number
-  const { students, enrollments: contextEnrollments, addStudent, updateStudent, addEnrollment } = useAppData()
+  const { students, enrollments: contextEnrollments, addStudent, updateStudent, deleteStudent, addEnrollment } = useAppData()
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
-  const { activeStep, isOpen, advance } = useTutorial()
+  const { activeStep, isOpen, advance, step, skipTo } = useTutorial()
   const tutorialShowInfoTabs = isOpen && activeSide === 'class-students' && (
     activeStep?.id?.startsWith('student-family-') || activeStep?.id?.startsWith('student-class-')
   )
@@ -280,6 +280,7 @@ export default function Students() {
 
   const infoTabContentRef = useRef(null)
   const infoTabsWrapRef = useRef(null)
+  const registerBtnRef = useRef(null)
   const [saveCompleteRect, setSaveCompleteRect] = useState(null)
   const showSaveCompleteHint = isOpen && activeStep?.id === 'student-save-complete-hint' && activeSide === 'class-students'
 
@@ -474,6 +475,7 @@ export default function Students() {
       setForm(updated)
     }
     if (showFamilySaveHint) advance()
+    else alert('처리완료.')
   }
 
   const [familyCompleteRect, setFamilyCompleteRect] = useState(null)
@@ -525,6 +527,7 @@ export default function Students() {
   }, [showClassTabHint])
 
   const [classTabContentRect, setClassTabContentRect] = useState(null)
+  const [registerBtnRect, setRegisterBtnRect] = useState(null)
   const showClassTabContentHint = isOpen && activeStep?.id === 'student-class-tab-content-hint' && activeSide === 'class-students'
 
   useEffect(() => {
@@ -532,9 +535,11 @@ export default function Students() {
     setInfoTab('수강')
     const measure = () => {
       const r = unionRects(infoTabsWrapRef.current?.getBoundingClientRect(), infoTabContentRef.current?.getBoundingClientRect())
-      if (!r) return
-      // 상/좌/우 10px 여유, 하단은 구분선 끝에 딱 맞춤
-      setClassTabContentRect({ left: r.left - 10, top: r.top - 10, right: r.right + 10, bottom: r.bottom + 10, width: r.width + 20, height: r.height + 20 })
+      if (r) {
+        // 상/좌/우 10px 여유, 하단은 구분선 끝에 딱 맞춤
+        setClassTabContentRect({ left: r.left - 10, top: r.top - 10, right: r.right + 10, bottom: r.bottom + 10, width: r.width + 20, height: r.height + 20 })
+      }
+      if (registerBtnRef.current) setRegisterBtnRect(registerBtnRef.current.getBoundingClientRect())
     }
     const timer = setTimeout(measure, 50)
     window.addEventListener('resize', measure)
@@ -545,28 +550,42 @@ export default function Students() {
   const classRegisterModalRef = useRef(null)
   const classSectionRef = useRef(null)
   const classNameRowRef = useRef(null)
-  const handleClassTabContentConfirm = () => { setShowClassRegisterModal(true); advance() }
-  const handleRegisterBtnClick = () => {
-    if (showClassTabContentHint) { setShowClassRegisterModal(true); advance(); return }
-    setShowClassRegisterModal(true)
+  const classSelectRef = useRef(null)
+  const openClassRegisterWindow = () => {
+    const w = 650, h = 800
+    const left = window.screenX + (window.outerWidth - w) / 2
+    const top = window.screenY + (window.outerHeight - h) / 2
+    window.open('/class-register', '_blank', `width=${w},height=${h},left=${left},top=${top},resizable=yes`)
   }
 
-  useEffect(() => {
-    if (!showClassTabContentHint) return
-    const handleKeyDown = e => { if (e.key !== 'Enter') return; handleClassTabContentConfirm() }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [showClassTabContentHint])
+  const handleRegisterBtnClick = () => {
+    if (showClassTabContentHint) { setShowClassRegisterModal(true); advance(); return }
+    sessionStorage.setItem('classRegisterContext', JSON.stringify({ studentId: selectedStudentId, studentName: form.name }))
+    openClassRegisterWindow()
+  }
+
+  const handleEnrollmentClick = (enrollment) => {
+    sessionStorage.setItem('classRegisterContext', JSON.stringify({ studentId: selectedStudentId, studentName: form.name, enrollmentId: enrollment.id }))
+    openClassRegisterWindow()
+  }
 
   const [classRegisterSectionRect, setClassRegisterSectionRect] = useState(null)
   const [classNameRowRect, setClassNameRowRect] = useState(null)
+  const [classSelectTailLeftPx, setClassSelectTailLeftPx] = useState(16)
   const showClassRegisterHint = isOpen && activeStep?.id === 'student-class-register-hint' && activeSide === 'class-students'
 
   useEffect(() => {
     if (!showClassRegisterHint) return
     const measure = () => {
       if (classSectionRef.current) setClassRegisterSectionRect(classSectionRef.current.getBoundingClientRect())
-      if (classNameRowRef.current) setClassNameRowRect(classNameRowRef.current.getBoundingClientRect())
+      const rowRect = classNameRowRef.current?.getBoundingClientRect()
+      const selectRect = classSelectRef.current?.getBoundingClientRect()
+      if (rowRect && selectRect) {
+        // 말풍선을 "반 선택" 드롭다운 기준으로 배치 - 말꼬리는 그 중앙을, 말풍선은 거기서 40px 더 왼쪽으로
+        const boxLeft = selectRect.left - 40
+        setClassNameRowRect({ ...rowRect, top: rowRect.top + 20, left: boxLeft })
+        setClassSelectTailLeftPx(selectRect.left + selectRect.width / 2 - boxLeft)
+      }
     }
     const timer = setTimeout(measure, 50)
     window.addEventListener('resize', measure)
@@ -653,13 +672,23 @@ export default function Students() {
     return () => { clearTimeout(timer); window.removeEventListener('resize', measure) }
   }, [showClassRegisterDiscountHint])
 
-  const handleClassRegisterDiscountConfirm = () => advance()
+  // 확인을 누르면 "월납/일시납" 설명 단계는 건너뛰고 바로 다음 단계로 이동
+  const handleClassRegisterDiscountConfirm = () => skipTo(step + 2)
   useEffect(() => {
     if (!showClassRegisterDiscountHint) return
     const handleKeyDown = e => { if (e.key !== 'Enter') return; handleClassRegisterDiscountConfirm() }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [showClassRegisterDiscountHint])
+
+  // 반복주기 선택란을 누르면(포커스) "월납/일시납" 설명 단계로 진행
+  const handleRepeatFocus = () => {
+    if (showClassRegisterDiscountHint) advance()
+  }
+  // "월납/일시납" 설명 단계에서 실제로 값을 선택하면 다음 단계로 진행
+  const handleRepeatChange = (value) => {
+    if (showClassRegisterDiscountRepeatHint && value !== '선택') advance()
+  }
 
   useEffect(() => {
     if (!showClassRegisterDiscountRepeatHint) return
@@ -686,14 +715,16 @@ export default function Students() {
   }, [showClassRegisterSubmitHint])
 
   const handleSubmitClick = async (data) => {
-    if (showClassRegisterSubmitHint) {
-      if (typeof selectedStudentId === 'number' && data) {
-        await addEnrollment({ studentId: selectedStudentId, ...data })
-        const updated = { ...form, hasClasses: true }
-        await updateStudent(selectedStudentId, updated)
-        setForm(updated)
-      }
-      advance()
+    if (typeof selectedStudentId === 'number' && data) {
+      await addEnrollment({ studentId: selectedStudentId, ...data })
+      const updated = { ...form, hasClasses: true }
+      await updateStudent(selectedStudentId, updated)
+      setForm(updated)
+    }
+    if (showClassRegisterSubmitHint) advance()
+    else {
+      alert('처리 완료.')
+      setShowClassRegisterModal(false)
     }
   }
 
@@ -838,6 +869,16 @@ export default function Students() {
     setSelectedStudentId(s.id)
     setForm(s)
     setInfoTab('가족')
+  }
+
+  const handleDeleteStudent = async () => {
+    if (typeof selectedStudentId !== 'number') return
+    if (!window.confirm('삭제하는 경우 자료를 복구할 수 없습니다. 삭제하려면 확인을 선택해 주세요.')) return
+    const { error } = await deleteStudent(selectedStudentId)
+    if (error) { alert('삭제에 실패했습니다.'); return }
+    alert('정상적으로 처리되었습니다.')
+    setSelectedStudentId(null)
+    setForm(emptyForm)
   }
 
   const handleSave = async () => {
@@ -1162,11 +1203,10 @@ export default function Students() {
             holes={[classTabContentRect]}
           />
           <TutorialTooltip
-            rect={classTabContentRect}
-            placement="top"
+            rect={registerBtnRect}
+            placement="bottom"
             rightAlign
             message="수강신청 버튼을 눌러 반을 등록하세요."
-            onConfirm={handleClassTabContentConfirm}
           />
         </>
       )}
@@ -1180,8 +1220,8 @@ export default function Students() {
           <TutorialTooltip
             rect={classNameRowRect}
             placement="top"
-            center
-            message="반을 선택하여 수강신청을 완료하세요."
+            tailLeftPx={classSelectTailLeftPx}
+            message="반을 선택하여 수강신청을 진행하세요."
           />
         </>
       )}
@@ -1355,6 +1395,7 @@ export default function Students() {
           modalRef={classRegisterModalRef}
           classSectionRef={classSectionRef}
           classNameRowRef={classNameRowRef}
+          classSelectRef={classSelectRef}
           onClassSelect={handleClassSelect}
           onClose={() => setShowClassRegisterModal(false)}
           resetKey={classRegisterResetKey}
@@ -1364,6 +1405,8 @@ export default function Students() {
           classSubmitBtnRef={classSubmitBtnRef}
           onSubmitClick={handleSubmitClick}
           autoSelectFirstClass={showAnyClassRegisterStep && !showClassRegisterHint}
+          onRepeatFocus={handleRepeatFocus}
+          onRepeatChange={handleRepeatChange}
         />
       )}
       <TopNav />
@@ -1546,7 +1589,7 @@ export default function Students() {
                         <button className="info-action-btn blue narrow">수정</button>
                         <button className="info-action-btn red narrow" onClick={()=>setForm(f=>({...f,status:'퇴원'}))}>퇴원</button>
                         <button className="info-action-btn red narrow" onClick={()=>setForm(f=>({...f,status:'휴원'}))}>휴원</button>
-                        <button className="info-action-btn gray narrow">삭제</button>
+                        <button className="info-action-btn gray narrow" onClick={handleDeleteStudent}>삭제</button>
                         <button className="info-action-btn blue">수강생파일</button>
                         <button className="info-action-btn teal">알림톡전송</button>
                         <button className="info-action-btn blue" onClick={handleNewStudent}>신규 수강생 등록</button>
@@ -1690,9 +1733,9 @@ export default function Students() {
                       {(selectedStudentId !== null && selectedStudentId !== 'new' || tutorialShowInfoTabs) && (
                         <div className="info-tab-content" ref={infoTabContentRef}>
                           {infoTab==='가족'     && <FamilyTab key={selectedStudentId} nameInputRef={familyNameInputRef} relationSelectRef={familyRelationSelectRef} phoneInputRef={familyPhoneInputRef} msgTypeSelectRef={familyMsgTypeSelectRef} onMsgTypeChange={handleFamilyMsgTypeChange} onMsgTypeClick={handleFamilyMsgTypeClick} saveBtnRef={familySaveBtnRef} onSaveClick={handleFamilySaveClick} initialRows={form.family} />}
-                          {infoTab==='수강'     && <ClassTab onRegisterClick={handleRegisterBtnClick} enrollments={contextEnrollments.filter(e => e.studentId === selectedStudentId)} enrollmentRowRef={classTabEnrollmentRowRef} />}
-                          {infoTab==='수납'     && <PaymentTab />}
-                          {infoTab==='결제'     && <BillingTab />}
+                          {infoTab==='수강'     && <ClassTab onRegisterClick={handleRegisterBtnClick} enrollments={contextEnrollments.filter(e => e.studentId === selectedStudentId)} enrollmentRowRef={classTabEnrollmentRowRef} registerBtnRef={registerBtnRef} onEnrollmentClick={handleEnrollmentClick} />}
+                          {infoTab==='수납'     && <PaymentTab studentId={selectedStudentId} studentName={form.name} />}
+                          {infoTab==='결제'     && <BillingTab studentId={selectedStudentId} studentName={form.name} />}
                           {infoTab==='상담'     && <ConsultTab />}
                           {infoTab==='출결'     && <AttendTab />}
                           {infoTab==='학원성적' && <AcademyScoreTab />}
@@ -1789,10 +1832,7 @@ export default function Students() {
                     </tbody>
                   </table>
                 </div>
-                <div className="sts-pagination">
-                  <div className="sts-pages">{[1,2].map(p=><button key={p} className={`sts-page-btn ${p===1?'active':''}`}>{p}</button>)}</div>
-                  <span className="sts-page-info">1 / 2 Pages</span>
-                </div>
+                {filteredStudents.length === 0 && <div className="sts-empty-footer">검색된 데이터가 없습니다.</div>}
               </div>
             </>
           )}

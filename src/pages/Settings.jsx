@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './Settings.css'
 import TopNav from '../components/TopNav'
 import FavStar from '../components/FavStar'
+import { useAuth } from '../contexts/AuthContext'
+import { supabase } from '../lib/supabase'
 
 const UNLOCKED_MENUS = ['students','payments','classes']
 
@@ -89,23 +91,24 @@ const SIDE_MENUS = [
 
 export default function Settings() {
   const navigate = useNavigate()
+  const { user, profile, refreshProfile } = useAuth()
+  const [saving, setSaving] = useState(false)
   const [activeMenu, setActiveMenu] = useState('')
   const [activeSide, setActiveSide] = useState('basic')
   const [expanded, setExpanded] = useState(['academy'])
-  const [editing, setEditing] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [authNames, setAuthNames] = useState(
     Object.fromEntries(AUTH_GROUPS.map(g => [g.code, '']))
   )
   const [form, setForm] = useState({
-    name: localStorage.getItem('academyName') || 'OO학원', bizNo: '123-45-67891',
-    code: '10102093', taxType: '면세',
+    name: profile?.biz_name || localStorage.getItem('academyName') || 'OO학원', bizNo: profile?.biz_num || '123-45-67891',
+    code: profile?.code || '10102093', taxType: '면세',
     region1: '서울', region2: '중구',
-    regNo: '000000', tel: '010-0000-0000',
+    regNo: '000000', tel: profile?.tel || '010-0000-0000',
     adminTel: '010-0000-0000',
     email1: '', email2: '', emailType: '직접입력',
     fax: '', zip: '', addr: '', addrDetail: '',
-    ownerName: '홍길동', nationality: '내국인',
+    ownerName: profile?.owner_name || '홍길동', nationality: '내국인',
     resId1: '000000', resId2: '1111111',
     classroom: '', classroomCnt: '', office: '', deskCnt: '', lounge: '', bus: '',
     billDay: '25', lessonStart: '6', lessonInterval: '3',
@@ -125,6 +128,18 @@ export default function Settings() {
 
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [menuLockedClickCount, setMenuLockedClickCount] = useState(0)
+
+  useEffect(() => {
+    if (!profile) return
+    setForm(f => ({
+      ...f,
+      name: profile.biz_name || f.name,
+      bizNo: profile.biz_num || f.bizNo,
+      code: profile.code || f.code,
+      ownerName: profile.owner_name || f.ownerName,
+      tel: profile.tel || f.tel,
+    }))
+  }, [profile])
 
   const toggleGroup = id => setExpanded(e => e.includes(id) ? [] : [id])
 
@@ -277,7 +292,20 @@ export default function Settings() {
               <div className="sm-section-flat" style={{marginTop:40}}>
                 <div className="sm-sec-head" style={{borderBottomColor:'#00B5A9'}}>
                   <div className="sm-sec-title">기본정보</div>
-                  <button className="sm-edit-btn" onClick={() => { if (editing) { localStorage.setItem('academyName', form.name); localStorage.setItem('bizNo', form.bizNo); } setEditing(!editing) }}> {editing ? '저장' : '수정'} </button>
+                  <button className="sm-edit-btn sm-basic-edit-btn" disabled={saving} onClick={async () => {
+                    setSaving(true)
+                    const { error } = await supabase.from('profiles').update({
+                      biz_name: form.name,
+                      biz_num: form.bizNo,
+                      owner_name: form.ownerName,
+                      tel: form.tel,
+                      address: form.addr,
+                      address_detail: form.addrDetail,
+                    }).eq('id', user.id)
+                    setSaving(false)
+                    if (error) { alert('저장에 실패했습니다.'); return }
+                    refreshProfile()
+                  }}> 수정 </button>
                 </div>
                <div className="sm-form" style={{padding: 0}}>
 

@@ -216,6 +216,7 @@
 }
 
 .cl-table tr:hover td { background: #fafafa; }
+.cl-table tr.cl-empty-row:hover td { background: transparent; }
 
 .td-center { text-align: center; }
 

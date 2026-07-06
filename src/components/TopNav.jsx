@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
+
+const EMP_NO = '260001'
 
 export default function TopNav() {
   const navigate = useNavigate()
+  const { profile } = useAuth()
   const [showQuick, setShowQuick] = useState(false)
-  const [academyName, setAcademyName] = useState(localStorage.getItem('academyName') || 'OO학원')
-  const [userName, setUserName] = useState(localStorage.getItem('userName') || '원장')
-  const [userEmpNo, setUserEmpNo] = useState(localStorage.getItem('userEmpNo') || '200001')
+  const academyName = profile?.biz_name || 'OO학원'
+  const userName = profile?.owner_name || '원장'
   const [favorites, setFavorites] = useState(() => {
     try { return JSON.parse(localStorage.getItem('favorites')) || [] }
     catch { return [] }
@@ -17,9 +20,6 @@ export default function TopNav() {
     const sync = () => {
       try { setFavorites(JSON.parse(localStorage.getItem('favorites')) || []) }
       catch { setFavorites([]) }
-      setAcademyName(localStorage.getItem('academyName') || 'OO학원')
-      setUserName(localStorage.getItem('userName') || '원장')
-      setUserEmpNo(localStorage.getItem('userEmpNo') || '200001')
     }
     window.addEventListener('storage', sync)
     const interval = setInterval(sync, 500)
@@ -41,7 +41,7 @@ export default function TopNav() {
           <img src="/icons/tnav-academy.svg" className="tnav-icon" /> {academyName}
         </span>
         <div className="tnav-sep" />
-        <span className="tnav-item">{userName} ({userEmpNo})님</span>
+        <span className="tnav-item">{userName} ({EMP_NO})님</span>
         <div className="tnav-sep" />
         <span className="tnav-link" style={{cursor:'pointer'}}
          onClick={() => window.open('/myinfo', '_blank', 'width=1250,height=950')}>
