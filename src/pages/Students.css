@@ -122,8 +122,8 @@
   color: #fff;
   border: none;
   border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 400;
   cursor: pointer;
   font-family: inherit;
   margin-bottom: 10px;
@@ -194,25 +194,25 @@
 }
 
 .info-save-btn {
-  padding: 6px 16px;
+  padding: 5px 14px;
   background: #F5841F;
   color: #fff;
   border: none;
   border-radius: 4px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 400;
   cursor: pointer;
   font-family: inherit;
 }
 
 .info-new-btn {
-  padding: 6px 16px;
+  padding: 5px 14px;
   background: #00B5A9;
   color: #fff;
   border: none;
   border-radius: 4px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 400;
   cursor: pointer;
   font-family: inherit;
 }
@@ -242,7 +242,7 @@
   border: none;
   border-radius: 4px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 400;
   cursor: pointer;
   font-family: inherit;
   transition: background 0.15s;
@@ -257,7 +257,7 @@
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 400;
   cursor: pointer;
   font-family: inherit;
   transition: color 0.15s;
@@ -276,12 +276,12 @@
 
 /* 수강생 액션 버튼 */
 .st-btn {
-  padding: 6px 14px;
+  padding: 5px 14px;
   color: #fff;
   border: 1px solid transparent;
   border-radius: 4px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 400;
   cursor: pointer;
   font-family: inherit;
 }
@@ -478,7 +478,7 @@
 .info-tab.active {
   background: #F5841F;
   color: #fff;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .info-tab:hover:not(.active) { background: #818181; color: #F5841F; }
@@ -565,13 +565,13 @@
 .sts-input:focus { border-color: #F5841F; }
 
 .sts-search-btn {
-  padding: 5px 12px;
+  padding: 5px 14px;
   background: #ff3c00;
   color: #fff;
   border: 1px solid #ff3c00;
   border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 400;
   cursor: pointer;
   font-family: inherit;
   white-space: nowrap;
@@ -579,13 +579,13 @@
 .sts-search-btn:hover { background: #fff; border-color: #ff3c00; color: #000; }
 
 .sts-export-btn {
-  padding: 5px 12px;
+  padding: 5px 14px;
   background: #00a2ff;
   color: #fff;
   border: 1px solid #00a2ff;
   border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 400;
   cursor: pointer;
   font-family: inherit;
   white-space: nowrap;
@@ -593,13 +593,13 @@
 .sts-export-btn:hover { background: transparent; color: #000; }
 
 .sts-teal-btn {
-  padding: 5px 12px;
+  padding: 5px 14px;
   background: #ff8a01;
   color: #fff;
   border: 1px solid #ff8a01;
   border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 400;
   cursor: pointer;
   font-family: inherit;
   white-space: nowrap;
@@ -607,13 +607,13 @@
 .sts-teal-btn:hover { background: transparent; color: #000; }
 
 .sts-orange-btn {
-  padding: 5px 12px;
+  padding: 5px 14px;
   background: #ff8a01;
   color: #fff;
   border: 1px solid #ff8a01;
   border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 400;
   cursor: pointer;
   font-family: inherit;
   white-space: nowrap;
@@ -621,13 +621,13 @@
 .sts-orange-btn:hover { background: transparent; color: #000; }
 
 .sts-reset-btn {
-  padding: 5px 12px;
+  padding: 5px 14px;
   background: #6e7576;
   color: #fff;
   border: 1px solid #6e7576;
   border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 400;
   cursor: pointer;
   font-family: inherit;
   white-space: nowrap;
@@ -706,7 +706,7 @@
   border: 1px solid #ddd;
   background: #fff;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 13px;
   cursor: pointer;
   font-family: inherit;
   color: #555;
@@ -716,7 +716,7 @@
   background: #F5841F;
   color: #fff;
   border-color: #F5841F;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .sts-page-info {
@@ -900,13 +900,13 @@
 .notice-unsent { color: #E8445A; font-size: 12px; font-weight: 700; }
 
 .schedule-search-btn {
-  padding: 5px 12px;
+  padding: 5px 14px;
   background: #555;
   color: #fff;
   border: none;
   border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 400;
   cursor: pointer;
   font-family: inherit;
   white-space: nowrap;

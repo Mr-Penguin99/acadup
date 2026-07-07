@@ -113,8 +113,8 @@
   color: #fff;
   border: none;
   border-radius: 4px;
-  font-size: 16px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 400;
   margin-top: 28px;
 }
 
@@ -127,7 +127,7 @@
   color: #555;
   border: 1px solid #e0e0e0;
   border-radius: 4px;
-  font-size: 16px;
+  font-size: 13px;
   margin-top: 8px;
 }
 
@@ -176,7 +176,7 @@
   border-radius: 4px;
   color: #F5841F;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 400;
   white-space: nowrap;
   font-family: inherit;
 }

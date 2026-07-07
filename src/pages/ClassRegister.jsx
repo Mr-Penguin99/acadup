@@ -222,7 +222,7 @@ export default function ClassRegister({ classSectionRef, classNameRowRef, classS
                   <input type="date" style={inputStyle} value={startDate} onChange={e => setStartDate(e.target.value)} />
                   <span>~</span>
                   <input type="date" style={inputStyle} value={endDate} onChange={e => setEndDate(e.target.value)} />
-                  <button style={{ ...btnStyle('#29ABE2'), fontSize: 12, padding: '4px 10px' }}
+                  <button style={{ ...btnStyle('#29ABE2'), fontSize: 13, padding: '4px 10px' }}
                     onClick={() => setEndDate(new Date().toISOString().slice(0, 10))}>+ 수강중지</button>
                 </div>
               </td>
@@ -281,7 +281,7 @@ export default function ClassRegister({ classSectionRef, classNameRowRef, classS
                       <th style={subTh}>금액(원)</th>
                       <th style={subTh}>반복주기</th>
                       <th style={{ ...subTh, textAlign: 'center' }}>
-                        <button onClick={addDiscount} style={{ ...btnStyle('#29ABE2'), fontSize: 11, padding: '2px 8px' }}>+ 추가</button>
+                        <button onClick={addDiscount} style={{ ...btnStyle('#29ABE2'), fontSize: 13, padding: '2px 8px' }}>+ 추가</button>
                       </th>
                     </tr>
                   </thead>
@@ -339,17 +339,17 @@ export default function ClassRegister({ classSectionRef, classNameRowRef, classS
 
 const btnStyle = (bg) => ({
   padding: '6px 16px', background: bg, color: '#fff', border: 'none',
-  borderRadius: 4, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+  borderRadius: 4, fontSize: 13, fontWeight: 400, cursor: 'pointer', fontFamily: 'inherit',
 })
 
 const submitBtnStyle = {
-  padding: '6px 16px', background: '#6e7576', color: '#fff', border: '1px solid #6e7576',
-  borderRadius: 4, fontSize: 13, fontWeight: 300, cursor: 'pointer', fontFamily: 'inherit',
+  padding: '5px 14px', background: '#6e7576', color: '#fff', border: '1px solid #6e7576',
+  borderRadius: 4, fontSize: 13, fontWeight: 400, cursor: 'pointer', fontFamily: 'inherit',
 }
 
 const submitBtnHoverStyle = {
-  padding: '6px 16px', background: 'none', color: '#6e7576', border: '1px solid #6e7576',
-  borderRadius: 4, fontSize: 13, fontWeight: 300, cursor: 'pointer', fontFamily: 'inherit',
+  padding: '5px 14px', background: 'none', color: '#6e7576', border: '1px solid #6e7576',
+  borderRadius: 4, fontSize: 13, fontWeight: 400, cursor: 'pointer', fontFamily: 'inherit',
 }
 
 const labelCell = {

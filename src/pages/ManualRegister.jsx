@@ -244,17 +244,17 @@ export default function ManualRegister() {
 
 const btnStyle = (bg) => ({
   padding: '6px 16px', background: bg, color: '#fff', border: 'none',
-  borderRadius: 4, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+  borderRadius: 4, fontSize: 13, fontWeight: 400, cursor: 'pointer', fontFamily: 'inherit',
 })
 
 const addBtn = {
   padding: '5px 14px', background: '#F5841F', color: '#fff', border: 'none',
-  borderRadius: 3, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap',
+  borderRadius: 3, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap',
 }
 
 const delBtn = {
   padding: '2px 8px', background: '#eee', border: '1px solid #ccc',
-  borderRadius: 3, cursor: 'pointer', fontSize: 12,
+  borderRadius: 3, cursor: 'pointer', fontSize: 13,
 }
 
 const labelCell = {

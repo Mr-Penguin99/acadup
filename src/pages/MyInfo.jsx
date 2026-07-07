@@ -65,7 +65,7 @@ export default function MyInfo() {
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
         <button style={{
           padding: '6px 20px', background: '#F5841F', color: '#fff',
-          border: 'none', borderRadius: 4, fontSize: 13, fontWeight: 700,
+          border: 'none', borderRadius: 4, fontSize: 13, fontWeight: 400,
           cursor: 'pointer', fontFamily: 'inherit',
         }} onClick={() => { localStorage.setItem('userName', form.name); localStorage.setItem('userEmpNo', form.empNo) }}>수정</button>
       </div>

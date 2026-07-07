@@ -174,7 +174,7 @@
 }
 
 .cl-reg-btn {
-  padding: 6px 16px;
+  padding: 5px 14px;
   background: #00a2ff;
   color: #fff;
   border: 1px solid #00a2ff;
@@ -221,12 +221,12 @@
 .td-center { text-align: center; }
 
 .cl-edit-btn {
-  padding: 4px 12px;
+  padding: 5px 14px;
   background: #6e7576;
   color: #fff;
   border: 1px solid #6e7576;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 400;
   cursor: pointer;
   font-family: inherit;

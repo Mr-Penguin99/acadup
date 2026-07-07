@@ -18,7 +18,7 @@ export default function TutorialOverlay({ title, description, onNext, nextLabel 
         <button
           style={{
             padding: '10px 28px', background: '#F5841F', color: '#fff',
-            border: 'none', borderRadius: 6, fontSize: 14, fontWeight: 600,
+            border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 400,
             cursor: 'pointer', fontFamily: 'inherit',
           }}
           onClick={onNext}

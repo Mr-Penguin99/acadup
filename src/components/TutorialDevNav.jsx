@@ -18,7 +18,7 @@ export default function TutorialDevNav() {
   const baseStyle = {
     position: 'fixed', top: '50%', transform: 'translateY(-50%)', zIndex: 5000,
     background: '#222', color: '#fff', border: 'none', borderRadius: 20,
-    padding: '10px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+    padding: '10px 16px', fontSize: 13, fontWeight: 400, cursor: 'pointer',
     boxShadow: '0 4px 12px rgba(0,0,0,0.3)', fontFamily: 'inherit',
   }
 

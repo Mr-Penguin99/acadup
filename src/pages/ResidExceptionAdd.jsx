@@ -23,12 +23,12 @@ export default function ResidExceptionAdd() {
         <button style={{
           padding: '6px 20px', background: '#F5841F', color: '#fff',
           border: 'none', borderRadius: 4, fontSize: 13, cursor: 'pointer',
-          fontFamily: 'inherit', fontWeight: 700,
+          fontFamily: 'inherit', fontWeight: 400,
         }}>저장</button>
         <button style={{
           padding: '6px 20px', background: '#29b6f6', color: '#fff',
           border: 'none', borderRadius: 4, fontSize: 13, cursor: 'pointer',
-          fontFamily: 'inherit', fontWeight: 700,
+          fontFamily: 'inherit', fontWeight: 400,
         }}>신규 주민등록 예외 등록</button>
       </div>
 

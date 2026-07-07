@@ -22,6 +22,8 @@ export default function PaymentRegister() {
   const [receipt, setReceipt] = useState(true)
   const [memo, setMemo] = useState('')
   const [saving, setSaving] = useState(false)
+  const [payHover, setPayHover] = useState(false)
+  const [closeHover, setCloseHover] = useState(false)
 
   const handlePay = async () => {
     if (!data) { alert('결제할 대상 정보가 없습니다.'); return }
@@ -52,8 +54,14 @@ export default function PaymentRegister() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <span style={{ fontSize: 17, fontWeight: 700 }}>수납 등록</span>
         <div style={{ display: 'flex', gap: 6 }}>
-          <button style={btnStyle('#F5841F')} disabled={saving} onClick={handlePay}>결제하기</button>
-          <button style={btnStyle('#888')} onClick={() => window.close()}>닫기</button>
+          <button
+            style={btnStyle('#ff3c00', payHover)} disabled={saving} onClick={handlePay}
+            onMouseEnter={() => setPayHover(true)} onMouseLeave={() => setPayHover(false)}
+          >결제하기</button>
+          <button
+            style={btnStyle('#6e7576', closeHover)} onClick={() => window.close()}
+            onMouseEnter={() => setCloseHover(true)} onMouseLeave={() => setCloseHover(false)}
+          >닫기</button>
         </div>
       </div>
 
@@ -179,9 +187,11 @@ export default function PaymentRegister() {
   )
 }
 
-const btnStyle = (bg) => ({
-  padding: '6px 16px', background: bg, color: '#fff', border: 'none',
-  borderRadius: 4, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+const btnStyle = (color, hover) => ({
+  padding: '6px 16px', border: `1px solid ${color}`,
+  borderRadius: 4, fontSize: 13, fontWeight: 400, cursor: 'pointer', fontFamily: 'inherit',
+  background: hover ? 'transparent' : color,
+  color: hover ? '#000' : '#fff',
 })
 
 const sectionHead = {

@@ -92,7 +92,7 @@ export default function PaymentMemo() {
 
 const btnStyle = (bg) => ({
   padding:'6px 14px', background:bg, color:'#fff', border:'none',
-  borderRadius:4, fontSize:13, fontWeight:500, cursor:'pointer', fontFamily:'inherit',
+  borderRadius:4, fontSize:13, fontWeight:400, cursor:'pointer', fontFamily:'inherit',
 })
 
 const labelCell = {

@@ -110,8 +110,8 @@ export default function BillingTab({ studentId, studentName }) {
 }
 
 const outlineBtn = {
-  padding:'4px 10px', background:'#fff', color:'#555',
-  border:'1px solid #ccc', borderRadius:4, fontSize:12,
+  padding:'5px 14px', background:'#fff', color:'#555',
+  border:'1px solid #ccc', borderRadius:4, fontSize:13, fontWeight:400,
   cursor:'pointer', fontFamily:'inherit',
 }
 

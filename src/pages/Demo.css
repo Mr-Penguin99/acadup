@@ -84,8 +84,8 @@
   color: #fff;
   border: none;
   border-radius: 4px;
-  font-size: 15px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 400;
   cursor: pointer;
   font-family: inherit;
 }
@@ -99,7 +99,7 @@
   color: #555;
   border: 1px solid #e0e0e0;
   border-radius: 4px;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 400;
   cursor: pointer;
   font-family: inherit;

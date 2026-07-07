@@ -105,7 +105,7 @@
 .pm-input:focus { border-color: #F5841F; }
 
 .pm-dark-btn {
-  padding: 6px 14px;
+  padding: 5px 14px;
   background: #ff3c00;
   color: #fff;
   border: 1px solid #ff3c00;
@@ -119,7 +119,7 @@
 .pm-dark-btn:hover { background: transparent; color: #000; }
 
 .pm-teal-btn {
-  padding: 6px 14px;
+  padding: 5px 14px;
   background: #00a2ff;
   color: #fff;
   border: 1px solid #00a2ff;
@@ -133,7 +133,7 @@
 .pm-teal-btn:hover { background: transparent; color: #000; }
 
 .pm-orange-btn {
-  padding: 6px 14px;
+  padding: 5px 14px;
   background: #ff8a01;
   color: #fff;
   border: 1px solid #ff8a01;
@@ -173,7 +173,7 @@
 .pm-reset-btn:hover { background: transparent; color: #000; }
 
 .pm-gray-btn {
-  padding: 6px 14px;
+  padding: 5px 14px;
   background: #6e7576;
   color: #fff;
   border: 1px solid #6e7576;
@@ -269,7 +269,7 @@
   border: 1px solid #ddd;
   background: #fff;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 13px;
   cursor: pointer;
   font-family: inherit;
   color: #555;
@@ -279,7 +279,7 @@
   background: #F5841F;
   color: #fff;
   border-color: #F5841F;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .pm-page-info {
@@ -290,7 +290,7 @@
 }
 
 .pm-red-btn {
-  padding: 6px 14px;
+  padding: 5px 14px;
   background: #ff3c00;
   color: #fff;
   border: 1px solid #ff3c00;
@@ -311,7 +311,7 @@
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 400;
   cursor: pointer;
   font-family: inherit;
   white-space: nowrap;
