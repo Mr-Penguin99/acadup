@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useAppData } from '../contexts/AppDataContext'
 
 const CLASS_LIST = ['중등 수학A 1교시', '중등 수학A 2교시', '중등 수학A 3교시']
 const CLASS_INFO = {
@@ -10,7 +11,14 @@ const TUITION_OPTIONS = ['선택', '수강료01', '수강료02', '교재(서적)
 const DISCOUNT_OPTIONS = ['선택', '형제할인', '장기할인', '성적우수할인', '일수할인', '기타(특별)할인']
 const ADD_OPTIONS = ['선택', '수강료01', '수강료02', '교재(서적)01', '교재(서적)02', '교재(프린트물)01', '교재(프린트물)02', '교재(콘텐츠)01', '교재(콘텐츠)02']
 
+const formatAmount = (val) => val.replace(/[^0-9]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+
+const NUMERIC_ALLOWED_KEYS = ['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'Enter']
+
 function ItemTable({ items, setItems, options }) {
+  const [addHover, setAddHover] = useState(false)
+  const [warningId, setWarningId] = useState(null)
+  const warningTimerRef = useRef(null)
   const add = () => setItems(p => [...p, { id: Date.now(), item: options[0], amt: '' }])
   const remove = (id) => setItems(p =>
     p.length === 1
@@ -18,6 +26,16 @@ function ItemTable({ items, setItems, options }) {
       : p.filter(r => r.id !== id)
   )
   const update = (id, key, val) => setItems(p => p.map(r => r.id === id ? { ...r, [key]: val } : r))
+  useEffect(() => () => clearTimeout(warningTimerRef.current), [])
+  const handleAmountKeyDown = (id, e) => {
+    if (NUMERIC_ALLOWED_KEYS.includes(e.key) || e.ctrlKey || e.metaKey) return
+    if (!/^[0-9]$/.test(e.key)) {
+      e.preventDefault()
+      setWarningId(id)
+      clearTimeout(warningTimerRef.current)
+      warningTimerRef.current = setTimeout(() => setWarningId(null), 1500)
+    }
+  }
   return (
     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
       <thead>
@@ -25,7 +43,15 @@ function ItemTable({ items, setItems, options }) {
           <th style={subTh}>항목</th>
           <th style={subTh}>금액(원)</th>
           <th style={subTh}>
-            <button onClick={add} style={addBtn}>+ 추가</button>
+            <button
+              onClick={add}
+              style={addHover ? addBtnHover : addBtn}
+              onMouseEnter={() => setAddHover(true)}
+              onMouseLeave={() => setAddHover(false)}
+            >
+              <span style={{ color: addHover ? '#fff' : '#FF9000' }}>+</span>{' '}
+              <span style={{ color: addHover ? '#fff' : '#6e7576' }}>추가</span>
+            </button>
           </th>
         </tr>
       </thead>
@@ -37,8 +63,22 @@ function ItemTable({ items, setItems, options }) {
                 {options.map(o => <option key={o}>{o}</option>)}
               </select>
             </td>
-            <td style={subTd}>
-              <input style={{ ...inputStyle, width: 100, textAlign: 'right' }} value={row.amt} onChange={e => update(row.id, 'amt', e.target.value)} />
+            <td style={{ ...subTd, position: 'relative' }}>
+              <input
+                style={{ ...inputStyle, width: 100, textAlign: 'right' }}
+                value={row.amt}
+                onKeyDown={e => handleAmountKeyDown(row.id, e)}
+                onChange={e => update(row.id, 'amt', formatAmount(e.target.value))}
+              />
+              {warningId === row.id && (
+                <div style={{
+                  position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)',
+                  marginTop: 4, padding: '4px 8px', background: '#333', color: '#fff',
+                  fontSize: 11, borderRadius: 4, whiteSpace: 'nowrap', zIndex: 10,
+                }}>
+                  숫자만 입력이 가능합니다.
+                </div>
+              )}
             </td>
             <td style={{ ...subTd, textAlign: 'center' }}>
               <button onClick={() => remove(row.id)} style={delBtn}>－</button>
@@ -51,6 +91,7 @@ function ItemTable({ items, setItems, options }) {
 }
 
 export default function ManualRegister() {
+  const { classes, enrollments, payments, updateEnrollment, deleteEnrollment } = useAppData()
   const [prefillData, setPrefillData] = useState(null)
   const [className, setClassName] = useState('')
   const [round, setRound] = useState('1차')
@@ -62,6 +103,7 @@ export default function ManualRegister() {
   const [payItems, setPayItems] = useState([{ id: 1, item: '수강료01', amt: '1,000' }])
   const [discountItems, setDiscountItems] = useState([{ id: 1, item: '선택', amt: '' }])
   const [addItems, setAddItems] = useState([{ id: 1, item: '선택', amt: '' }])
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     const raw = sessionStorage.getItem('manualRegisterData')
@@ -70,7 +112,7 @@ export default function ManualRegister() {
     const row = JSON.parse(raw)
     setPrefillData(row)
     if (row.month) { setTargetStart(row.month); setTargetEnd(row.month) }
-    if (row.billAmt) setPayItems([{ id: 1, item: row.item || '수강료01', amt: row.billAmt }])
+    if (row.billAmt != null) setPayItems([{ id: 1, item: row.item || '수강료01', amt: String(row.billAmt) }])
     // 일반 CLASS_LIST 매칭도 시도
     const cls = row.className?.includes(' > ') ? row.className.split(' > ').pop() : row.className
     if (cls && CLASS_LIST.includes(cls)) setClassName(cls)
@@ -78,6 +120,45 @@ export default function ManualRegister() {
 
   const info = CLASS_INFO[className] || null
   const showForm = !!info || !!prefillData
+
+  // 실제 반 데이터에서 강사 조회 (배정 안 되어 있으면 공백)
+  const targetClassName = prefillData?.className?.includes(' > ')
+    ? prefillData.className.split(' > ').pop()
+    : prefillData?.className || className
+  const matchedClass = classes.find(c => c.name === targetClassName)
+  const teacher = matchedClass?.teacher || ''
+
+  // 이 학생에 대해 마지막으로 청구서(결제 기록)가 생성된 연월
+  const studentPayments = prefillData?.studentId ? payments.filter(p => p.studentId === prefillData.studentId) : []
+  const lastBillMonth = studentPayments.length
+    ? studentPayments.map(p => p.month).filter(Boolean).sort().slice(-1)[0] || ''
+    : ''
+
+  // "수정"은 결제(payments)를 새로 만드는 게 아니라, 해당 청구서(수강신청 건)의 금액을 그대로 수정/저장하는 동작
+  const handleUpdate = async () => {
+    if (!prefillData?.enrollmentId) { alert('수정할 대상 정보가 없습니다.'); return }
+    const enrollment = enrollments.find(e => e.id === prefillData.enrollmentId)
+    if (!enrollment) { alert('수정할 대상 정보가 없습니다.'); return }
+    setSaving(true)
+    const { error } = await updateEnrollment(enrollment.id, { ...enrollment, fee: total })
+    setSaving(false)
+    if (error) { alert(error.message || '수기등록에 실패했습니다.'); return }
+    try { if (window.opener && !window.opener.closed) window.opener.__refreshAppData?.() } catch {}
+    alert('처리가 완료되었습니다.')
+    window.close()
+  }
+
+  const handleDelete = async () => {
+    if (!prefillData?.enrollmentId) { alert('삭제할 대상 정보가 없습니다.'); return }
+    if (!window.confirm('삭제하는 경우 자료를 복구할 수 없습니다.\n삭제하려면 확인을 선택해 주세요.')) return
+    setSaving(true)
+    const { error } = await deleteEnrollment(prefillData.enrollmentId)
+    setSaving(false)
+    if (error) { alert(error.message || '삭제에 실패했습니다.'); return }
+    try { if (window.opener && !window.opener.closed) window.opener.__refreshAppData?.() } catch {}
+    alert('정상적으로 처리되었습니다.')
+    window.close()
+  }
 
   const handleClassChange = (val) => {
     setClassName(val)
@@ -93,17 +174,24 @@ export default function ManualRegister() {
   return (
     <div style={{ fontFamily: "'Noto Sans KR', sans-serif", padding: '12px 20px', fontSize: 12, color: '#333', minWidth: 560 }}>
       {/* 헤더 */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+      <div style={{ marginBottom: 10 }}>
         <span style={{ fontSize: 16, fontWeight: 700 }}>수기 등록</span>
-        {showForm && <button style={btnStyle('#555')}>등록</button>}
       </div>
+      <div style={{ borderTop: '1px solid #eee', marginBottom: 14 }} />
+
+      {showForm && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 14 }}>
+          <button style={{ ...btnStyle('#555'), fontSize: 12 }} disabled={saving} onClick={handleUpdate}>수정</button>
+          <button style={{ ...btnStyle('#555'), fontSize: 12 }} disabled={saving} onClick={handleDelete}>삭제</button>
+        </div>
+      )}
 
       {/* 수강생 정보 */}
       <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 10, borderTop: '2px solid #555' }}>
         <tbody>
           <tr style={{ borderBottom: '1px solid #e0e0e0' }}>
             <td style={labelCell}>수강생 정보</td>
-            <td style={valueCell}><strong>학생01 (01.01.01)</strong></td>
+            <td style={valueCell}><strong>{prefillData?.studentName ? `${prefillData.studentName}(${prefillData.studentBirth || ''})` : '학생01(01.01.01)'}</strong></td>
           </tr>
         </tbody>
       </table>
@@ -134,15 +222,14 @@ export default function ManualRegister() {
             </td>
           </tr>
 
+          {/* 강사 - 실제 반 데이터에서 자동 조회, 배정 안 되어 있으면 공백 */}
+          <tr style={{ borderBottom: '1px solid #e0e0e0' }}>
+            <td style={labelCell}>강사</td>
+            <td style={{ ...valueCell, color: '#F5841F' }}>{teacher}</td>
+          </tr>
+
           {/* 반 선택 후 또는 prefill 시 표시 */}
           {showForm && <>
-            {info && (
-              <tr style={{ borderBottom: '1px solid #e0e0e0' }}>
-                <td style={labelCell}>강사</td>
-                <td style={{ ...valueCell, color: '#F5841F' }}>{info.teacher}</td>
-              </tr>
-            )}
-
             <tr style={{ borderBottom: '1px solid #e0e0e0' }}>
               <td style={labelCell}>수강차수</td>
               <td style={valueCell}>
@@ -162,12 +249,10 @@ export default function ManualRegister() {
               </td>
             </tr>
 
-            {info && (
-              <tr style={{ borderBottom: '1px solid #e0e0e0' }}>
-                <td style={labelCell}>최종청구월</td>
-                <td style={valueCell}>{info.lastMonth}</td>
-              </tr>
-            )}
+            <tr style={{ borderBottom: '1px solid #e0e0e0' }}>
+              <td style={labelCell}>최종청구월</td>
+              <td style={valueCell}>{lastBillMonth}</td>
+            </tr>
 
             <tr style={{ borderBottom: '1px solid #e0e0e0' }}>
               <td style={labelCell}>추가수납여부</td>
@@ -248,40 +333,54 @@ const btnStyle = (bg) => ({
 })
 
 const addBtn = {
-  padding: '5px 14px', background: '#F5841F', color: '#fff', border: 'none',
-  borderRadius: 3, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap',
+  padding: '4px 10px', background: '#f9f9f9', border: '1px solid #ccc',
+  borderRadius: 3, fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: 'inherit',
+}
+
+const addBtnHover = {
+  ...addBtn, background: '#6e7576', border: '1px solid #6e7576',
 }
 
 const delBtn = {
-  padding: '2px 8px', background: '#eee', border: '1px solid #ccc',
-  borderRadius: 3, cursor: 'pointer', fontSize: 13,
+  width: 20, height: 20, padding: 0, background: '#fff', border: '1px solid #ccc',
+  borderRadius: 3, cursor: 'pointer', fontSize: 12, color: '#00a2ff',
+  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
 }
 
+// 내용(순수 텍스트/select/input/checkbox)에 상관없이 모든 행의 세로 크기를 고정 - 뒤죽박죽 방지
+const ROW_HEIGHT = 36
+
 const labelCell = {
-  padding: '9px 16px', background: '#f8f9fb', fontWeight: 600,
+  height: ROW_HEIGHT, boxSizing: 'border-box', verticalAlign: 'middle',
+  padding: '0 14px', background: '#f8f9fb', fontWeight: 600,
   fontSize: 13, color: '#444', width: 180, textAlign: 'center',
   borderRight: '1px solid #e0e0e0', whiteSpace: 'nowrap',
 }
 
-const valueCell = { padding: '9px 14px', fontSize: 13, color: '#333' }
+const valueCell = {
+  height: ROW_HEIGHT, boxSizing: 'border-box', verticalAlign: 'middle',
+  padding: '0 14px', fontSize: 13, color: '#333',
+}
 
 const selectStyle = {
-  padding: '5px 8px', border: '1px solid #ddd', borderRadius: 4,
+  padding: '3px 8px', border: '1px solid #ddd', borderRadius: 4,
   fontSize: 12, fontFamily: 'inherit', outline: 'none', color: '#333', width: 160,
 }
 
 const inputStyle = {
-  padding: '5px 8px', border: '1px solid #ddd', borderRadius: 4,
+  padding: '3px 8px', border: '1px solid #ddd', borderRadius: 4,
   fontSize: 12, fontFamily: 'inherit', outline: 'none', color: '#333', width: 120,
 }
 
 const subTh = {
-  padding: '10px 10px', textAlign: 'center', fontSize: 12,
+  height: ROW_HEIGHT, boxSizing: 'border-box', verticalAlign: 'middle',
+  padding: '0 14px', textAlign: 'center', fontSize: 12,
   fontWeight: 700, color: '#555', whiteSpace: 'nowrap',
   borderRight: '1px solid #e0e0e0',
 }
 
 const subTd = {
-  padding: '10px 10px', verticalAlign: 'middle', fontSize: 12,
+  height: ROW_HEIGHT, boxSizing: 'border-box', verticalAlign: 'middle',
+  padding: '0 14px', fontSize: 12,
   borderRight: '1px solid #e0e0e0', textAlign: 'center',
 }

@@ -156,11 +156,12 @@
 .sm-input:read-only { background: #f9f9f9; color: #888; }
 
 .sm-zip-btn {
-  padding: 7px 12px;
+  padding: 5px 14px;
   background: #fff;
   border: 1px solid #ccc;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 400;
   cursor: pointer;
   font-family: inherit;
   white-space: nowrap;
@@ -170,12 +171,13 @@
 
 /* 미리보기 버튼 */
 .sm-preview-btn {
-  padding: 6px 14px;
+  padding: 5px 14px;
   background: #29b6f6;
   color: #fff;
   border: none;
   border-radius: 4px;
   font-size: 13px;
+  font-weight: 400;
   cursor: pointer;
   white-space: nowrap;
 }

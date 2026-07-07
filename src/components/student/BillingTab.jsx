@@ -93,12 +93,17 @@ export default function BillingTab({ studentId, studentName }) {
               <td style={{...td,textAlign:'center'}}>{row.cardNo}</td>
               <td style={{...td,textAlign:'center'}}>{row.approvalNo}</td>
               <td style={{...td,textAlign:'center'}}>
-                <button style={outlineBtn} onClick={()=>window.open('/payment-memo','_blank','width=650,height=700')}>메모</button>
+                <button style={outlineBtn} onClick={()=>{
+                  const w = 650, h = 700
+                  const left = window.screenX + (window.outerWidth - w) / 2
+                  const top = window.screenY + (window.outerHeight - h) / 2
+                  window.open('/payment-memo','_blank',`width=${w},height=${h},left=${left},top=${top},resizable=yes`)
+                }}>메모</button>
               </td>
               <td style={{...td,textAlign:'center'}}>
                 <div style={{display:'flex',gap:4,justifyContent:'center'}}>
                   <button style={outlineBtn}>현금영수증</button>
-                  <button className="info-action-btn blue">출력</button>
+                  <button style={printBtn}>출력</button>
                 </div>
               </td>
             </tr>
@@ -110,8 +115,14 @@ export default function BillingTab({ studentId, studentName }) {
 }
 
 const outlineBtn = {
-  padding:'5px 14px', background:'#fff', color:'#555',
-  border:'1px solid #ccc', borderRadius:4, fontSize:13, fontWeight:400,
+  padding:'4px 12px', background:'#fff', color:'#555',
+  border:'1px solid #ccc', borderRadius:4, fontSize:12, fontWeight:400,
+  cursor:'pointer', fontFamily:'inherit',
+}
+
+const printBtn = {
+  padding:'4px 12px', background:'#00a2ff', color:'#fff',
+  border:'1px solid #00a2ff', borderRadius:4, fontSize:12, fontWeight:400,
   cursor:'pointer', fontFamily:'inherit',
 }
 

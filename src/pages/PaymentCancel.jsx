@@ -38,8 +38,8 @@ export default function PaymentCancel() {
       <div style={{marginBottom:16}}>
         <div style={{fontSize:18,fontWeight:600,color:'#333',marginBottom:14}}>결제 취소</div>
         <div style={{display:'flex',justifyContent:'flex-end',gap:8}}>
-          <button className="sts-search-btn" style={{fontWeight:500}} disabled={saving} onClick={handleCancel}>결제취소하기</button>
-          <button className="sts-reset-btn" style={{fontWeight:500}} onClick={()=>window.close()}>창닫기</button>
+          <button className="sts-search-btn" disabled={saving} onClick={handleCancel}>결제취소하기</button>
+          <button className="sts-reset-btn" onClick={()=>window.close()}>닫기</button>
         </div>
       </div>
 

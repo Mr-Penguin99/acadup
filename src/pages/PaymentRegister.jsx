@@ -3,22 +3,21 @@ import { useAppData } from '../contexts/AppDataContext'
 
 const PAY_METHODS = ['수납방법', '카드', '현금', '계좌', '제로페이', '카카오페이']
 
+const formatAmount = (val) => val.replace(/[^0-9]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+const toNumber = (val) => parseInt(String(val).replace(/[^0-9]/g, ''), 10) || 0
+
 export default function PaymentRegister() {
   const { addPayment } = useAppData()
   const [data] = useState(() => {
     try { return JSON.parse(sessionStorage.getItem('paymentRegisterData')) } catch { return null }
   })
-  const classes = data ? [{
-    id: data.enrollmentId,
-    month: data.month,
-    name: data.className,
-    fee: data.billAmt || 0,
-  }] : []
+  const bills = data?.bills || []
 
   const [payDate, setPayDate] = useState(new Date().toISOString().slice(0, 10))
   const [payMethod, setPayMethod] = useState('수납방법')
-  const [classAmt, setClassAmt] = useState(String(data?.billAmt ?? ''))
-  const [payAmt, setPayAmt] = useState(String(data?.unpaid ?? ''))
+  const [installment, setInstallment] = useState('할부기간선택')
+  const [classAmt, setClassAmt] = useState(formatAmount(String(bills.reduce((s, b) => s + (b.billAmt || 0), 0))))
+  const [payAmt, setPayAmt] = useState(formatAmount(String(bills.reduce((s, b) => s + (b.unpaid || 0), 0))))
   const [receipt, setReceipt] = useState(true)
   const [memo, setMemo] = useState('')
   const [saving, setSaving] = useState(false)
@@ -26,23 +25,32 @@ export default function PaymentRegister() {
   const [closeHover, setCloseHover] = useState(false)
 
   const handlePay = async () => {
-    if (!data) { alert('결제할 대상 정보가 없습니다.'); return }
-    const amount = parseInt(String(payAmt).replace(/[^0-9]/g, ''), 10) || 0
-    if (amount <= 0) { alert('수납금액을 입력해 주세요.'); return }
+    if (!data || bills.length === 0) { alert('결제할 대상 정보가 없습니다.'); return }
+    if (payMethod === '수납방법') { alert('수납방법을 선택해 주세요.'); return }
+    if (payMethod === '카드' && installment === '할부기간선택') { alert('할부기간을 선택해 주세요.'); return }
+    let remaining = toNumber(payAmt)
+    if (remaining <= 0) { alert('수납금액을 입력해 주세요.'); return }
+
     setSaving(true)
-    const { error } = await addPayment({
-      studentId: data.studentId,
-      enrollmentId: data.enrollmentId,
-      className: data.className,
-      month: data.month,
-      item: data.item,
-      payDate,
-      method: payMethod,
-      amount,
-      memo,
-    })
+    for (const bill of bills) {
+      if (remaining <= 0) break
+      const amount = Math.min(remaining, bill.unpaid)
+      if (amount <= 0) continue
+      const { error } = await addPayment({
+        studentId: data.studentId,
+        enrollmentId: bill.enrollmentId,
+        className: bill.className,
+        month: bill.month,
+        item: bill.item,
+        payDate,
+        method: payMethod,
+        amount,
+        memo,
+      })
+      if (error) { setSaving(false); alert(error.message || '수납 처리에 실패했습니다.'); return }
+      remaining -= amount
+    }
     setSaving(false)
-    if (error) { alert(error.message || '수납 처리에 실패했습니다.'); return }
     try { if (window.opener && !window.opener.closed) window.opener.__refreshAppData?.() } catch {}
     alert('정상적으로 처리되었습니다.')
     window.close()
@@ -51,18 +59,20 @@ export default function PaymentRegister() {
   return (
     <div style={{ fontFamily: "'Noto Sans KR', sans-serif", padding: '20px 24px', fontSize: 13, color: '#333', minWidth: 520 }}>
       {/* 헤더 */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div style={{ marginBottom: 10 }}>
         <span style={{ fontSize: 17, fontWeight: 700 }}>수납 등록</span>
-        <div style={{ display: 'flex', gap: 6 }}>
-          <button
-            style={btnStyle('#ff3c00', payHover)} disabled={saving} onClick={handlePay}
-            onMouseEnter={() => setPayHover(true)} onMouseLeave={() => setPayHover(false)}
-          >결제하기</button>
-          <button
-            style={btnStyle('#6e7576', closeHover)} onClick={() => window.close()}
-            onMouseEnter={() => setCloseHover(true)} onMouseLeave={() => setCloseHover(false)}
-          >닫기</button>
-        </div>
+      </div>
+      <div style={{ borderTop: '1px solid #eee', marginBottom: 14 }} />
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6, marginBottom: 16 }}>
+        <button
+          style={btnStyle('#ff3c00', payHover)} disabled={saving} onClick={handlePay}
+          onMouseEnter={() => setPayHover(true)} onMouseLeave={() => setPayHover(false)}
+        >결제하기</button>
+        <button
+          style={btnStyle('#6e7576', closeHover)} onClick={() => window.close()}
+          onMouseEnter={() => setCloseHover(true)} onMouseLeave={() => setCloseHover(false)}
+        >닫기</button>
       </div>
 
       {/* 수강생 정보 */}
@@ -70,7 +80,7 @@ export default function PaymentRegister() {
         <tbody>
           <tr style={{ borderBottom: '1px solid #e0e0e0' }}>
             <td style={labelCell}>수강생 정보</td>
-            <td style={valueCell}><strong>{data?.studentName || '수강생 미지정'}</strong></td>
+            <td style={valueCell}><strong>{data?.studentName ? `${data.studentName}(${data.studentBirth || ''})` : '수강생 미지정'}</strong></td>
           </tr>
         </tbody>
       </table>
@@ -80,21 +90,21 @@ export default function PaymentRegister() {
       <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 20 }}>
         <thead>
           <tr style={{ borderTop: '1px solid #ccc', borderBottom: '1px solid #e0e0e0', background: '#f8f9fb' }}>
+            <th style={th}>번호</th>
             <th style={th}>수강월</th>
             <th style={th}>수강반</th>
             <th style={th}>수강료</th>
-            <th style={th}>미납잔액</th>
           </tr>
         </thead>
         <tbody>
-          {classes.length === 0 ? (
+          {bills.length === 0 ? (
             <tr><td colSpan={4} style={{ textAlign: 'center', padding: '20px 0', color: '#aaa' }}>결제할 대상이 없습니다.</td></tr>
-          ) : classes.map(c => (
-            <tr key={c.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
-              <td style={{ ...td, textAlign: 'center' }}>{c.month}</td>
-              <td style={td}>{c.name}</td>
-              <td style={{ ...td, textAlign: 'right' }}>{Number(c.fee).toLocaleString()}</td>
-              <td style={{ ...td, textAlign: 'right', color: '#0100FF' }}>{Number(data.unpaid).toLocaleString()}</td>
+          ) : bills.map((b, idx) => (
+            <tr key={b.enrollmentId} style={{ borderBottom: '1px solid #f0f0f0' }}>
+              <td style={{ ...td, textAlign: 'center' }}>{idx + 1}</td>
+              <td style={{ ...td, textAlign: 'center' }}>{b.month}</td>
+              <td style={{ ...td, textAlign: 'center' }}>{b.className}</td>
+              <td style={{ ...td, textAlign: 'center' }}>{Number(b.billAmt).toLocaleString()}</td>
             </tr>
           ))}
         </tbody>
@@ -125,7 +135,7 @@ export default function PaymentRegister() {
             <td style={formLabel}>수강금액</td>
             <td style={formValue}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <input style={{ ...inputStyle, textAlign: 'right', width: 200 }} value={classAmt} onChange={e => setClassAmt(e.target.value)} />
+                <input style={{ ...inputStyle, textAlign: 'right', width: 200 }} value={classAmt} onChange={e => setClassAmt(formatAmount(e.target.value))} />
                 <span>원</span>
               </div>
             </td>
@@ -134,17 +144,16 @@ export default function PaymentRegister() {
             <td style={formLabel}>수납금액</td>
             <td style={formValue}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <input style={{ ...inputStyle, textAlign: 'right', width: 200 }} value={payAmt} onChange={e => setPayAmt(e.target.value)} />
+                <input style={{ ...inputStyle, textAlign: 'right', width: 200 }} value={payAmt} onChange={e => setPayAmt(formatAmount(e.target.value))} />
                 <span>원</span>
               </div>
-              <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>미납잔액보다 적게 입력하면 나머지는 계속 미납으로 남습니다.</div>
             </td>
           </tr>
           {payMethod === '카드' && (
             <tr style={{ borderBottom: '1px solid #f0f0f0' }}>
               <td style={formLabel}>할부기간</td>
               <td style={formValue}>
-                <select style={{ ...inputStyle, width: 200 }}>
+                <select style={{ ...inputStyle, width: 200 }} value={installment} onChange={e => setInstallment(e.target.value)}>
                   <option>할부기간선택</option>
                   <option>일시불</option>
                   {['2','3','4','5','6','7','8','9','10','11','12'].map(m => (

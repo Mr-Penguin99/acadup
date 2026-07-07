@@ -517,7 +517,10 @@ export default function Payments() {
                               billAmt: d.billAmt,
                               item: '수강료01',
                             }))
-                            window.open('/manual-register','_blank','width=650,height=800')
+                            const w = 650, h = 800
+                            const left = window.screenX + (window.outerWidth - w) / 2
+                            const top = window.screenY + (window.outerHeight - h) / 2
+                            window.open('/manual-register','_blank',`width=${w},height=${h},left=${left},top=${top},resizable=yes`)
                           }}><span className="plus">+</span>수기등록</button></td>
                         </tr>
                       ))}
@@ -570,10 +573,10 @@ export default function Payments() {
                     <tbody>
                       {payHistoryData.length === 0
                         ? <tr><td colSpan={8} style={{textAlign:'center',padding:'30px',color:'#bbb',fontSize:13}}>검색된 데이터가 없습니다.</td></tr>
-                        : payHistoryData.filter(d=>expandedPayId===null||expandedPayId===d.id).map(d=>(
+                        : payHistoryData.filter(d=>expandedPayId===null||expandedPayId===d.id).map((d,idx)=>(
                           <>
                             <tr key={d.id}>
-                              <td style={{textAlign:'center'}}>{d.id}</td>
+                              <td style={{textAlign:'center'}}>{idx+1}</td>
                               <td style={{textAlign:'left'}}>
                                 <span className="sts-name-link"
                                   onClick={()=>setExpandedPayId(expandedPayId===d.id?null:d.id)}>

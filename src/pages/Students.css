@@ -219,9 +219,7 @@
 
 /* 학생 정보 액션 버튼 */
 .info-action-btn {
-  padding: 0 17px;
-  height: 28px;
-  line-height: 28px;
+  padding: 5px 14px;
   color: #fff;
   border-radius: 4px;
   font-size: 13px;
@@ -231,17 +229,16 @@
   border: 1.5px solid transparent;
   transition: background 0.15s, color 0.15s;
 }
-.info-action-btn.narrow { padding: 0 14px; }
+.info-action-btn.narrow { padding: 5px 14px; }
 
 /* 가족 탭 버튼 */
 .family-save-btn {
-  padding: 0 14px;
-  height: 28px;
+  padding: 4px 12px;
   background: #00ab9a;
   color: #fff;
   border: none;
   border-radius: 4px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 400;
   cursor: pointer;
   font-family: inherit;
@@ -250,13 +247,12 @@
 .family-save-btn:hover { background: #006765; }
 
 .family-add-btn {
-  padding: 0 14px;
-  height: 28px;
+  padding: 4px 12px;
   background: #f3f3f3;
   color: #333;
   border: 1px solid #ccc;
   border-radius: 4px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 400;
   cursor: pointer;
   font-family: inherit;
@@ -334,6 +330,7 @@
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 13px;
+  font-weight: 400;
   cursor: pointer;
   width: 120px;
   font-family: inherit;
@@ -394,11 +391,12 @@
 .if-input:focus { border-color: #F5841F; }
 
 .if-small-btn {
-  padding: 6px 10px;
+  padding: 5px 14px;
   background: #fff;
   border: 1px solid #ccc;
   border-radius: 4px;
-  font-size: 11px;
+  font-size: 13px;
+  font-weight: 400;
   cursor: pointer;
   font-family: inherit;
   color: #555;

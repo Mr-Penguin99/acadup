@@ -304,13 +304,12 @@
 .pm-red-btn:hover { background: transparent; color: #000; }
 
 .monthly-reg-btn {
-  padding: 0 10px;
-  height: 28px;
+  padding: 4px 12px;
   background: #f3f3f3;
   color: #333;
   border: 1px solid #ccc;
   border-radius: 4px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 400;
   cursor: pointer;
   font-family: inherit;

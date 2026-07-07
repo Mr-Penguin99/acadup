@@ -64,7 +64,7 @@ export default function MyInfo() {
       {/* 수정 버튼 */}
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
         <button style={{
-          padding: '6px 20px', background: '#F5841F', color: '#fff',
+          padding: '5px 14px', background: '#F5841F', color: '#fff',
           border: 'none', borderRadius: 4, fontSize: 13, fontWeight: 400,
           cursor: 'pointer', fontFamily: 'inherit',
         }} onClick={() => { localStorage.setItem('userName', form.name); localStorage.setItem('userEmpNo', form.empNo) }}>수정</button>
@@ -100,8 +100,8 @@ export default function MyInfo() {
               />
             </div>
             <button style={{
-              padding: '4px 10px', background: '#fff', border: '1px solid #ccc',
-              borderRadius: 4, fontSize: 11, cursor: 'pointer', fontFamily: 'inherit',
+              padding: '5px 14px', background: '#fff', border: '1px solid #ccc',
+              borderRadius: 4, fontSize: 13, fontWeight: 400, cursor: 'pointer', fontFamily: 'inherit',
             }}>사진등록/수정</button>
           </div>
 
@@ -132,8 +132,8 @@ export default function MyInfo() {
                   <td style={labelStyle}>비밀번호</td>
                   <td style={valueStyle}>
                     <button style={{
-                      padding: '5px 12px', background: '#fff', border: '1px solid #ccc',
-                      borderRadius: 4, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit',
+                      padding: '5px 14px', background: '#fff', border: '1px solid #ccc',
+                      borderRadius: 4, fontSize: 13, fontWeight: 400, cursor: 'pointer', fontFamily: 'inherit',
                     }} onClick={() => window.open('/changepassword', '_blank', 'width=500,height=600')}>
                       비밀번호 변경
                     </button>
@@ -145,8 +145,8 @@ export default function MyInfo() {
                     <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                       <input style={inputStyle} value={form.id} onChange={e => setForm(f => ({ ...f, id: e.target.value }))} />
                       <button style={{
-                        padding: '5px 10px', background: '#fff', border: '1px solid #ccc',
-                        borderRadius: 4, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit',
+                        padding: '5px 14px', background: '#fff', border: '1px solid #ccc',
+                        borderRadius: 4, fontSize: 13, fontWeight: 400, cursor: 'pointer', fontFamily: 'inherit',
                       }}>중복체크</button>
                     </div>
                   </td>
@@ -206,8 +206,8 @@ export default function MyInfo() {
                     <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
                       <input style={{ ...inputStyle, width: 120 }} value={form.zip} placeholder="우편번호" onChange={e => setForm(f => ({ ...f, zip: e.target.value }))} />
                       <button style={{
-                        padding: '5px 12px', background: '#fff', border: '1px solid #ccc',
-                        borderRadius: 4, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit',
+                        padding: '5px 14px', background: '#fff', border: '1px solid #ccc',
+                        borderRadius: 4, fontSize: 13, fontWeight: 400, cursor: 'pointer', fontFamily: 'inherit',
                       }}>우편번호 찾기</button>
                     </div>
                     <input style={{ ...inputStyle, width: '100%', marginBottom: 6, boxSizing: 'border-box' }} value={form.addr} onChange={e => setForm(f => ({ ...f, addr: e.target.value }))} />

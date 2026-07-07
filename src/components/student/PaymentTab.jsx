@@ -3,7 +3,8 @@ import '../../pages/Students.css'
 import { useAppData } from '../../contexts/AppDataContext'
 
 export default function PaymentTab({ studentId, studentName, defaultFilter = '미납' }) {
-  const { enrollments, payments } = useAppData()
+  const { students, enrollments, payments } = useAppData()
+  const studentBirth = students.find(s => s.id === studentId)?.birth || ''
   const [filter, setFilter] = useState(defaultFilter)
   const [checked, setChecked] = useState([])
 
@@ -49,7 +50,15 @@ export default function PaymentTab({ studentId, studentName, defaultFilter = '�
           <button className="family-add-btn" onClick={()=>{
             const target = checked.length > 0 ? rows.find(d=>d.id===checked[0]) : rows.find(r=>r.status==='미납')
             if (target) {
-              sessionStorage.setItem('manualRegisterData', JSON.stringify(target))
+              sessionStorage.setItem('manualRegisterData', JSON.stringify({
+                studentId, studentName, studentBirth,
+                enrollmentId: target.id,
+                className: target.className,
+                month: target.month,
+                item: target.item,
+                billAmt: target.billAmt,
+                unpaid: target.unpaid,
+              }))
             } else {
               sessionStorage.removeItem('manualRegisterData')
             }
@@ -59,16 +68,18 @@ export default function PaymentTab({ studentId, studentName, defaultFilter = '�
             window.open('/manual-register','_blank',`width=${w},height=${h},left=${left},top=${top},resizable=yes`)
           }}><span className="plus">+</span> 수기등록</button>
           <button className="family-add-btn" onClick={()=>{
-            const target = checked.length > 0 ? rows.find(d=>d.id===checked[0]) : rows.find(r=>r.status==='미납')
-            if (target) {
+            const targets = checked.length > 0 ? rows.filter(d=>checked.includes(d.id)) : rows.filter(r=>r.status==='미납').slice(0,1)
+            if (targets.length > 0) {
               sessionStorage.setItem('paymentRegisterData', JSON.stringify({
-                studentId, studentName,
-                enrollmentId: target.id,
-                className: target.className,
-                month: target.month,
-                item: target.item,
-                billAmt: target.billAmt,
-                unpaid: target.unpaid,
+                studentId, studentName, studentBirth,
+                bills: targets.map(t => ({
+                  enrollmentId: t.id,
+                  className: t.className,
+                  month: t.month,
+                  item: t.item,
+                  billAmt: t.billAmt,
+                  unpaid: t.unpaid,
+                })),
               }))
             } else {
               sessionStorage.removeItem('paymentRegisterData')
