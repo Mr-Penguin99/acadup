@@ -180,7 +180,7 @@ export function FreeDatePicker({ value, onChange, style, className, onInputFocus
       />
       <button
         type="button"
-        onClick={() => setOpen(o => !o)}
+        onClick={() => { setOpen(o => !o); onInputFocus?.() }}
         aria-label="달력 열기"
         style={{
           position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)',

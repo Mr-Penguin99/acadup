@@ -56,18 +56,28 @@ const mapEnrollment = (e) => ({
   fee: e.fee || '',
 })
 
-const mapPayment = (p) => ({
-  id: p.id,
-  studentId: p.student_id,
-  enrollmentId: p.enrollment_id,
-  className: p.class_name || '',
-  month: p.month || '',
-  item: p.item || '',
-  payDate: p.pay_date || '',
-  method: p.method || '',
-  amount: Number(p.amount) || 0,
-  memo: p.memo || '',
-})
+// payments 테이블에 별도 취소 상태 컬럼이 없어서, memo 앞에 이 마커를 붙이는 방식으로
+// "결제취소" 여부와 취소 사유를 함께 기록함 (레코드는 삭제하지 않고 그대로 남겨둠)
+const CANCELLED_MARKER = '[결제취소]'
+
+const mapPayment = (p) => {
+  const memo = p.memo || ''
+  const cancelled = memo.startsWith(CANCELLED_MARKER)
+  return {
+    id: p.id,
+    studentId: p.student_id,
+    enrollmentId: p.enrollment_id,
+    className: p.class_name || '',
+    month: p.month || '',
+    item: p.item || '',
+    payDate: p.pay_date || '',
+    method: p.method || '',
+    amount: Number(p.amount) || 0,
+    memo,
+    cancelled,
+    cancelReason: cancelled ? memo.slice(CANCELLED_MARKER.length).trim() : '',
+  }
+}
 
 export function AppDataProvider({ children }) {
   const { user } = useAuth()
@@ -221,14 +231,18 @@ export function AppDataProvider({ children }) {
     return { data: data ? mapPayment(data) : null, error }
   }
 
-  const deletePayment = async (id) => {
-    const { error } = await supabase.from('payments').delete().eq('id', id).eq('user_id', user.id)
-    if (!error) setPayments(prev => prev.filter(p => p.id !== id))
-    return { error }
+  // 결제취소: 실제로 레코드를 지우지 않고 memo에 취소 마커+사유를 남겨서
+  // 결제내역의 "결제취소" 목록에 계속 남아있게 하고, 청구/미납내역 미납 계산에서는 제외되게 함
+  const cancelPayment = async (id, reason) => {
+    const { data, error } = await supabase.from('payments')
+      .update({ memo: `${CANCELLED_MARKER} ${reason || ''}`.trim() })
+      .eq('id', id).eq('user_id', user.id).select().single()
+    if (!error && data) setPayments(prev => prev.map(p => p.id === id ? mapPayment(data) : p))
+    return { data: data ? mapPayment(data) : null, error }
   }
 
   return (
-    <AppDataContext.Provider value={{ classes, students, enrollments, payments, addClass, updateClass, deleteClass, addStudent, updateStudent, deleteStudent, addEnrollment, updateEnrollment, deleteEnrollment, addPayment, deletePayment }}>
+    <AppDataContext.Provider value={{ classes, students, enrollments, payments, addClass, updateClass, deleteClass, addStudent, updateStudent, deleteStudent, addEnrollment, updateEnrollment, deleteEnrollment, addPayment, cancelPayment }}>
       {children}
     </AppDataContext.Provider>
   )

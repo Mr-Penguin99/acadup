@@ -15,6 +15,7 @@ export const TUTORIAL_STEPS = [
   { id: 'class-create-subject-hint', path: '/classes', stage: 1 },
   { id: 'class-create-paycycle-hint', path: '/classes', stage: 1 },
   { id: 'class-create-optype-hint', path: '/classes', stage: 1 },
+  { id: 'class-create-period-from-hint', path: '/classes', stage: 1 },
   { id: 'class-create-period-hint', path: '/classes', stage: 1 },
   { id: 'class-create-payment-hint', path: '/classes', stage: 1 },
   { id: 'class-create-save-hint', path: '/classes', stage: 1 },
@@ -50,6 +51,29 @@ export const TUTORIAL_STEPS = [
   { id: 'payment-menu-hint', path: '/students', stage: 2 },
   { id: 'payment-page-hint', path: '/payments', stage: 3 },
   { id: 'payment-page-detail-hint', path: '/payments', stage: 3 },
+  { id: 'payment-student-list-hint', path: '/payments', stage: 3 },
+  { id: 'payment-student-name-hint', path: '/payments', stage: 3 },
+  { id: 'payment-detail-hint', path: '/payments', stage: 3 },
+  { id: 'payment-checkbox-hint', path: '/payments', stage: 3 },
+  { id: 'payment-manual-btn-hint', path: '/payments', stage: 3 },
+  { id: 'payment-manual-modal-hint', path: '/payments', stage: 3 },
+  { id: 'payment-pay-btn-hint', path: '/payments', stage: 3 },
+  { id: 'payment-register-modal-hint', path: '/payments', stage: 3 },
+  { id: 'payment-register-method-hint', path: '/payments', stage: 3 },
+  { id: 'payment-register-installment-hint', path: '/payments', stage: 3 },
+  { id: 'payment-register-pay-btn-hint', path: '/payments', stage: 3 },
+  { id: 'payment-completed-list-hint', path: '/payments', stage: 3 },
+  { id: 'payment-history-menu-hint', path: '/payments', stage: 3 },
+  { id: 'payment-history-list-hint', path: '/payments', stage: 3 },
+  { id: 'payment-history-name-hint', path: '/payments', stage: 3 },
+  { id: 'payment-billing-detail-hint', path: '/payments', stage: 3 },
+  { id: 'payment-billing-checkbox-hint', path: '/payments', stage: 3 },
+  { id: 'payment-cancel-btn-hint', path: '/payments', stage: 3 },
+  { id: 'payment-cancel-modal-hint', path: '/payments', stage: 3 },
+  { id: 'payment-cancel-completed-list-hint', path: '/payments', stage: 3 },
+  { id: 'payment-unpaid-menu-hint', path: '/payments', stage: 3 },
+  { id: 'payment-final-list-hint', path: '/payments', stage: 3 },
+  { id: 'payment-final-detail-hint', path: '/payments', stage: 3 },
 ]
 
 const TutorialContext = createContext(null)
@@ -59,6 +83,9 @@ export function TutorialProvider({ children }) {
   const [step, setStep] = useState(0)
   const [started, setStarted] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
+  // profile이 실제로 한 번이라도 동기화됐는지 - 이게 true가 되기 전에는 autoStart가
+  // (아직 로딩 중인) 기본값(started=false, step=0)을 보고 튜토리얼을 잘못 재시작하지 않도록 막음
+  const [profileSynced, setProfileSynced] = useState(false)
   // 이 계정에 대해 이미 초기 동기화를 했는지 추적 - 이후 프로필이 다른 이유로
   // (설정 저장, 토큰 갱신 등) 다시 로드되어도 진행 중인 튜토리얼 단계를 덮어쓰지 않기 위함
   const syncedUserIdRef = useRef(null)
@@ -76,11 +103,13 @@ export function TutorialProvider({ children }) {
         setStep(legacyStep)
         setStarted(true)
         if (user) supabase.from('profiles').update({ tutorial_started: true, tutorial_step: legacyStep }).eq('id', user.id)
+        setProfileSynced(true)
         return
       }
     }
     setStep(profile.tutorial_step || 0)
     setStarted(profile.tutorial_started || false)
+    setProfileSynced(true)
   }, [profile])
 
   const totalSteps = TUTORIAL_STEPS.length
@@ -97,7 +126,11 @@ export function TutorialProvider({ children }) {
   }
 
   // 로그인/가입 후 처음 진입했을 때 자동으로 한 번만 띄움
+  // profile 동기화가 끝나기 전(started/step이 아직 기본값일 때)에는 호출해도 무시 -
+  // 그렇지 않으면 이미 완료한 사용자가 profile 로딩 중에 이 페이지로 들어왔을 때
+  // 기본값(started=false)만 보고 튜토리얼을 다시 시작시켜버리는 경쟁 상태가 생김
   const autoStart = (stepId) => {
+    if (!profileSynced) return
     if (!started && activeStep?.id === stepId) {
       setIsOpen(true)
       markStarted()
@@ -125,9 +158,10 @@ export function TutorialProvider({ children }) {
     if (n >= totalSteps) setIsOpen(false)
   }
 
-  // 플로팅 박스에서 이어보기 (완료된 경우 처음부터 다시 시작)
+  // 플로팅 박스에서 이어보기 (완료된 경우, 확인 후에만 처음부터 다시 시작)
   const resume = () => {
     if (step >= totalSteps) {
+      if (!window.confirm('이미 완료한 튜토리얼입니다. 처음부터 다시 보시겠습니까?')) return
       persistStep(0)
     }
     setIsOpen(true)
@@ -137,7 +171,7 @@ export function TutorialProvider({ children }) {
 
   return (
     <TutorialContext.Provider value={{
-      step, totalSteps, activeStep, isOpen, started,
+      step, totalSteps, activeStep, isOpen, started, profileSynced,
       autoStart, advance, resume, close, goBack, skipTo,
     }}>
       {children}

@@ -270,6 +270,12 @@
 .info-action-btn.gray:hover  { background: transparent; color: #000; }
 .info-action-btn.teal:hover  { background: transparent; color: #000; }
 
+.talk-btn { position: relative; }
+.talk-btn-icon { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; }
+.info-action-btn.talk-btn:hover { background: #006765; border-color: #006765; color: #000; }
+.talk-btn:hover .talk-btn-text { visibility: hidden; }
+.talk-btn:hover .talk-btn-icon { opacity: 1; }
+
 /* 수강생 액션 버튼 */
 .st-btn {
   padding: 5px 14px;

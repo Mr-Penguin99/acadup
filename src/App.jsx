@@ -24,6 +24,7 @@ import Admin from './pages/Admin'
 import ClassCreate from './pages/ClassCreate'
 import StudentDetail from './pages/StudentDetail'
 import PaymentCancel from './pages/PaymentCancel'
+import StudentFile from './pages/StudentFile'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -66,6 +67,7 @@ function App() {
           <Route path="/class-create" element={<ProtectedRoute><ClassCreate /></ProtectedRoute>} />
           <Route path="/student-detail" element={<ProtectedRoute><StudentDetail /></ProtectedRoute>} />
           <Route path="/payment-cancel" element={<ProtectedRoute><PaymentCancel /></ProtectedRoute>} />
+          <Route path="/student-file" element={<ProtectedRoute><StudentFile /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
         <TutorialFloatingButton />

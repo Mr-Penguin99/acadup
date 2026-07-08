@@ -10,8 +10,8 @@ import TutorialSpotlight from '../components/TutorialSpotlight'
 import ClassCreate from './ClassCreate'
 
 const UNLOCKED_MENUS = ['students','payments','classes']
-const MODAL_TUTORIAL_STEP_IDS = ['class-create-code-hint', 'class-create-required-fields', 'class-create-name-hint', 'class-create-subject-hint', 'class-create-paycycle-hint', 'class-create-optype-hint', 'class-create-payday-hint', 'class-create-period-hint', 'class-create-payment-hint', 'class-create-save-hint', 'class-create-new-register-hint', 'class-create-closing']
-const FULL_OVERLAY_STEP_IDS = ['class-create-required-fields', 'class-create-name-hint', 'class-create-subject-hint', 'class-create-paycycle-hint', 'class-create-optype-hint', 'class-create-payday-hint', 'class-create-period-hint', 'class-create-payment-hint', 'class-create-save-hint', 'class-create-new-register-hint', 'class-create-closing']
+const MODAL_TUTORIAL_STEP_IDS = ['class-create-code-hint', 'class-create-required-fields', 'class-create-name-hint', 'class-create-subject-hint', 'class-create-paycycle-hint', 'class-create-optype-hint', 'class-create-payday-hint', 'class-create-period-from-hint', 'class-create-period-hint', 'class-create-payment-hint', 'class-create-save-hint', 'class-create-new-register-hint', 'class-create-closing']
+const FULL_OVERLAY_STEP_IDS = ['class-create-required-fields', 'class-create-name-hint', 'class-create-subject-hint', 'class-create-paycycle-hint', 'class-create-optype-hint', 'class-create-payday-hint', 'class-create-period-from-hint', 'class-create-period-hint', 'class-create-payment-hint', 'class-create-save-hint', 'class-create-new-register-hint', 'class-create-closing']
 
 const MENUS = [
   { id: 'students',    icon: '/icons/students.svg',    label: '수강생관리' },
@@ -82,7 +82,7 @@ export default function Classes() {
     if (data) setNewClassId(data.id)
   }
 
-  const { activeStep, isOpen, autoStart, advance } = useTutorial()
+  const { activeStep, isOpen, autoStart, advance, profileSynced } = useTutorial()
   const registerBtnRef = useRef(null)
   const [registerBtnRect, setRegisterBtnRect] = useState(null)
   const newRowRef = useRef(null)
@@ -93,7 +93,7 @@ export default function Classes() {
 
   useEffect(() => {
     autoStart('tutorial-welcome')
-  }, [])
+  }, [profileSynced])
 
   const showTutorialWelcome = isOpen && activeStep?.id === 'tutorial-welcome'
   const showClassStatusIntro = isOpen && activeStep?.id === 'class-status-intro'

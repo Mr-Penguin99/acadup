@@ -99,7 +99,8 @@ export default function Students() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [searchTab, setSearchTab] = useState('반')
   const [infoTab, setInfoTab] = useState('가족')
-  const [search, setSearch] = useState({ group: '', className: '', name: '' })
+  const [search, setSearch] = useState({ group: '', teacher: '', className: '', name: '' })
+  const [appliedSearch, setAppliedSearch] = useState(null)
   const [statusFilter, setStatusFilter] = useState({
     teacher:'전체', group:'전체', className:'전체', studentStatus:'재원',
     searchType:'수강생-성명', keyword:'', motive:'',
@@ -122,7 +123,7 @@ export default function Students() {
   const [talkChecked, setTalkChecked] = useState([])
   const [noticeChecked, setNoticeChecked] = useState([])
   const [selectedStudentId, setSelectedStudentId] = useState(null) // null | 'new' | number
-  const { students, enrollments: contextEnrollments, addStudent, updateStudent, deleteStudent, addEnrollment } = useAppData()
+  const { students, classes, enrollments: contextEnrollments, addStudent, updateStudent, deleteStudent, addEnrollment } = useAppData()
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
   const { activeStep, isOpen, advance, step, skipTo } = useTutorial()
@@ -893,11 +894,61 @@ export default function Students() {
       setForm(f => ({...f, status: newStatus}))
       if (data) setSelectedStudentId(data.id)
       setInfoTab('가족')
+      if (activeStep?.id === 'student-save-hint') {
+        advance()
+      } else {
+        alert('정상적으로 처리되었습니다.')
+      }
     } else {
       await updateStudent(selectedStudentId, { ...form })
       setInfoTab('가족')
     }
-    if (activeStep?.id === 'student-save-hint') advance()
+  }
+
+  const handleUpdateStudent = async () => {
+    if (!form.name)       { alert('성명을 입력해주세요.'); return }
+    if (!form.birth)      { alert('생년월일을 입력해주세요.'); return }
+    if (!form.enrollDate) { alert('입학일자를 입력해주세요.'); return }
+    if (!form.phone)      { alert('학생 휴대폰을 입력해주세요.'); return }
+    const { error } = await updateStudent(selectedStudentId, { ...form })
+    if (error) { alert(error.message || '수정에 실패했습니다.'); return }
+    alert('정상적으로 처리되었습니다.')
+  }
+
+  const handleWithdraw = async () => {
+    if (!window.confirm('퇴원하는 경우 수강 중인 반을 모두 중지해야 합니다.\n퇴원하려면 확인을 선택해 주세요.')) return
+    const today = new Date().toISOString().slice(0, 10)
+    const hasActiveClass = contextEnrollments.some(e => e.studentId === selectedStudentId && (!e.endDate || e.endDate > today))
+    if (hasActiveClass) {
+      alert('수강등록이 된 수강생은 퇴원할 수 없습니다. 먼저 수강 중지를 해야합니다.')
+      return
+    }
+    const { error } = await updateStudent(selectedStudentId, { ...form, status: '퇴원' })
+    if (error) { alert(error.message || '퇴원 처리에 실패했습니다.'); return }
+    setForm(f => ({ ...f, status: '퇴원' }))
+    alert('정상적으로 처리되었습니다.')
+  }
+
+  const handleCancelWithdraw = async () => {
+    const restoredStatus = form.hasClasses ? '재원' : '예비'
+    const { error } = await updateStudent(selectedStudentId, { ...form, status: restoredStatus })
+    if (error) { alert(error.message || '퇴원취소 처리에 실패했습니다.'); return }
+    setForm(f => ({ ...f, status: restoredStatus }))
+    alert('정상적으로 처리되었습니다.')
+  }
+
+  const handleSuspend = async () => {
+    if (!window.confirm('휴원하는 경우 수강 중인 반을 모두 중지해야 합니다.\n휴원하려면 확인을 선택해 주세요.')) return
+    const today = new Date().toISOString().slice(0, 10)
+    const hasActiveClass = contextEnrollments.some(e => e.studentId === selectedStudentId && (!e.endDate || e.endDate > today))
+    if (hasActiveClass) {
+      alert('수강등록이 된 수강생은 휴원할 수 없습니다. 먼저 수강 중지를 해야합니다.')
+      return
+    }
+    const { error } = await updateStudent(selectedStudentId, { ...form, status: '휴원' })
+    if (error) { alert(error.message || '휴원 처리에 실패했습니다.'); return }
+    setForm(f => ({ ...f, status: '휴원' }))
+    alert('정상적으로 처리되었습니다.')
   }
 
   const toggleGroup = id => setExpanded(e => e.includes(id) ? [] : [id])
@@ -905,6 +956,41 @@ export default function Students() {
   const toggleTalkCheck    = id => setTalkChecked(c => c.includes(id) ? c.filter(x=>x!==id) : [...c,id])
   const toggleNoticeCheck  = id => setNoticeChecked(c => c.includes(id) ? c.filter(x=>x!==id) : [...c,id])
   const toggleStatusCheck  = id => setStatusChecked(c => c.includes(id) ? c.filter(x=>x!==id) : [...c,id])
+
+  const classGroupOptions = [...new Set(classes.map(c => c.group).filter(Boolean))]
+  const classTeacherOptions = [...new Set(classes.map(c => c.teacher).filter(Boolean))]
+  const classNameOptions = [...new Set(classes.filter(c => {
+    if (searchTab === '반' && search.group) return c.group === search.group
+    if (searchTab === '강사' && search.teacher) return c.teacher === search.teacher
+    return true
+  }).map(c => c.name).filter(Boolean))]
+
+  const handleClassStudentSearch = () => setAppliedSearch({ ...search, tab: searchTab })
+
+  const classStudentResults = (() => {
+    if (!appliedSearch) return []
+    const { tab, group, teacher, className, name } = appliedSearch
+    const keyword = name.trim()
+    const hasCondition = (tab === '반' && group) || (tab === '강사' && teacher) || className || keyword
+    if (!hasCondition) return []
+    let matches = students
+    if ((tab === '반' && group) || (tab === '강사' && teacher) || className) {
+      const matchIds = new Set(contextEnrollments.filter(e => {
+        if (tab === '반' && group && e.group !== group) return false
+        if (tab === '강사' && teacher && e.teacher !== teacher) return false
+        if (className && e.className !== className) return false
+        return true
+      }).map(e => e.studentId))
+      matches = matches.filter(s => matchIds.has(s.id))
+    }
+    if (keyword) {
+      const phoneSuffix = /^\d{4}$/.test(keyword) ? keyword : null
+      matches = matches.filter(s =>
+        s.name.includes(keyword) || (phoneSuffix && (s.phone || '').replace(/\D/g, '').slice(-4) === phoneSuffix)
+      )
+    }
+    return matches
+  })()
 
   const filteredStudents = students.map(s => ({
     id: s.id,
@@ -1549,28 +1635,43 @@ export default function Students() {
                   <div className="sp-tabs">
                     {['반','강사'].map(t=>(
                       <button key={t} className={`sp-tab ${searchTab===t?'active':''}`}
-                        onClick={()=>setSearchTab(t)}>{t}</button>
+                        onClick={()=>{setSearchTab(t); setSearch(s=>({...s,group:'',teacher:'',className:''}))}}>{t}</button>
                     ))}
                   </div>
                   <div className="sp-form">
                     {searchTab==='반' ? <>
-                      <div className="sp-field"><label className="sp-label">반그룹</label><select className="sp-input"><option>선택하기</option></select></div>
+                      <div className="sp-field"><label className="sp-label">반그룹</label>
+                        <select className="sp-input" value={search.group} onChange={e=>setSearch(s=>({...s,group:e.target.value,className:''}))}>
+                          <option value="">선택하기</option>
+                          {classGroupOptions.map(g=><option key={g} value={g}>{g}</option>)}
+                        </select>
+                      </div>
                     </> : <>
-                      <div className="sp-field"><label className="sp-label">강사</label><select className="sp-input"><option>선택하기</option></select></div>
+                      <div className="sp-field"><label className="sp-label">강사</label>
+                        <select className="sp-input" value={search.teacher} onChange={e=>setSearch(s=>({...s,teacher:e.target.value,className:''}))}>
+                          <option value="">선택하기</option>
+                          {classTeacherOptions.map(t=><option key={t} value={t}>{t}</option>)}
+                        </select>
+                      </div>
                     </>}
-                    <div className="sp-field"><label className="sp-label">반명</label><select className="sp-input"><option>선택하기</option></select></div>
+                    <div className="sp-field"><label className="sp-label">반명</label>
+                      <select className="sp-input" value={search.className} onChange={e=>setSearch(s=>({...s,className:e.target.value}))}>
+                        <option value="">선택하기</option>
+                        {classNameOptions.map(n=><option key={n} value={n}>{n}</option>)}
+                      </select>
+                    </div>
                     <div className="sp-field">
                       <label className="sp-label">수강생</label>
                       <input className="sp-input" placeholder="성명 또는 휴대폰 끝4자리" value={search.name}
                         onChange={e=>setSearch(s=>({...s,name:e.target.value}))}/>
                     </div>
-                    <button className="sp-search-btn">검색</button>
-                    <div className="sp-result">검색결과 : <strong>{students.length}명</strong></div>
+                    <button className="sp-search-btn" onClick={handleClassStudentSearch}>검색</button>
+                    <div className="sp-result">검색결과 : <strong>{classStudentResults.length}명</strong></div>
                     <div className="sp-table">
                       <div className="sp-table-head"><span>이름</span><span>생년월일</span></div>
-                      {students.length === 0
-                        ? <div className="sp-table-empty">검색 결과가 없습니다.</div>
-                        : students.map(s => (
+                      {classStudentResults.length === 0
+                        ? <div className="sp-table-empty">{appliedSearch ? '검색 결과가 없습니다.' : '조건을 선택하고 검색해 주세요.'}</div>
+                        : classStudentResults.map(s => (
                             <div key={s.id}
                               className={`sp-table-row ${selectedStudentId === s.id ? 'active' : ''}`}
                               onClick={() => handleSelectStudent(s)}>
@@ -1586,12 +1687,30 @@ export default function Students() {
                     <span className="info-title">학생 정보자료</span>
                     <div style={{display:'flex',gap:6}}>
                       {typeof selectedStudentId === 'number' ? <>
-                        <button className="info-action-btn blue narrow">수정</button>
-                        <button className="info-action-btn red narrow" onClick={()=>setForm(f=>({...f,status:'퇴원'}))}>퇴원</button>
-                        <button className="info-action-btn red narrow" onClick={()=>setForm(f=>({...f,status:'휴원'}))}>휴원</button>
+                        <button className="info-action-btn blue narrow" onClick={handleUpdateStudent}>수정</button>
+                        {form.status === '퇴원'
+                          ? <button className="info-action-btn red narrow" onClick={handleCancelWithdraw}>퇴원취소</button>
+                          : <button className="info-action-btn red narrow" onClick={handleWithdraw}>퇴원</button>}
+                        <button className="info-action-btn red narrow" onClick={handleSuspend}>휴원</button>
                         <button className="info-action-btn gray narrow" onClick={handleDeleteStudent}>삭제</button>
-                        <button className="info-action-btn blue">수강생파일</button>
-                        <button className="info-action-btn teal">알림톡전송</button>
+                        <button className="info-action-btn blue" onClick={()=>{
+                          sessionStorage.setItem('studentFileData', JSON.stringify({ studentId: selectedStudentId, studentName: form.name, studentBirth: form.birth }))
+                          const w = 800, h = 760
+                          const left = window.screenX + (window.outerWidth - w) / 2
+                          const top = window.screenY + (window.outerHeight - h) / 2
+                          window.open('/student-file','_blank',`width=${w},height=${h},left=${left},top=${top},resizable=yes`)
+                        }}>수강생파일</button>
+                        <button className="info-action-btn teal talk-btn">
+                          <span className="talk-btn-text">알림톡전송</span>
+                          <span className="talk-btn-icon">
+                            <svg width="13" height="15" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <rect x="1" y="7" width="12" height="9" rx="1.5" fill="#fff"/>
+                              <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 5V7" stroke="#fff" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                              <circle cx="7" cy="11.5" r="1.5" fill="rgba(0,0,0,0.35)"/>
+                              <rect x="6.25" y="12.5" width="1.5" height="2" rx="0.75" fill="rgba(0,0,0,0.35)"/>
+                            </svg>
+                          </span>
+                        </button>
                         <button className="info-action-btn blue" onClick={handleNewStudent}>신규 수강생 등록</button>
                       </> : <>
                         <button ref={saveBtnRef} className="info-action-btn red narrow" onClick={handleSave}>저장</button>
@@ -1615,7 +1734,7 @@ export default function Students() {
                           </div>
                           <label className="if-label">상태</label>
                           <div className="if-cell">
-                            <span style={{fontSize:13,color:'#333',minWidth:40,display:'inline-block'}}>{getDisplayStatus()}</span>
+                            <span style={{fontSize:13,color:getDisplayStatus()==='퇴원'?'#ff3c00':getDisplayStatus()==='휴원'?'#0100FF':'#333',minWidth:40,display:'inline-block'}}>{getDisplayStatus()}</span>
                           </div>
                         </div>
                         <div className="if-row">

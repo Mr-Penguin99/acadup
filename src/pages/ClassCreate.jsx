@@ -229,6 +229,7 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
   const opTypeCellRef = useRef(null)
   const opPeriodLabelRef = useRef(null)
   const opPeriodCellRef = useRef(null)
+  const opFromDateRef = useRef(null)
   const opToDateRef = useRef(null)
   const paymentsSectionRef = useRef(null)
   const newRegisterBtnRef = useRef(null)
@@ -347,6 +348,43 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [showPayDayHint])
+
+  const [periodFromHintRect, setPeriodFromHintRect] = useState(null)
+  const [periodFromHoleRect, setPeriodFromHoleRect] = useState(null)
+  const [periodFromEnterWarning, setPeriodFromEnterWarning] = useState(false)
+  const showPeriodFromHint = isOpen && activeStep?.id === 'class-create-period-from-hint'
+
+  useEffect(() => {
+    if (!showPeriodFromHint) return
+    const measure = () => {
+      setPeriodFromHoleRect(unionRects(opPeriodLabelRef.current?.getBoundingClientRect(), opPeriodCellRef.current?.getBoundingClientRect()))
+      setPeriodFromHintRect(opFromDateRef.current?.getBoundingClientRect())
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [showPeriodFromHint])
+
+  // 첫 번째 날짜(운영 시작일)를 입력해야 함, 입력 안 하고 확인/Enter면 경고 문구 표시. 다음 단계로는 진행하지 않음(두 번째 입력란 클릭으로만 진행)
+  const handlePeriodFromConfirm = () => {
+    if (!form.opFrom) setPeriodFromEnterWarning(true)
+  }
+
+  useEffect(() => {
+    if (!showPeriodFromHint) { setPeriodFromEnterWarning(false); return }
+    const handleKeyDown = e => {
+      if (e.key !== 'Enter') return
+      handlePeriodFromConfirm()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showPeriodFromHint, form.opFrom])
+
+  // 운영기간 두 번째 입력란(종료일) 클릭 시 다음 단계로 진행
+  const handleOpToFocus = () => {
+    handlePeriodClick()
+    if (activeStep?.id === 'class-create-period-from-hint') advance()
+  }
 
   const [periodHintRect, setPeriodHintRect] = useState(null)
   const [periodHoleRect, setPeriodHoleRect] = useState(null)
@@ -599,6 +637,22 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
           onConfirm={handlePayDayConfirm}
         />
       )}
+      {showPeriodFromHint && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[periodFromHoleRect]}
+          />
+          <TutorialTooltip
+            rect={periodFromHintRect}
+            placement="top"
+            message={periodFromEnterWarning
+              ? <span style={{ color: '#ff3c00' }}>운영기간을 설정하고 확인[Enter]을 누르세요.</span>
+              : '반의 운영기간을 입력하세요.'}
+            onConfirm={handlePeriodFromConfirm}
+          />
+        </>
+      )}
       {showPeriodHint && (
         <>
           <TutorialMultiSpotlight
@@ -639,7 +693,7 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
           <TutorialTooltip
             rect={saveHintRects.rect}
             placement="top"
-            message="저장 버튼을 눌러 저장해 주세요."
+            message="내용을 저장하고 등할 때는 저장 버튼을 눌러 저장해 주세요."
           />
         </>
       )}
@@ -652,7 +706,7 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
           <TutorialTooltip
             rect={requiredFieldsRects.newRegisterRect}
             placement="top"
-            message="신규 반 등록을 클릭 시 이어서 반 등록을 할 수 있습니다."
+            message="신규 반 등록을 클릭 시 내용을 리셋하고 이어서 반 등록을 할 수 있습니다."
           />
         </>
       )}
@@ -749,10 +803,12 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
               </td>
               <td className="cc-label" ref={opPeriodLabelRef}>운영기간</td>
               <td className="cc-cell" ref={opPeriodCellRef}>
-                <FreeDatePicker value={form.opFrom} onChange={v=>{setF('opFrom',v); setPeriodEnterWarning(false)}} className="cc-input cc-input-date" onInputFocus={handlePeriodClick}/>
+                <span ref={opFromDateRef} style={{display:'inline-block'}}>
+                  <FreeDatePicker value={form.opFrom} onChange={v=>{setF('opFrom',v); setPeriodEnterWarning(false); setPeriodFromEnterWarning(false)}} className="cc-input cc-input-date" onInputFocus={handlePeriodClick}/>
+                </span>
                 <span style={{margin:'0 6px',color:'#999'}}>~</span>
                 <span ref={opToDateRef} style={{display:'inline-block'}}>
-                  <FreeDatePicker value={form.opTo} onChange={v=>{setF('opTo',v); setPeriodEnterWarning(false)}} className="cc-input cc-input-date" onInputFocus={handlePeriodClick}/>
+                  <FreeDatePicker value={form.opTo} onChange={v=>{setF('opTo',v); setPeriodEnterWarning(false)}} className="cc-input cc-input-date" onInputFocus={handleOpToFocus}/>
                 </span>
               </td>
             </tr>

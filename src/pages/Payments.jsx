@@ -9,6 +9,9 @@ import TutorialMultiSpotlight from '../components/TutorialMultiSpotlight'
 import TutorialTooltip from '../components/TutorialTooltip'
 import { useTutorial } from '../components/TutorialContext'
 import { useAppData } from '../contexts/AppDataContext'
+import ManualRegister from './ManualRegister'
+import PaymentRegister from './PaymentRegister'
+import PaymentCancel from './PaymentCancel'
 
 const UNLOCKED_MENUS = ['students','payments','classes']
 
@@ -141,6 +144,257 @@ export default function Payments() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [showPaymentPageDetailHint])
 
+  // 수납관리 튜토리얼 마지막 흐름: 수강생 목록 → 이름 클릭 → 수납내역 펼침 → 체크박스(PaymentTab) → 수기등록/수납 모달
+  const studentListSectionRef = useRef(null)
+  const studentNameRef = useRef(null)
+  const paymentDetailRef = useRef(null)
+  const [studentListRect, setStudentListRect] = useState(null)
+  const [studentNameRect, setStudentNameRect] = useState(null)
+  const [paymentDetailRect, setPaymentDetailRect] = useState(null)
+  const showStudentListHint = isOpen && activeStep?.id === 'payment-student-list-hint'
+  const showStudentNameHint = isOpen && activeStep?.id === 'payment-student-name-hint'
+  const showDetailHint = isOpen && activeStep?.id === 'payment-detail-hint'
+
+  useEffect(() => {
+    if (!showStudentListHint) return
+    const measure = () => setStudentListRect(studentListSectionRef.current?.getBoundingClientRect())
+    const timer = setTimeout(measure, 80)
+    window.addEventListener('resize', measure)
+    return () => { clearTimeout(timer); window.removeEventListener('resize', measure) }
+  }, [showStudentListHint])
+
+  useEffect(() => {
+    if (!showStudentNameHint) return
+    const measure = () => setStudentNameRect(studentNameRef.current?.getBoundingClientRect())
+    const timer = setTimeout(measure, 80)
+    window.addEventListener('resize', measure)
+    return () => { clearTimeout(timer); window.removeEventListener('resize', measure) }
+  }, [showStudentNameHint])
+
+  useEffect(() => {
+    if (!showDetailHint) return
+    const measure = () => setPaymentDetailRect(paymentDetailRef.current?.getBoundingClientRect())
+    const timer = setTimeout(measure, 80)
+    window.addEventListener('resize', measure)
+    return () => { clearTimeout(timer); window.removeEventListener('resize', measure) }
+  }, [showDetailHint])
+
+  const handleStudentListConfirm = () => advance()
+  useEffect(() => {
+    if (!showStudentListHint) return
+    const handleKeyDown = e => { if (e.key !== 'Enter') return; handleStudentListConfirm() }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showStudentListHint])
+
+  const handleDetailConfirm = () => advance()
+  useEffect(() => {
+    if (!showDetailHint) return
+    const handleKeyDown = e => { if (e.key !== 'Enter') return; handleDetailConfirm() }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showDetailHint])
+
+  // 결제 완료 이후: 청구/미납내역 목록에서 사라짐 안내 → 결제내역 메뉴 클릭 유도 → 결제내역 페이지 수강생 목록 강조
+  const payHistoryMenuItemRef = useRef(null)
+  const payHistorySectionRef = useRef(null)
+  const [payHistoryMenuRect, setPayHistoryMenuRect] = useState(null)
+  const [payHistoryListRect, setPayHistoryListRect] = useState(null)
+  const showCompletedListHint = isOpen && activeStep?.id === 'payment-completed-list-hint'
+  const showPayHistoryMenuHint = isOpen && activeStep?.id === 'payment-history-menu-hint'
+  const showPayHistoryListHint = isOpen && activeStep?.id === 'payment-history-list-hint'
+
+  useEffect(() => {
+    if (!showCompletedListHint) return
+    const measure = () => setStudentListRect(studentListSectionRef.current?.getBoundingClientRect())
+    const timer = setTimeout(measure, 80)
+    window.addEventListener('resize', measure)
+    return () => { clearTimeout(timer); window.removeEventListener('resize', measure) }
+  }, [showCompletedListHint])
+
+  useEffect(() => {
+    if (!showPayHistoryMenuHint) return
+    const measure = () => setPayHistoryMenuRect(payHistoryMenuItemRef.current?.getBoundingClientRect())
+    const timer = setTimeout(measure, 80)
+    window.addEventListener('resize', measure)
+    return () => { clearTimeout(timer); window.removeEventListener('resize', measure) }
+  }, [showPayHistoryMenuHint])
+
+  useEffect(() => {
+    if (!showPayHistoryListHint) return
+    const measure = () => setPayHistoryListRect(payHistorySectionRef.current?.getBoundingClientRect())
+    const timer = setTimeout(measure, 80)
+    window.addEventListener('resize', measure)
+    return () => { clearTimeout(timer); window.removeEventListener('resize', measure) }
+  }, [showPayHistoryListHint])
+
+  const handleCompletedListConfirm = () => advance()
+  useEffect(() => {
+    if (!showCompletedListHint) return
+    const handleKeyDown = e => { if (e.key !== 'Enter') return; handleCompletedListConfirm() }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showCompletedListHint])
+
+  const handlePayHistoryListConfirm = () => advance()
+  useEffect(() => {
+    if (!showPayHistoryListHint) return
+    const handleKeyDown = e => { if (e.key !== 'Enter') return; handlePayHistoryListConfirm() }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showPayHistoryListHint])
+
+  // 결제내역 페이지: 수강생 이름 클릭 → 결제내역(BillingTab) 강조 → (체크박스/결제취소 버튼은 BillingTab 내부) → 결제취소 모달
+  const billingNameRef = useRef(null)
+  const billingDetailRef = useRef(null)
+  const [billingNameRect, setBillingNameRect] = useState(null)
+  const [billingDetailRect, setBillingDetailRect] = useState(null)
+  const showBillingNameHint = isOpen && activeStep?.id === 'payment-history-name-hint'
+  const showBillingDetailHint = isOpen && activeStep?.id === 'payment-billing-detail-hint'
+
+  useEffect(() => {
+    if (!showBillingNameHint) return
+    const measure = () => setBillingNameRect(billingNameRef.current?.getBoundingClientRect())
+    const timer = setTimeout(measure, 80)
+    window.addEventListener('resize', measure)
+    return () => { clearTimeout(timer); window.removeEventListener('resize', measure) }
+  }, [showBillingNameHint])
+
+  useEffect(() => {
+    if (!showBillingDetailHint) return
+    const measure = () => setBillingDetailRect(billingDetailRef.current?.getBoundingClientRect())
+    const timer = setTimeout(measure, 80)
+    window.addEventListener('resize', measure)
+    return () => { clearTimeout(timer); window.removeEventListener('resize', measure) }
+  }, [showBillingDetailHint])
+
+  const handleBillingDetailConfirm = () => advance()
+  useEffect(() => {
+    if (!showBillingDetailHint) return
+    const handleKeyDown = e => { if (e.key !== 'Enter') return; handleBillingDetailConfirm() }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showBillingDetailHint])
+
+  // 결제취소 버튼을 누르면(튜토리얼 중에는 팝업창 대신) 화면 중앙에 모달로 띄우고 강조표시
+  const paymentCancelModalBoxRef = useRef(null)
+  const [paymentCancelModalRect, setPaymentCancelModalRect] = useState(null)
+  const showPaymentCancelModal = isOpen && activeStep?.id === 'payment-cancel-modal-hint'
+
+  useEffect(() => {
+    if (!showPaymentCancelModal) return
+    const measure = () => setPaymentCancelModalRect(paymentCancelModalBoxRef.current?.getBoundingClientRect())
+    const timer = setTimeout(measure, 80)
+    window.addEventListener('resize', measure)
+    return () => { clearTimeout(timer); window.removeEventListener('resize', measure) }
+  }, [showPaymentCancelModal])
+
+  // 결제취소 완료 이후: 결제내역 목록에서 사라짐 안내 → 청구/미납내역 메뉴 클릭 유도 → 수강생 목록 → 다시 미납으로 표시된 수납내역 → 튜토리얼 완료 버튼
+  const unpaidMenuItemRef = useRef(null)
+  const nameHeaderRef = useRef(null)
+  const [unpaidMenuRect, setUnpaidMenuRect] = useState(null)
+  const [nameHeaderRect, setNameHeaderRect] = useState(null)
+  const [statusHeaderRect, setStatusHeaderRect] = useState(null)
+  const showCancelCompletedListHint = isOpen && activeStep?.id === 'payment-cancel-completed-list-hint'
+  const showUnpaidMenuHint = isOpen && activeStep?.id === 'payment-unpaid-menu-hint'
+  const showFinalListHint = isOpen && activeStep?.id === 'payment-final-list-hint'
+  const showFinalDetailHint = isOpen && activeStep?.id === 'payment-final-detail-hint'
+
+  useEffect(() => {
+    if (!showCancelCompletedListHint) return
+    const measure = () => setPayHistoryListRect(payHistorySectionRef.current?.getBoundingClientRect())
+    const timer = setTimeout(measure, 80)
+    window.addEventListener('resize', measure)
+    return () => { clearTimeout(timer); window.removeEventListener('resize', measure) }
+  }, [showCancelCompletedListHint])
+
+  useEffect(() => {
+    if (!showUnpaidMenuHint) return
+    const measure = () => setUnpaidMenuRect(unpaidMenuItemRef.current?.getBoundingClientRect())
+    const timer = setTimeout(measure, 80)
+    window.addEventListener('resize', measure)
+    return () => { clearTimeout(timer); window.removeEventListener('resize', measure) }
+  }, [showUnpaidMenuHint])
+
+  useEffect(() => {
+    if (!showFinalListHint) return
+    const measure = () => {
+      setStudentListRect(studentListSectionRef.current?.getBoundingClientRect())
+      setNameHeaderRect(nameHeaderRef.current?.getBoundingClientRect())
+    }
+    const timer = setTimeout(measure, 80)
+    window.addEventListener('resize', measure)
+    return () => { clearTimeout(timer); window.removeEventListener('resize', measure) }
+  }, [showFinalListHint])
+
+  useEffect(() => {
+    if (!showFinalDetailHint) return
+    const measure = () => {
+      setPaymentDetailRect(paymentDetailRef.current?.getBoundingClientRect())
+      setStatusHeaderRect(paymentDetailRef.current?.querySelector('[data-tutorial="status-header"]')?.getBoundingClientRect())
+    }
+    const timer = setTimeout(measure, 80)
+    window.addEventListener('resize', measure)
+    return () => { clearTimeout(timer); window.removeEventListener('resize', measure) }
+  }, [showFinalDetailHint])
+
+  const handleCancelCompletedListConfirm = () => advance()
+  useEffect(() => {
+    if (!showCancelCompletedListHint) return
+    const handleKeyDown = e => { if (e.key !== 'Enter') return; handleCancelCompletedListConfirm() }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showCancelCompletedListHint])
+
+  const handleFinalListConfirm = () => advance()
+  useEffect(() => {
+    if (!showFinalListHint) return
+    const handleKeyDown = e => { if (e.key !== 'Enter') return; handleFinalListConfirm() }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showFinalListHint])
+
+  // 수기등록/수납 버튼을 누르면(튜토리얼 중에는 팝업창 대신) 화면 중앙에 모달로 띄우고 강조표시, 클릭/엔터로 다음 단계 진행
+  const manualModalBoxRef = useRef(null)
+  const payRegisterModalBoxRef = useRef(null)
+  const [manualModalRect, setManualModalRect] = useState(null)
+  const [payRegisterModalRect, setPayRegisterModalRect] = useState(null)
+  const showManualModal = isOpen && activeStep?.id === 'payment-manual-modal-hint'
+  // 수납 등록 모달은 인트로 단계 이후에도 수납방법/할부기간/결제하기 단계까지 계속 열려있어야 함
+  const PAY_REGISTER_STEP_IDS = ['payment-register-modal-hint', 'payment-register-method-hint', 'payment-register-installment-hint', 'payment-register-pay-btn-hint']
+  const showPayRegisterModal = isOpen && PAY_REGISTER_STEP_IDS.includes(activeStep?.id)
+  const showPayRegisterIntro = isOpen && activeStep?.id === 'payment-register-modal-hint'
+
+  useEffect(() => {
+    if (!showManualModal) return
+    const measure = () => setManualModalRect(manualModalBoxRef.current?.getBoundingClientRect())
+    const timer = setTimeout(measure, 80)
+    window.addEventListener('resize', measure)
+    return () => { clearTimeout(timer); window.removeEventListener('resize', measure) }
+  }, [showManualModal])
+
+  useEffect(() => {
+    if (!showPayRegisterModal) return
+    const measure = () => setPayRegisterModalRect(payRegisterModalBoxRef.current?.getBoundingClientRect())
+    const timer = setTimeout(measure, 80)
+    window.addEventListener('resize', measure)
+    return () => { clearTimeout(timer); window.removeEventListener('resize', measure) }
+  }, [showPayRegisterModal])
+
+  useEffect(() => {
+    if (!showManualModal) return
+    const handleKeyDown = e => { if (e.key !== 'Enter') return; advance() }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showManualModal])
+
+  useEffect(() => {
+    if (!showPayRegisterIntro) return
+    const handleKeyDown = e => { if (e.key !== 'Enter') return; advance() }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showPayRegisterIntro])
+
   const toggleGroup   = id => setExpanded(e=>e.includes(id)?[]:  [id])
   const toggleBulkCheck = id => setBulkChecked(c=>c.includes(id)?c.filter(x=>x!==id):[...c,id])
   const toggleBulkAll   = () => setBulkChecked(bulkChecked.length===BULK_DATA.length?[]:BULK_DATA.map(d=>d.id))
@@ -151,7 +405,7 @@ export default function Payments() {
       .filter(e => e.studentId === s.id)
       .map(e => {
         const fee = parseInt(String(e.fee).replace(/[^0-9]/g, ''), 10) || 0
-        const paid = paymentRecords.filter(p => p.enrollmentId === e.id).reduce((sum, p) => sum + p.amount, 0)
+        const paid = paymentRecords.filter(p => p.enrollmentId === e.id && !p.cancelled).reduce((sum, p) => sum + p.amount, 0)
         return { ...e, remaining: Math.max(fee - paid, 0) }
       })
       .filter(e => e.remaining > 0)
@@ -173,7 +427,8 @@ export default function Payments() {
   }).filter(Boolean)
 
   const payHistoryData = students.map(s => {
-    const studentPayments = paymentRecords.filter(p => p.studentId === s.id)
+    // 결제취소된 건은 청구/미납내역으로 돌아가므로, 결제내역 수강생 목록에서는 제외 (수강생관리 > 결제 탭에서만 확인 가능)
+    const studentPayments = paymentRecords.filter(p => p.studentId === s.id && !p.cancelled)
     if (studentPayments.length === 0) return null
     const guardian = s.family?.find(f => f.isPrimary) || s.family?.[0]
     const payAmt = studentPayments.reduce((sum, p) => sum + p.amount, 0)
@@ -189,7 +444,54 @@ export default function Payments() {
     }
   }).filter(Boolean)
 
+  // 펼쳐둔 학생이 수납/결제취소 등으로 목록에서 사라지면(예: 미납금 완납), 존재하지 않는 id로
+  // 계속 필터링돼서 나머지 학생들까지 통째로 안 보이는 문제를 막기 위해 안전한 값으로 대체
+  const safeExpandedUnpaidId = unpaidData.some(d => d.id === expandedUnpaidId) ? expandedUnpaidId : null
+  const safeExpandedPayId = payHistoryData.some(d => d.id === expandedPayId) ? expandedPayId : null
+
   const toggleAll = () => setChecked(checked.length===unpaidData.length?[]:unpaidData.map(d=>d.id))
+
+  // 튜토리얼 중 "이전" 버튼 등으로 단계를 되돌아가도, 그 단계가 필요로 하는 사이드메뉴/펼침 상태를 항상 맞춰줌
+  // (앞으로 진행할 때만 자연스럽게 바뀌던 activeSide/expandedUnpaidId/expandedPayId를 단계 기준으로 강제 동기화)
+  const UNPAID_TAB_STEP_IDS = [
+    'payment-page-hint', 'payment-page-detail-hint',
+    'payment-student-list-hint', 'payment-student-name-hint', 'payment-detail-hint',
+    'payment-checkbox-hint', 'payment-manual-btn-hint', 'payment-manual-modal-hint',
+    'payment-pay-btn-hint', 'payment-register-modal-hint', 'payment-register-method-hint',
+    'payment-register-installment-hint', 'payment-register-pay-btn-hint',
+    'payment-completed-list-hint', 'payment-history-menu-hint',
+    'payment-final-list-hint', 'payment-final-detail-hint',
+  ]
+  const UNPAID_EXPANDED_STEP_IDS = [
+    'payment-detail-hint', 'payment-checkbox-hint', 'payment-manual-btn-hint', 'payment-manual-modal-hint',
+    'payment-pay-btn-hint', 'payment-register-modal-hint', 'payment-register-method-hint',
+    'payment-register-installment-hint', 'payment-register-pay-btn-hint',
+    'payment-final-detail-hint',
+  ]
+  const PAY_HISTORY_TAB_STEP_IDS = [
+    'payment-history-list-hint', 'payment-history-name-hint', 'payment-billing-detail-hint',
+    'payment-billing-checkbox-hint', 'payment-cancel-btn-hint', 'payment-cancel-modal-hint',
+    'payment-cancel-completed-list-hint', 'payment-unpaid-menu-hint',
+  ]
+  const PAY_HISTORY_EXPANDED_STEP_IDS = [
+    'payment-billing-detail-hint', 'payment-billing-checkbox-hint', 'payment-cancel-btn-hint', 'payment-cancel-modal-hint',
+  ]
+
+  useEffect(() => {
+    if (!isOpen || !activeStep) return
+    const id = activeStep.id
+    if (UNPAID_TAB_STEP_IDS.includes(id)) {
+      setSidebarOpen(true)
+      setExpanded(e => e.includes('payment-mgmt') ? e : ['payment-mgmt'])
+      setActiveSide('unpaid')
+      setExpandedUnpaidId(UNPAID_EXPANDED_STEP_IDS.includes(id) ? (unpaidData[0]?.id ?? null) : null)
+    } else if (PAY_HISTORY_TAB_STEP_IDS.includes(id)) {
+      setSidebarOpen(true)
+      setExpanded(e => e.includes('payment-mgmt') ? e : ['payment-mgmt'])
+      setActiveSide('pay-history')
+      setExpandedPayId(PAY_HISTORY_EXPANDED_STEP_IDS.includes(id) ? (payHistoryData[0]?.id ?? null) : null)
+    }
+  }, [isOpen, activeStep?.id])
 
   return (
     <div className="payments-wrap">
@@ -293,9 +595,18 @@ export default function Payments() {
                   <span className="ss-toggle">{expanded.includes(group.id)?'∧':'∨'}</span><span>{group.label}</span>
                 </div>
                 {expanded.includes(group.id)&&group.items.map(item=>(
-                  <div key={item.id} className={`ss-item ${activeSide===item.id?'active':''}`}
+                  <div key={item.id} ref={item.id==='pay-history' ? payHistoryMenuItemRef : (item.id==='unpaid' ? unpaidMenuItemRef : null)}
+                    className={`ss-item ${activeSide===item.id?'active':''}`}
                     style={{position:'relative'}}
-                    onClick={()=>{ if(item.locked){ setShowUpgradeModal(true) } else { setActiveSide(item.id) } }}>
+                    onClick={()=>{
+                      if(item.locked){ setShowUpgradeModal(true); return }
+                      setActiveSide(item.id)
+                      // 다른 사이드 메뉴로 이동했다가 돌아왔을 때 이전에 펼쳐뒀던 수납/결제내역은 항상 접힌 상태로 시작
+                      setExpandedUnpaidId(null)
+                      setExpandedPayId(null)
+                      if (showPayHistoryMenuHint && item.id === 'pay-history') advance()
+                      if (showUnpaidMenuHint && item.id === 'unpaid') advance()
+                    }}>
                     <span className="ss-arrow">▶</span> {item.label}
                     {item.locked && (
                       <span style={{position:'absolute',inset:0,background:'rgba(100,100,100,0.45)',display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none',borderRadius:'inherit'}}>
@@ -426,7 +737,7 @@ export default function Payments() {
                   </div>
                 </div>
               </div>
-              <div className="pm-section" style={{border:'none'}}>
+              <div className="pm-section" style={{border:'none'}} ref={studentListSectionRef}>
                 <div className="pm-sec-head" style={{borderBottom:'none'}}>
                   <div className="pm-sec-title">수강생 목록</div>
                   <div style={{display:'flex',alignItems:'center',gap:6}}>
@@ -436,14 +747,19 @@ export default function Payments() {
                 </div>
                 <div className="pm-table-wrap">
                   <table className="pm-table">
-                    <thead><tr><th><input type="checkbox" checked={unpaidData.length>0 && checked.length===unpaidData.length} onChange={toggleAll}/></th><th>번호</th><th>성명</th><th>주 결제방법</th><th>반명 / 납부기준일</th><th>미납금액</th><th>수강생휴대폰</th><th>문자전송일</th><th>보호자관계</th><th>보호자휴대폰</th><th>문자전송일</th></tr></thead>
+                    <thead><tr><th><input type="checkbox" checked={unpaidData.length>0 && checked.length===unpaidData.length} onChange={toggleAll}/></th><th>번호</th><th ref={nameHeaderRef}>성명</th><th>주 결제방법</th><th>반명 / 납부기준일</th><th>미납금액</th><th>수강생휴대폰</th><th>문자전송일</th><th>보호자관계</th><th>보호자휴대폰</th><th>문자전송일</th></tr></thead>
                     <tbody>
-                      {unpaidData.filter(d=>expandedUnpaidId===null||expandedUnpaidId===d.id).map((d,idx)=>(
+                      {unpaidData.filter(d=>safeExpandedUnpaidId===null||safeExpandedUnpaidId===d.id).map((d,idx)=>(
                         <>
                           <tr key={d.id} className={checked.includes(d.id)?'checked-row':''}>
                             <td><input type="checkbox" checked={checked.includes(d.id)} onChange={()=>toggleCheck(d.id)}/></td>
                             <td>{idx+1}</td>
-                            <td><span className="sts-name-link" onClick={()=>setExpandedUnpaidId(expandedUnpaidId===d.id?null:d.id)}>{d.name}</span></td>
+                            <td ref={idx===0 ? studentNameRef : null}>
+                              <span className="sts-name-link" onClick={()=>{
+                                setExpandedUnpaidId(expandedUnpaidId===d.id?null:d.id)
+                                if (showStudentNameHint || showFinalListHint) advance()
+                              }}>{d.name}</span>
+                            </td>
                             <td>{d.method}</td>
                             <td>{d.classes.map((c,i)=><div key={i} className="cls-row"><span className="cls-name">{c.cls}</span><span className="cls-day">{c.day}</span></div>)}</td>
                             <td className="unpaid-amt">{d.unpaid.toLocaleString()}</td>
@@ -452,10 +768,10 @@ export default function Payments() {
                             <td>{d.rel}</td><td>{d.guardPhone}</td>
                             <td className={d.guardSent?'sent-date-red':''}>{d.guardSent}</td>
                           </tr>
-                          {expandedUnpaidId===d.id && (
+                          {safeExpandedUnpaidId===d.id && (
                             <tr key={`unpaid-detail-${d.id}`}>
                               <td colSpan={11} style={{padding:'0 10px',background:'#fff'}}>
-                                <div style={{marginTop:40}}><PaymentTab studentId={d.id} studentName={d.name} defaultFilter="미납+완납(환불)" /></div>
+                                <div style={{marginTop:40}} ref={paymentDetailRef}><PaymentTab studentId={d.id} studentName={d.name} defaultFilter="미납+완납(환불)" /></div>
                               </td>
                             </tr>
                           )}
@@ -562,7 +878,7 @@ export default function Payments() {
                   </div>
                 </div>
               </div>
-              <div className="pm-section" style={{border:'none'}}>
+              <div className="pm-section" style={{border:'none'}} ref={payHistorySectionRef}>
                 <div className="pm-sec-head" style={{borderBottom:'none'}}><div className="pm-sec-title">수강생 목록</div></div>
                 <div className="pm-table-wrap">
                   <table className="pm-table" style={{tableLayout:'fixed',minWidth:760}}>
@@ -573,13 +889,16 @@ export default function Payments() {
                     <tbody>
                       {payHistoryData.length === 0
                         ? <tr><td colSpan={8} style={{textAlign:'center',padding:'30px',color:'#bbb',fontSize:13}}>검색된 데이터가 없습니다.</td></tr>
-                        : payHistoryData.filter(d=>expandedPayId===null||expandedPayId===d.id).map((d,idx)=>(
+                        : payHistoryData.filter(d=>safeExpandedPayId===null||safeExpandedPayId===d.id).map((d,idx)=>(
                           <>
                             <tr key={d.id}>
                               <td style={{textAlign:'center'}}>{idx+1}</td>
-                              <td style={{textAlign:'left'}}>
+                              <td ref={idx===0 ? billingNameRef : null}>
                                 <span className="sts-name-link"
-                                  onClick={()=>setExpandedPayId(expandedPayId===d.id?null:d.id)}>
+                                  onClick={()=>{
+                                    setExpandedPayId(expandedPayId===d.id?null:d.id)
+                                    if (showBillingNameHint) advance()
+                                  }}>
                                   {d.name}
                                 </span>
                               </td>
@@ -588,10 +907,10 @@ export default function Payments() {
                               <td style={{textAlign:'center'}}>{d.refund || ''}</td>
                               <td style={{textAlign:'center'}}>{d.phone}</td><td style={{textAlign:'center'}}>{d.guardRel}</td><td style={{textAlign:'center'}}>{d.guardPhone}</td>
                             </tr>
-                            {expandedPayId===d.id && (
+                            {safeExpandedPayId===d.id && (
                               <tr key={`billing-${d.id}`}>
                                 <td colSpan={8} style={{padding:'0 10px',background:'#fff'}}>
-                                  <div style={{marginTop:40}}><BillingTab studentId={d.id} studentName={d.name} /></div>
+                                  <div style={{marginTop:40}} ref={billingDetailRef}><BillingTab studentId={d.id} studentName={d.name} /></div>
                                 </td>
                               </tr>
                             )}
@@ -733,6 +1052,309 @@ export default function Payments() {
               onConfirm={showPaymentPageHint ? handlePaymentPageConfirm : handlePaymentPageDetailConfirm}
             />
           )}
+        </>
+      )}
+      {showStudentListHint && studentListRect && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[studentListRect]}
+          />
+          <div style={{
+            position: 'fixed',
+            left: studentListRect.left,
+            top: studentListRect.top,
+            width: studentListRect.width,
+            height: studentListRect.height,
+            zIndex: 3001,
+          }} />
+          <TutorialTooltip
+            rect={studentListRect}
+            placement="top"
+            message="수강신청까지 진행하면 해당 학생이 수강한 반에 대한 청구서가 이곳에 생성됩니다."
+            onConfirm={handleStudentListConfirm}
+          />
+        </>
+      )}
+      {showStudentNameHint && studentNameRect && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[studentNameRect]}
+          />
+          <TutorialTooltip
+            rect={studentNameRect}
+            placement="top"
+            center
+            message="학생의 이름을 클릭하세요."
+          />
+        </>
+      )}
+      {showDetailHint && paymentDetailRect && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[{ rect: paymentDetailRect, pad: 10 }]}
+          />
+          <div style={{
+            position: 'fixed',
+            left: paymentDetailRect.left - 10,
+            top: paymentDetailRect.top - 10,
+            width: paymentDetailRect.width + 20,
+            height: paymentDetailRect.height + 20,
+            zIndex: 3001,
+          }} />
+          <TutorialTooltip
+            rect={paymentDetailRect}
+            placement="top"
+            message="이곳에서 보이는 수납내역은 수강생 정보 하단 메뉴에 있던 수납 메뉴와 동일합니다."
+            onConfirm={handleDetailConfirm}
+          />
+        </>
+      )}
+      {showManualModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 3500, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div ref={manualModalBoxRef} style={{ width: 650, maxWidth: '90vw', maxHeight: '90vh', background: '#fff', borderRadius: 8, boxShadow: '0 12px 40px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ position: 'relative', overflowY: 'auto', minHeight: 0 }}>
+              <ManualRegister />
+              <div style={{ position: 'absolute', inset: 0 }} />
+            </div>
+            <div style={{ textAlign: 'center', padding: '12px 0', borderTop: '1px solid #eee' }}>
+              <span style={{ color: '#F5841F', fontWeight: 500, fontSize: 13, textDecoration: 'underline', cursor: 'pointer' }} onClick={() => advance()}>다음 단계로 이동 - 확인[Enter]</span>
+            </div>
+          </div>
+        </div>
+      )}
+      {showManualModal && manualModalRect && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[manualModalRect]}
+          />
+          <TutorialTooltip
+            rect={{
+              left: manualModalRect.left,
+              right: manualModalRect.right,
+              width: manualModalRect.width,
+              height: manualModalRect.height,
+              top: manualModalRect.top + 5,
+              bottom: manualModalRect.bottom + 5,
+            }}
+            placement="top"
+            center
+            message={
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                <span>수기 등록 화면 예시</span>
+                <span
+                  onClick={e => { e.stopPropagation(); advance() }}
+                  style={{ fontSize: 11, color: '#F5841F', fontWeight: 600, cursor: 'pointer' }}
+                >확인[Enter]</span>
+              </div>
+            }
+          />
+        </>
+      )}
+      {showPayRegisterModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 3500, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div ref={payRegisterModalBoxRef} style={{ width: 650, maxWidth: '90vw', maxHeight: '90vh', background: '#fff', borderRadius: 8, boxShadow: '0 12px 40px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ position: 'relative', overflowY: 'auto', minHeight: 0 }}>
+              <PaymentRegister />
+              {showPayRegisterIntro && <div style={{ position: 'absolute', inset: 0, cursor: 'pointer' }} onClick={() => advance()} />}
+            </div>
+          </div>
+        </div>
+      )}
+      {showPayRegisterIntro && payRegisterModalRect && (
+        <TutorialMultiSpotlight
+          boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+          holes={[payRegisterModalRect]}
+        />
+      )}
+      {showCompletedListHint && studentListRect && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[studentListRect]}
+          />
+          <div style={{
+            position: 'fixed',
+            left: studentListRect.left,
+            top: studentListRect.top,
+            width: studentListRect.width,
+            height: studentListRect.height,
+            zIndex: 3001,
+          }} />
+          <TutorialTooltip
+            rect={studentListRect}
+            placement="top"
+            message="결제가 완료된 청구서는 결제내역으로 이동합니다."
+            onConfirm={handleCompletedListConfirm}
+          />
+        </>
+      )}
+      {showPayHistoryMenuHint && payHistoryMenuRect && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[payHistoryMenuRect]}
+          />
+          <TutorialTooltip
+            rect={payHistoryMenuRect}
+            placement="right"
+            message="결제내역을 클릭하세요."
+          />
+        </>
+      )}
+      {showPayHistoryListHint && payHistoryListRect && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[payHistoryListRect]}
+          />
+          <div style={{
+            position: 'fixed',
+            left: payHistoryListRect.left,
+            top: payHistoryListRect.top,
+            width: payHistoryListRect.width,
+            height: payHistoryListRect.height,
+            zIndex: 3001,
+          }} />
+          <TutorialTooltip
+            rect={payHistoryListRect}
+            placement="top"
+            message="결제가 완료된 내역은 이곳 결제내역에서 확인할 수 있습니다."
+            onConfirm={handlePayHistoryListConfirm}
+          />
+        </>
+      )}
+      {showBillingNameHint && billingNameRect && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[billingNameRect]}
+          />
+          <TutorialTooltip
+            rect={billingNameRect}
+            placement="top"
+            message="수강생 이름을 클릭해 주세요."
+          />
+        </>
+      )}
+      {showBillingDetailHint && billingDetailRect && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[{ rect: billingDetailRect, pad: 10 }]}
+          />
+          <div style={{
+            position: 'fixed',
+            left: billingDetailRect.left - 10,
+            top: billingDetailRect.top - 10,
+            width: billingDetailRect.width + 20,
+            height: billingDetailRect.height + 20,
+            zIndex: 3001,
+          }} />
+          <TutorialTooltip
+            rect={billingDetailRect}
+            placement="top"
+            message="이곳에서 결제내역을 확인할 수 있고 결제 취소를 할 수 있습니다."
+            onConfirm={handleBillingDetailConfirm}
+          />
+          <div style={{
+            position: 'fixed',
+            left: billingDetailRect.left,
+            top: billingDetailRect.bottom + 20,
+            width: billingDetailRect.width,
+            zIndex: 3002,
+            color: '#fff',
+            fontSize: 13,
+            textAlign: 'center',
+          }}>
+            수강생 정보에 있는 결제 메뉴에서도 이 내용을 확인하실 수 있습니다.
+          </div>
+        </>
+      )}
+      {showPaymentCancelModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 3500, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div ref={paymentCancelModalBoxRef} style={{ width: 600, maxWidth: '90vw', maxHeight: '90vh', background: '#fff', borderRadius: 8, boxShadow: '0 12px 40px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ position: 'relative', overflowY: 'auto', minHeight: 0 }}>
+              <PaymentCancel />
+            </div>
+          </div>
+        </div>
+      )}
+      {showPaymentCancelModal && paymentCancelModalRect && (
+        <TutorialMultiSpotlight
+          boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+          holes={[paymentCancelModalRect]}
+        />
+      )}
+      {showCancelCompletedListHint && payHistoryListRect && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[{ rect: payHistoryListRect, pad: 10 }]}
+          />
+          <TutorialTooltip
+            rect={payHistoryListRect}
+            placement="top"
+            message="결제취소 처리되어 결제내역에서 사라지고 청구/미납내역으로 다시 미납으로 표시됩니다."
+            onConfirm={handleCancelCompletedListConfirm}
+          />
+        </>
+      )}
+      {showUnpaidMenuHint && unpaidMenuRect && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[unpaidMenuRect]}
+          />
+          <TutorialTooltip
+            rect={unpaidMenuRect}
+            placement="right"
+            message="청구/미납내역을 클릭해 주세요."
+          />
+        </>
+      )}
+      {showFinalListHint && studentListRect && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[studentListRect]}
+          />
+          <TutorialTooltip
+            rect={nameHeaderRect || studentListRect}
+            placement="top"
+            center
+            message="학생 이름 클릭"
+            onConfirm={handleFinalListConfirm}
+          />
+        </>
+      )}
+      {showFinalDetailHint && paymentDetailRect && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[{ rect: paymentDetailRect, pad: 10 }]}
+          />
+          <TutorialTooltip
+            rect={statusHeaderRect || paymentDetailRect}
+            placement="top"
+            center
+            message="미납 내역으로 표시"
+          />
+          <div style={{
+            position: 'fixed',
+            left: '50%',
+            top: paymentDetailRect.bottom + 100,
+            transform: 'translateX(-50%)',
+            zIndex: 3002,
+          }}>
+            <button
+              style={{ padding: '10px 24px', background: '#00a2ff', color: '#fff', border: 'none', borderRadius: 6, fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}
+              onClick={() => advance()}
+            >튜토리얼 완료</button>
+          </div>
         </>
       )}
     </div>

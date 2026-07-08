@@ -7,11 +7,13 @@ const STAGES = ['시작', '반관리', '수강생관리', '수납관리']
 const MAIN_APP_ROUTES = ['/dashboard', '/settings', '/students', '/payments', '/classes']
 
 export default function TutorialFloatingButton() {
-  const { started, step, totalSteps, resume } = useTutorial()
+  const { profileSynced, step, totalSteps, resume } = useTutorial()
   const navigate = useNavigate()
   const location = useLocation()
 
-  if (!started || !MAIN_APP_ROUTES.includes(location.pathname)) return null
+  // started 여부와 무관하게 항상 노출 - started가 (동기화 지연 등으로) 잘못 false가 되어도
+  // 이 박스를 통해 언제든 다시 튜토리얼로 들어갈 수 있도록 함
+  if (!profileSynced || !MAIN_APP_ROUTES.includes(location.pathname)) return null
 
   const progress = Math.round((Math.min(step, totalSteps) / totalSteps) * 100)
   const currentStage = TUTORIAL_STEPS[Math.min(step, totalSteps - 1)]?.stage ?? 0

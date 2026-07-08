@@ -16,21 +16,23 @@ export default function TutorialDevNav() {
   }
 
   const baseStyle = {
-    position: 'fixed', top: '50%', transform: 'translateY(-50%)', zIndex: 5000,
-    background: '#222', color: '#fff', border: 'none', borderRadius: 20,
-    padding: '10px 16px', fontSize: 13, fontWeight: 400, cursor: 'pointer',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.3)', fontFamily: 'inherit',
+    position: 'fixed', top: 10, zIndex: 5000,
+    background: 'transparent', color: '#fff', border: 'none',
+    padding: '10px 16px', fontSize: 14, fontWeight: 400, cursor: 'pointer',
+    boxShadow: 'none', fontFamily: 'inherit',
   }
+
+  const arrowStyle = { display: 'inline-block', transform: 'scaleY(1.8)' }
 
   return (
     <>
       {step > 0 && (
         <button style={{ ...baseStyle, left: 16 }} onClick={() => goToStep(step - 1, goBack)}>
-          ◀ 이전
+          <span style={{ ...arrowStyle, marginRight: 6 }}>&lt;</span>이전
         </button>
       )}
       <button style={{ ...baseStyle, right: 16 }} onClick={() => goToStep(step + 1, advance)}>
-        다음 ▶
+        다음<span style={{ ...arrowStyle, marginLeft: 6 }}>&gt;</span>
       </button>
     </>
   )

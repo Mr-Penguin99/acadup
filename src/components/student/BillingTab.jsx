@@ -1,16 +1,44 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import '../../pages/Students.css'
 import { useAppData } from '../../contexts/AppDataContext'
+import { useTutorial } from '../TutorialContext'
+import TutorialMultiSpotlight from '../TutorialMultiSpotlight'
+import TutorialTooltip from '../TutorialTooltip'
 
 export default function BillingTab({ studentId, studentName }) {
   const { payments } = useAppData()
-  const [filter, setFilter] = useState('전체')
+  const [filter, setFilter] = useState('결제')
   const [checked, setChecked] = useState([])
 
-  const rows = payments.filter(p => p.studentId === studentId).map(p => ({
+  const { activeStep, isOpen, advance } = useTutorial()
+  const firstRowCheckboxRef = useRef(null)
+  const cancelBtnRef = useRef(null)
+  const [checkboxHintRect, setCheckboxHintRect] = useState(null)
+  const [cancelBtnRect, setCancelBtnRect] = useState(null)
+
+  const showCheckboxHint = isOpen && activeStep?.id === 'payment-billing-checkbox-hint'
+  const showCancelBtnHint = isOpen && activeStep?.id === 'payment-cancel-btn-hint'
+
+  useEffect(() => {
+    if (!showCheckboxHint) return
+    const measure = () => setCheckboxHintRect(firstRowCheckboxRef.current?.getBoundingClientRect())
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [showCheckboxHint])
+
+  useEffect(() => {
+    if (!showCancelBtnHint) return
+    const measure = () => setCancelBtnRect(cancelBtnRef.current?.getBoundingClientRect())
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [showCancelBtnHint])
+
+  const allRows = payments.filter(p => p.studentId === studentId).map(p => ({
     id: p.id,
     date: p.payDate,
-    processStatus: '정상',
+    processStatus: p.cancelled ? '결제취소' : '정상',
     payStatus: '수납',
     payDiv: '현장결제',
     payMethod: p.method,
@@ -20,10 +48,22 @@ export default function BillingTab({ studentId, studentName }) {
     approvalNo: '',
     month: p.month,
     className: p.className,
+    cancelled: p.cancelled,
+    cancelReason: p.cancelReason,
   }))
 
-  const toggleAll = () => setChecked(c => c.length===rows.length ? [] : rows.map(d=>d.id))
-  const toggle = id => setChecked(c => c.includes(id) ? c.filter(x=>x!==id) : [...c,id])
+  const rows = filter === '결제' ? allRows.filter(r => !r.cancelled)
+    : filter === '결제취소' ? allRows.filter(r => r.cancelled)
+    : allRows
+
+  const toggleAll = () => {
+    setChecked(c => c.length===rows.length ? [] : rows.map(d=>d.id))
+    if (showCheckboxHint) advance()
+  }
+  const toggle = id => {
+    setChecked(c => c.includes(id) ? c.filter(x=>x!==id) : [...c,id])
+    if (showCheckboxHint) advance()
+  }
 
   return (
     <div>
@@ -37,8 +77,10 @@ export default function BillingTab({ studentId, studentName }) {
             <option>전체</option><option>결제</option><option>결제취소</option>
           </select>
         </div>
-        <button className="family-add-btn" onClick={()=>{
-          const target = checked.length > 0 ? rows.find(d=>d.id===checked[0]) : rows[0]
+        <button className="family-add-btn" ref={cancelBtnRef} onClick={()=>{
+          const target = checked.length > 0
+            ? rows.find(d => d.id === checked[0] && !d.cancelled)
+            : rows.find(d => !d.cancelled)
           if (!target) { alert('결제취소할 내역을 선택해주세요.'); return }
           sessionStorage.setItem('paymentCancelData', JSON.stringify({
             paymentId: target.id,
@@ -50,6 +92,7 @@ export default function BillingTab({ studentId, studentName }) {
             className: target.className,
             studentName,
           }))
+          if (showCancelBtnHint) { advance(); return }
           const w = 600, h = 660
           const left = window.screenX + (window.outerWidth - w) / 2
           const top = window.screenY + (window.outerHeight - h) / 2
@@ -78,18 +121,18 @@ export default function BillingTab({ studentId, studentName }) {
         <tbody>
           {rows.length === 0 ? (
             <tr><td colSpan={12} style={{textAlign:'center',padding:'24px 0',color:'#aaa',fontSize:13}}>결제 내역이 없습니다.</td></tr>
-          ) : rows.map(row=>(
+          ) : rows.map((row,idx)=>(
             <tr key={row.id} style={{borderBottom:'1px solid #f0f0f0'}}>
-              <td style={{...td,textAlign:'center'}}>
+              <td style={{...td,textAlign:'center'}} ref={idx===0 ? firstRowCheckboxRef : null}>
                 <input type="checkbox" checked={checked.includes(row.id)} onChange={()=>toggle(row.id)}/>
               </td>
               <td style={{...td,textAlign:'center'}}>{row.date}</td>
-              <td style={{...td,textAlign:'center'}}>{row.processStatus}</td>
+              <td style={{...td,textAlign:'center',color:row.cancelled?'#ff3c00':undefined}}>{row.processStatus}</td>
               <td style={{...td,textAlign:'center'}}>{row.payStatus}</td>
               <td style={{...td,textAlign:'center'}}>{row.payDiv}</td>
               <td style={{...td,textAlign:'center'}}>{row.payMethod}</td>
               <td style={{...td,textAlign:'center'}}>{row.payAmt.toLocaleString()}</td>
-              <td style={{...td,textAlign:'center'}}>{row.refund}</td>
+              <td style={{...td,textAlign:'center'}}>{row.refund ? row.refund.toLocaleString() : ''}</td>
               <td style={{...td,textAlign:'center'}}>{row.cardNo}</td>
               <td style={{...td,textAlign:'center'}}>{row.approvalNo}</td>
               <td style={{...td,textAlign:'center'}}>
@@ -110,6 +153,33 @@ export default function BillingTab({ studentId, studentName }) {
           ))}
         </tbody>
       </table>
+      {showCheckboxHint && checkboxHintRect && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[checkboxHintRect]}
+          />
+          <TutorialTooltip
+            rect={checkboxHintRect}
+            placement="top"
+            message="결제취소할 결제건을 선택합니다."
+          />
+        </>
+      )}
+      {showCancelBtnHint && cancelBtnRect && (
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[{ rect: cancelBtnRect, pad: 10 }]}
+          />
+          <TutorialTooltip
+            rect={cancelBtnRect}
+            placement="top"
+            rightAlign
+            message="결제취소를 클릭해 주세요."
+          />
+        </>
+      )}
     </div>
   )
 }
