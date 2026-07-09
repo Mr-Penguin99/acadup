@@ -21,7 +21,7 @@ const SAMPLE = [
 ]
 
 export default function AttendTab() {
-  const [month, setMonth] = useState('2026-06')
+  const [month, setMonth] = useState(() => new Date().toISOString().slice(0, 7))
 
   return (
     <div>

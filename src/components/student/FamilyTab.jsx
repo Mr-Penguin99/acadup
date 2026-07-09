@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import '../../pages/Students.css'
 
 const formatPhone = (val) => {
@@ -15,8 +15,14 @@ const defaultRow = () => ({
   msgType: '전체수신',
 })
 
-export default function FamilyTab({ nameInputRef, relationSelectRef, phoneInputRef, msgTypeSelectRef, onMsgTypeChange, onMsgTypeClick, saveBtnRef, onSaveClick, initialRows }) {
+export default function FamilyTab({ nameInputRef, relationSelectRef, phoneInputRef, msgTypeSelectRef, onMsgTypeChange, onMsgTypeClick, saveBtnRef, onSaveClick, initialRows, replayRow }) {
   const [rows, setRows] = useState(() => initialRows?.length > 0 ? initialRows : [defaultRow()])
+
+  // replay(다시보기) 모드 전용 - 실제 입력이 아니라 튜토리얼 진행 단계에 맞춰 고정된 샘플 값을 그대로 보여줌
+  useEffect(() => {
+    if (!replayRow) return
+    setRows(r => [{ ...r[0], name: replayRow.name, relation: replayRow.relation, phone: replayRow.phone }, ...r.slice(1)])
+  }, [replayRow])
 
   const addRow = () => setRows(r => [...r, defaultRow()])
   const removeRow = id => setRows(r =>

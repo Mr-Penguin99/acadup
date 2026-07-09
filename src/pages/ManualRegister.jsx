@@ -1,5 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAppData } from '../contexts/AppDataContext'
+import { useTutorial } from '../components/TutorialContext'
+
+// replay(다시보기) 모드에서는 실제 sessionStorage 데이터가 없으므로, 반관리/수납관리에서 써온 것과
+// 같은 고정 샘플(튜토리얼반)로 화면을 채워서 보여줌
+const REPLAY_PREFILL = {
+  studentName: '홍길동', studentBirth: '',
+  className: '튜토리얼반', month: '2026-06', item: '수강료01', billAmt: 100000, unpaid: 100000,
+}
 
 const CLASS_LIST = ['중등 수학A 1교시', '중등 수학A 2교시', '중등 수학A 3교시']
 const CLASS_INFO = {
@@ -92,6 +100,8 @@ function ItemTable({ items, setItems, options }) {
 
 export default function ManualRegister() {
   const { classes, enrollments, payments, updateEnrollment, deleteEnrollment } = useAppData()
+  const { isOpen, mode } = useTutorial()
+  const isReplay = isOpen && mode === 'replay'
   const [prefillData, setPrefillData] = useState(null)
   const [className, setClassName] = useState('')
   const [round, setRound] = useState('1차')
@@ -106,6 +116,12 @@ export default function ManualRegister() {
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
+    if (isReplay) {
+      setPrefillData(REPLAY_PREFILL)
+      setTargetStart(REPLAY_PREFILL.month); setTargetEnd(REPLAY_PREFILL.month)
+      setPayItems([{ id: 1, item: REPLAY_PREFILL.item, amt: String(REPLAY_PREFILL.billAmt) }])
+      return
+    }
     const raw = sessionStorage.getItem('manualRegisterData')
     if (!raw) return
     sessionStorage.removeItem('manualRegisterData')

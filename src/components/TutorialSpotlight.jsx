@@ -1,9 +1,14 @@
+import { useTutorial } from './TutorialContext'
+
 // 지정된 영역(rect)만 오버레이를 비워 강조하고, 그 옆에 말풍선 툴팁을 띄움.
 // 강조된 영역은 실제 페이지 요소가 그대로 노출되어 클릭 가능하고, 나머지는 어두운 배경으로 막혀있음.
 // placement='bottom'(기본): 강조 영역 아래 / placement='top': 강조 영역 위 - 둘 다 강조 영역 가운데에 말풍선과 말꼬리가 옴
 // onConfirm을 전달하면 메시지 옆에 "확인[Enter]"가 붙고 클릭하면 호출됨 (Enter 처리는 호출하는 쪽에서 직접 담당)
+// replay(다시보기) 모드에서는 onConfirm이 전달돼도 "확인[Enter]"를 표시하지 않음
 export default function TutorialSpotlight({ rect, message, placement = 'bottom', onConfirm, rightAlign }) {
+  const { mode } = useTutorial()
   if (!rect) return null
+  const showConfirm = onConfirm && mode !== 'replay'
 
   const PAD = 6
   const top = rect.top - PAD
@@ -54,9 +59,9 @@ export default function TutorialSpotlight({ rect, message, placement = 'bottom',
           borderLeft: '8px solid transparent', borderRight: '8px solid transparent',
           ...arrowBoxStyle,
         }} />
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: onConfirm ? 50 : 0 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: showConfirm ? 50 : 0 }}>
           <span>{message}</span>
-          {onConfirm && (
+          {showConfirm && (
             <span
               onClick={e => { e.stopPropagation(); onConfirm() }}
               style={{ fontSize: 11, color: '#F5841F', fontWeight: 600, cursor: 'pointer' }}

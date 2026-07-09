@@ -4,18 +4,29 @@ import { useAppData } from '../contexts/AppDataContext'
 import { useTutorial } from '../components/TutorialContext'
 import TutorialTooltip from '../components/TutorialTooltip'
 
+// replay(다시보기) 모드에서는 실제 sessionStorage 데이터가 없으므로, 반관리/수납관리에서 써온 것과
+// 같은 고정 샘플(튜토리얼반)로 화면을 채워서 보여줌
+const REPLAY_CANCEL_DATA = {
+  studentName: '홍길동', birth: '',
+  month: '2026-06', className: '튜토리얼반',
+  date: '2026-06-05', payDiv: '현장결제', payMethod: '카드', payAmt: 100000,
+  paymentId: 'replay-billing-1',
+}
+
 export default function PaymentCancel() {
   const { cancelPayment } = useAppData()
   const [data, setData] = useState(null)
   const [cancelReason, setCancelReason] = useState('')
   const [saving, setSaving] = useState(false)
 
+  const { activeStep, isOpen, advance, mode } = useTutorial()
+  const isReplay = isOpen && mode === 'replay'
+
   useEffect(() => {
+    if (isReplay) { setData(REPLAY_CANCEL_DATA); setCancelReason('튜토리얼'); return }
     const raw = sessionStorage.getItem('paymentCancelData')
     if (raw) setData(JSON.parse(raw))
   }, [])
-
-  const { activeStep, isOpen, advance } = useTutorial()
   const reasonRowRef = useRef(null)
   const reasonLabelRef = useRef(null)
   const [reasonRowRect, setReasonRowRect] = useState(null)
@@ -102,7 +113,7 @@ export default function PaymentCancel() {
   )
 
   return (
-    <div style={{fontFamily:'inherit',minHeight:'100vh',background:'#fff',padding:'24px 28px'}}>
+    <div style={{fontFamily:'inherit',minHeight:'100vh',background:'#fff',padding:'24px 28px', ...(isReplay ? { pointerEvents: 'none' } : {})}}>
       {/* 제목 + 버튼 */}
       <div style={{marginBottom:16}}>
         <div style={{fontSize:18,fontWeight:600,color:'#333',marginBottom:14}}>결제 취소</div>

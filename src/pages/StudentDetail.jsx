@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import './Students.css'
+import { useAppData } from '../contexts/AppDataContext'
 import { DatePicker } from '../components/DatePicker'
 import FamilyTab from '../components/student/FamilyTab'
 import ClassTab from '../components/student/ClassTab'
@@ -18,6 +19,7 @@ const INFO_TABS   = ['가족','수강','수납','결제','상담','출결','학�
 const LOCKED_TABS = ['상담','출결','학원성적','학교성적','알림내역','메모','진도','차량']
 
 export default function StudentDetail() {
+  const { students, enrollments: contextEnrollments, updateStudent, deleteStudent } = useAppData()
   const [infoTab, setInfoTab] = useState('가족')
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [isNew, setIsNew] = useState(false)
@@ -36,9 +38,13 @@ export default function StudentDetail() {
     studentNo:'', name:'', birth:'', gender:'남자',
     id:'', enrollDate:'', phone:'', homePhone:'',
     grade2:'', attendNo:'', email1:'', email2:'',
-    status:'', hasClasses:false,
+    status:'', hasClasses:false, family:[],
     address:'', zipcode:'', addressDetail:'', etc:'',
   })
+
+  // 반별 수강생 쪽 팝업(수강신청/수납등록 등)과 동일하게, 데이터 변경 후 이 창을 띄운 원래 창(수강생현황)의
+  // useAppData를 새로고침해서 목록에 바로 반영되도록 함
+  const reloadOpener = () => { try { if (window.opener && !window.opener.closed) window.opener.__refreshAppData?.() } catch {} }
 
   useEffect(() => {
     const data = sessionStorage.getItem('studentDetailData')
@@ -56,11 +62,107 @@ export default function StudentDetail() {
     }))
   }, [])
 
+  // 실제 DB 데이터(useAppData)가 로드되면, 반별 수강생 쪽처럼 학생 레코드 전체(가족정보 등 포함)로 폼을 채움
+  useEffect(() => {
+    if (studentDbId == null) return
+    const s = students.find(s => s.id === studentDbId)
+    if (s) setForm(f => ({ ...f, ...s }))
+  }, [studentDbId, students])
+
+  // 재원/예비는 hasClasses 플래그가 아니라 실제 수강 내역(contextEnrollments) 존재 여부로 판단 -
+  // 플래그를 별도로 관리하면 수강신청/취소 시점에 따라 실제 데이터와 어긋날 수 있음
   const getDisplayStatus = () => {
     if (form.status === '퇴원') return '퇴원'
     if (form.status === '휴원') return '휴원'
-    if (form.hasClasses) return '재원'
+    if (contextEnrollments.some(e => e.studentId === studentDbId)) return '재원'
     return '예비'
+  }
+
+  const handleUpdateStudent = async () => {
+    if (!form.name)       { alert('성명을 입력해주세요.'); return }
+    if (!form.birth)      { alert('생년월일을 입력해주세요.'); return }
+    if (!form.enrollDate) { alert('입학일자를 입력해주세요.'); return }
+    if (!form.phone)      { alert('학생 휴대폰을 입력해주세요.'); return }
+    const { error } = await updateStudent(studentDbId, { ...form })
+    if (error) { alert(error.message || '수정에 실패했습니다.'); return }
+    reloadOpener()
+    alert('정상적으로 처리되었습니다.')
+  }
+
+  const handleWithdraw = async () => {
+    if (!window.confirm('퇴원하는 경우 수강 중인 반을 모두 중지해야 합니다.\n퇴원하려면 확인을 선택해 주세요.')) return
+    const today = new Date().toISOString().slice(0, 10)
+    const hasActiveClass = contextEnrollments.some(e => e.studentId === studentDbId && (!e.endDate || e.endDate > today))
+    if (hasActiveClass) {
+      alert('수강등록이 된 수강생은 퇴원할 수 없습니다. 먼저 수강 중지를 해야합니다.')
+      return
+    }
+    const { error } = await updateStudent(studentDbId, { ...form, status: '퇴원' })
+    if (error) { alert(error.message || '퇴원 처리에 실패했습니다.'); return }
+    setForm(f => ({ ...f, status: '퇴원' }))
+    reloadOpener()
+    alert('정상적으로 처리되었습니다.')
+  }
+
+  const handleCancelWithdraw = async () => {
+    const restoredStatus = contextEnrollments.some(e => e.studentId === studentDbId) ? '재원' : '예비'
+    const { error } = await updateStudent(studentDbId, { ...form, status: restoredStatus })
+    if (error) { alert(error.message || '퇴원취소 처리에 실패했습니다.'); return }
+    setForm(f => ({ ...f, status: restoredStatus }))
+    reloadOpener()
+    alert('정상적으로 처리되었습니다.')
+  }
+
+  const handleSuspend = async () => {
+    if (!window.confirm('휴원하는 경우 수강 중인 반을 모두 중지해야 합니다.\n휴원하려면 확인을 선택해 주세요.')) return
+    const today = new Date().toISOString().slice(0, 10)
+    const hasActiveClass = contextEnrollments.some(e => e.studentId === studentDbId && (!e.endDate || e.endDate > today))
+    if (hasActiveClass) {
+      alert('수강등록이 된 수강생은 휴원할 수 없습니다. 먼저 수강 중지를 해야합니다.')
+      return
+    }
+    const { error } = await updateStudent(studentDbId, { ...form, status: '휴원' })
+    if (error) { alert(error.message || '휴원 처리에 실패했습니다.'); return }
+    setForm(f => ({ ...f, status: '휴원' }))
+    reloadOpener()
+    alert('정상적으로 처리되었습니다.')
+  }
+
+  const handleDeleteStudent = async () => {
+    if (typeof studentDbId !== 'number') return
+    if (!window.confirm('삭제하는 경우 자료를 복구할 수 없습니다. 삭제하려면 확인을 선택해 주세요.')) return
+    const { error } = await deleteStudent(studentDbId)
+    if (error) { alert('삭제에 실패했습니다.'); return }
+    reloadOpener()
+    alert('정상적으로 처리되었습니다.')
+    window.close()
+  }
+
+  const handleFamilySaveClick = async (familyRows) => {
+    if (typeof studentDbId === 'number') {
+      const updated = { ...form, family: familyRows }
+      await updateStudent(studentDbId, updated)
+      setForm(updated)
+      reloadOpener()
+    }
+    alert('처리완료.')
+  }
+
+  const openClassRegisterWindow = () => {
+    const w = 650, h = 800
+    const left = window.screenX + (window.outerWidth - w) / 2
+    const top = window.screenY + (window.outerHeight - h) / 2
+    window.open('/class-register', '_blank', `width=${w},height=${h},left=${left},top=${top},resizable=yes`)
+  }
+
+  const handleRegisterBtnClick = () => {
+    sessionStorage.setItem('classRegisterContext', JSON.stringify({ studentId: studentDbId, studentName: form.name }))
+    openClassRegisterWindow()
+  }
+
+  const handleEnrollmentClick = (enrollment) => {
+    sessionStorage.setItem('classRegisterContext', JSON.stringify({ studentId: studentDbId, studentName: form.name, enrollmentId: enrollment.id }))
+    openClassRegisterWindow()
   }
 
   return (
@@ -95,12 +197,30 @@ export default function StudentDetail() {
               <button className="info-action-btn red narrow" onClick={()=>{ alert('저장되었습니다.'); setIsNew(false); }}>저장</button>
               <button className="info-action-btn blue" onClick={()=>{ setForm(emptyForm); setIsNew(true); }}>신규 수강생 등록</button>
             </> : <>
-              <button className="info-action-btn blue narrow">수정</button>
-              <button className="info-action-btn red narrow" onClick={()=>setForm(f=>({...f,status:'퇴원'}))}>퇴원</button>
-              <button className="info-action-btn red narrow" onClick={()=>setForm(f=>({...f,status:'휴원'}))}>휴원</button>
-              <button className="info-action-btn gray narrow">삭제</button>
-              <button className="info-action-btn blue">수강생파일</button>
-              <button className="info-action-btn teal">알림톡전송</button>
+              <button className="info-action-btn blue narrow" onClick={handleUpdateStudent}>수정</button>
+              {form.status === '퇴원'
+                ? <button className="info-action-btn red narrow" onClick={handleCancelWithdraw}>퇴원취소</button>
+                : <button className="info-action-btn red narrow" onClick={handleWithdraw}>퇴원</button>}
+              <button className="info-action-btn red narrow" onClick={handleSuspend}>휴원</button>
+              <button className="info-action-btn gray narrow" onClick={handleDeleteStudent}>삭제</button>
+              <button className="info-action-btn blue" onClick={()=>{
+                sessionStorage.setItem('studentFileData', JSON.stringify({ studentId: studentDbId, studentName: form.name, studentBirth: form.birth }))
+                const w = 800, h = 760
+                const left = window.screenX + (window.outerWidth - w) / 2
+                const top = window.screenY + (window.outerHeight - h) / 2
+                window.open('/student-file','_blank',`width=${w},height=${h},left=${left},top=${top},resizable=yes`)
+              }}>수강생파일</button>
+              <button className="info-action-btn teal talk-btn">
+                <span className="talk-btn-text">알림톡전송</span>
+                <span className="talk-btn-icon">
+                  <svg width="13" height="15" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="1" y="7" width="12" height="9" rx="1.5" fill="#fff"/>
+                    <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 5V7" stroke="#fff" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                    <circle cx="7" cy="11.5" r="1.5" fill="rgba(0,0,0,0.35)"/>
+                    <rect x="6.25" y="12.5" width="1.5" height="2" rx="0.75" fill="rgba(0,0,0,0.35)"/>
+                  </svg>
+                </span>
+              </button>
               <button className="info-action-btn blue" onClick={()=>{ setForm(emptyForm); setIsNew(true); }}>신규 수강생 등록</button>
             </>}
           </div>
@@ -122,7 +242,7 @@ export default function StudentDetail() {
                 </div>
                 <label className="if-label">상태</label>
                 <div className="if-cell">
-                  <span style={{fontSize:13,color:'#333',minWidth:40,display:'inline-block'}}>{getDisplayStatus()}</span>
+                  <span style={{fontSize:13,color:getDisplayStatus()==='퇴원'?'#ff3c00':(getDisplayStatus()==='휴원'||getDisplayStatus()==='예비')?'#0100FF':'#333',minWidth:40,display:'inline-block'}}>{getDisplayStatus()}</span>
                 </div>
               </div>
               <div className="if-row">
@@ -242,8 +362,8 @@ export default function StudentDetail() {
               ))}
             </div>
             <div className="info-tab-content">
-              {infoTab==='가족'     && <FamilyTab />}
-              {infoTab==='수강'     && <ClassTab />}
+              {infoTab==='가족'     && <FamilyTab key={studentDbId} onSaveClick={handleFamilySaveClick} initialRows={form.family} />}
+              {infoTab==='수강'     && <ClassTab onRegisterClick={handleRegisterBtnClick} enrollments={contextEnrollments.filter(e => e.studentId === studentDbId)} onEnrollmentClick={handleEnrollmentClick} />}
               {infoTab==='수납'     && <PaymentTab studentId={studentDbId} studentName={form.name} />}
               {infoTab==='결제'     && <BillingTab studentId={studentDbId} studentName={form.name} />}
               {infoTab==='상담'     && <ConsultTab />}

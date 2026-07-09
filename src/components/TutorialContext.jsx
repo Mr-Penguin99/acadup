@@ -20,7 +20,6 @@ export const TUTORIAL_STEPS = [
   { id: 'class-create-payment-hint', path: '/classes', stage: 1 },
   { id: 'class-create-save-hint', path: '/classes', stage: 1 },
   { id: 'class-create-new-register-hint', path: '/classes', stage: 1 },
-  { id: 'class-create-closing', path: '/classes', stage: 1 },
   { id: 'class-status-complete-hint', path: '/classes', stage: 1 },
   { id: 'class-status-student-menu-hint', path: '/classes', stage: 1 },
   { id: 'student-class-list-intro', path: '/students', stage: 2 },
@@ -45,7 +44,6 @@ export const TUTORIAL_STEPS = [
   { id: 'student-class-register-detail-hint', path: '/students', stage: 2 },
   { id: 'student-class-register-payday-hint', path: '/students', stage: 2 },
   { id: 'student-class-register-discount-hint', path: '/students', stage: 2 },
-  { id: 'student-class-register-discount-repeat-hint', path: '/students', stage: 2 },
   { id: 'student-class-register-submit-hint', path: '/students', stage: 2 },
   { id: 'student-class-register-complete-hint', path: '/students', stage: 2 },
   { id: 'payment-menu-hint', path: '/students', stage: 2 },
@@ -83,6 +81,11 @@ export function TutorialProvider({ children }) {
   const [step, setStep] = useState(0)
   const [started, setStarted] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
+  // 'live'=실제로 입력하며 처음 진행하는 모드(자동 시작 시에만), 'replay'=이미 저장된 진행상태를
+  // 건드리지 않고 고정된 샘플 데이터로 훑어보기만 하는 모드(튜토리얼 박스로 다시 볼 때)
+  const [mode, setMode] = useState('live')
+  // replay 모드에서 이전/다음으로 이동하는 위치 - 실제 진행상태(step)는 건드리지 않는 별도 카운터
+  const [replayStep, setReplayStep] = useState(0)
   // profile이 실제로 한 번이라도 동기화됐는지 - 이게 true가 되기 전에는 autoStart가
   // (아직 로딩 중인) 기본값(started=false, step=0)을 보고 튜토리얼을 잘못 재시작하지 않도록 막음
   const [profileSynced, setProfileSynced] = useState(false)
@@ -113,25 +116,36 @@ export function TutorialProvider({ children }) {
   }, [profile])
 
   const totalSteps = TUTORIAL_STEPS.length
-  const activeStep = TUTORIAL_STEPS[step] || null
+  const effectiveStep = mode === 'replay' ? replayStep : step
+  const activeStep = TUTORIAL_STEPS[effectiveStep] || null
 
+  // update가 실패해도(RLS 정책 누락 등) 그동안 조용히 무시되어, 다음 로그인 시
+  // DB에는 진행상태가 저장 안 된 채로 남아 처음부터 다시 시작되는 것처럼 보이는 문제가 있었음 -
+  // 최소한 콘솔에는 에러가 보이도록 함
   const persistStep = (n) => {
     setStep(n)
-    if (user) supabase.from('profiles').update({ tutorial_step: n }).eq('id', user.id)
+    if (user) supabase.from('profiles').update({ tutorial_step: n, tutorial_started: true }).eq('id', user.id)
+      .then(({ error }) => { if (error) console.error('튜토리얼 진행상태 저장 실패(tutorial_step):', error) })
   }
 
   const markStarted = () => {
     setStarted(true)
     if (user) supabase.from('profiles').update({ tutorial_started: true }).eq('id', user.id)
+      .then(({ error }) => { if (error) console.error('튜토리얼 진행상태 저장 실패(tutorial_started):', error) })
   }
 
-  // 로그인/가입 후 처음 진입했을 때 자동으로 한 번만 띄움
-  // profile 동기화가 끝나기 전(started/step이 아직 기본값일 때)에는 호출해도 무시 -
-  // 그렇지 않으면 이미 완료한 사용자가 profile 로딩 중에 이 페이지로 들어왔을 때
-  // 기본값(started=false)만 보고 튜토리얼을 다시 시작시켜버리는 경쟁 상태가 생김
+  // 로그인/가입 후 처음 진입했을 때 자동으로 한 번만 띄움(=live 모드로 진입) -
+  // "시작하기" 버튼을 실제로 눌러야 step이 0에서 벗어나므로, step===0이면 아직 한 번도
+  // 제대로 시작한 적이 없는 계정이라는 뜻 (도중에 창을 닫아버린 경우 포함) - 그런 계정은
+  // 몇 번을 다시 들어와도 계속 live 모드로 자동 시작됨. 한 번이라도 시작하기를 눌렀다면
+  // (step>0) 이후로는 절대 자동으로 안 열리고, 튜토리얼 박스를 눌러야만(=replay) 다시 볼 수 있음
+  // profile 동기화가 끝나기 전(step이 아직 기본값일 때)에는 호출해도 무시 -
+  // 그렇지 않으면 이미 진행한 사용자가 profile 로딩 중에 이 페이지로 들어왔을 때
+  // 기본값(step=0)만 보고 튜토리얼을 다시 시작시켜버리는 경쟁 상태가 생김
   const autoStart = (stepId) => {
     if (!profileSynced) return
-    if (!started && activeStep?.id === stepId) {
+    if (step === 0 && TUTORIAL_STEPS[0]?.id === stepId) {
+      setMode('live')
       setIsOpen(true)
       markStarted()
     }
@@ -139,7 +153,16 @@ export function TutorialProvider({ children }) {
 
   // 특정 버튼 클릭/입력 등 실제 행동을 했을 때 다음 단계로 진행
   // 다음 단계가 같은 흐름에 더 남아있으면 바로 이어서 보여주고, 마지막 단계면 닫음
+  // replay 모드에서는 실제 진행상태(step)를 건드리지 않고 replayStep만 옮김
   const advance = () => {
+    if (mode === 'replay') {
+      setReplayStep(s => {
+        const next = s + 1
+        if (next >= totalSteps) setIsOpen(false)
+        return next
+      })
+      return
+    }
     const next = step + 1
     persistStep(next)
     if (next >= totalSteps) {
@@ -147,32 +170,35 @@ export function TutorialProvider({ children }) {
     }
   }
 
-  // (개발/확인용) 이전 단계로 이동
+  // 이전 단계로 이동 - replay 모드에서 사용자가 직접 훑어볼 때 씀 (live 모드에서는 노출 안 함)
   const goBack = () => {
+    if (mode === 'replay') { setReplayStep(s => Math.max(s - 1, 0)); return }
     if (step > 0) persistStep(step - 1)
   }
 
-  // 특정 단계를 건너뛰고 임의의 인덱스로 바로 이동
+  // 특정 단계를 건너뛰고 임의의 인덱스로 바로 이동 (live 모드 전용, 실제 진행상태를 옮김)
   const skipTo = (n) => {
     persistStep(n)
     if (n >= totalSteps) setIsOpen(false)
   }
 
-  // 플로팅 박스에서 이어보기 (완료된 경우, 확인 후에만 처음부터 다시 시작)
-  const resume = () => {
-    if (step >= totalSteps) {
-      if (!window.confirm('이미 완료한 튜토리얼입니다. 처음부터 다시 보시겠습니까?')) return
-      persistStep(0)
-    }
+  const close = () => setIsOpen(false)
+
+  // 튜토리얼 박스를 눌러 replay 모드로 열기 - 실제 진행상태(step)는 전혀 건드리지 않으므로
+  // 완료 여부와 상관없이 확인창 없이 바로 열림. atIndex를 안 주면 지금 저장된 진행 위치에서 이어봄
+  const openReplay = (atIndex) => {
+    setMode('replay')
+    setReplayStep(atIndex ?? Math.min(step, totalSteps - 1))
     setIsOpen(true)
   }
 
-  const close = () => setIsOpen(false)
+  // 플로팅 박스 전체를 클릭했을 때(이어보기) - openReplay의 별칭
+  const resume = () => openReplay()
 
   return (
     <TutorialContext.Provider value={{
-      step, totalSteps, activeStep, isOpen, started, profileSynced,
-      autoStart, advance, resume, close, goBack, skipTo,
+      step, totalSteps, activeStep, isOpen, started, profileSynced, mode, replayStep, effectiveStep,
+      autoStart, advance, resume, openReplay, close, goBack, skipTo,
     }}>
       {children}
     </TutorialContext.Provider>

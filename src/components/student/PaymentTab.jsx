@@ -11,7 +11,8 @@ export default function PaymentTab({ studentId, studentName, defaultFilter = '�
   const [filter, setFilter] = useState(defaultFilter)
   const [checked, setChecked] = useState([])
 
-  const { activeStep, isOpen, advance } = useTutorial()
+  const { activeStep, isOpen, advance, mode } = useTutorial()
+  const isReplay = isOpen && mode === 'replay'
   const firstRowCheckboxRef = useRef(null)
   const manualBtnRef = useRef(null)
   const payBtnRef = useRef(null)
@@ -63,7 +64,13 @@ export default function PaymentTab({ studentId, studentName, defaultFilter = '�
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [showPayBtnHint])
 
-  const allRows = enrollments.filter(e => e.studentId === studentId).map(e => {
+  // replay(다시보기) 모드에서는 실제 수납내역 대신 고정 샘플 한 줄만 보여줌
+  const REPLAY_PAYMENT_ROW = {
+    id: 'replay-payment-1', month: '2026-06', className: '튜토리얼반', item: '수강료01',
+    billAmt: 100000, tradeDate: '', payMethod: '', status: '미납', payAmt: 0, refund: 0, unpaid: 100000,
+  }
+
+  const allRows = isReplay ? [REPLAY_PAYMENT_ROW] : enrollments.filter(e => e.studentId === studentId).map(e => {
     const fee = parseInt(String(e.fee).replace(/[^0-9]/g, ''), 10) || 0
     const activePayments = payments.filter(p => p.enrollmentId === e.id && !p.cancelled)
     const paid = activePayments.reduce((sum, p) => sum + p.amount, 0)
@@ -83,7 +90,7 @@ export default function PaymentTab({ studentId, studentName, defaultFilter = '�
     }
   })
 
-  const rows = filter === '삭제' ? [] : allRows.filter(r =>
+  const rows = isReplay ? allRows : filter === '삭제' ? [] : allRows.filter(r =>
     filter === '미납+완납(환불)' ? true : filter === '미납' ? r.status === '미납' : r.status === '완납'
   )
 
@@ -204,7 +211,7 @@ export default function PaymentTab({ studentId, studentName, defaultFilter = '�
           <TutorialTooltip
             rect={checkboxHintRect}
             placement="top"
-            message="처리할 수납내역을 선택해 주세요."
+            message="처리할 수납내역을 선택합니다."
           />
         </>
       )}

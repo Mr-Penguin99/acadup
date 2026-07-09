@@ -42,7 +42,7 @@ export default function ClassTab({ onRegisterClick, enrollments = [], enrollment
           ) : enrollments.map((e, i) => (
             <tr key={e.id} ref={i === 0 ? enrollmentRowRef : undefined} style={{borderBottom:'1px solid #e0e0e0'}}>
               <td style={{...td,textAlign:'center'}}><input type="checkbox" readOnly /></td>
-              <td style={td}><span className="sts-name-link" onClick={()=>onEnrollmentClick?.(e)}>{e.className}</span></td>
+              <td style={{...td,textAlign:'center'}}><span className="sts-name-link" onClick={()=>onEnrollmentClick?.(e)}>{e.className}</span></td>
               <td style={{...td,textAlign:'center'}}>{e.status}</td>
               <td style={{...td,textAlign:'center'}}>{e.startDate}~{e.endDate}</td>
               <td style={{...td,textAlign:'center'}}>{e.teacher}</td>

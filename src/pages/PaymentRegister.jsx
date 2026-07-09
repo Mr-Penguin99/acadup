@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useAppData } from '../contexts/AppDataContext'
-import { useTutorial } from '../components/TutorialContext'
+import { useTutorial, TUTORIAL_STEPS } from '../components/TutorialContext'
 import TutorialMultiSpotlight from '../components/TutorialMultiSpotlight'
 import TutorialTooltip from '../components/TutorialTooltip'
 
@@ -17,8 +17,8 @@ export default function PaymentRegister() {
   const bills = data?.bills || []
 
   const [payDate, setPayDate] = useState(new Date().toISOString().slice(0, 10))
-  const [payMethod, setPayMethod] = useState('수납방법')
-  const [installment, setInstallment] = useState('할부기간선택')
+  const [livePayMethod, setLivePayMethod] = useState('수납방법')
+  const [liveInstallment, setLiveInstallment] = useState('할부기간선택')
   const [classAmt, setClassAmt] = useState(formatAmount(String(bills.reduce((s, b) => s + (b.billAmt || 0), 0))))
   const [payAmt, setPayAmt] = useState(formatAmount(String(bills.reduce((s, b) => s + (b.unpaid || 0), 0))))
   const [receipt, setReceipt] = useState(true)
@@ -27,7 +27,13 @@ export default function PaymentRegister() {
   const [payHover, setPayHover] = useState(false)
   const [closeHover, setCloseHover] = useState(false)
 
-  const { activeStep, isOpen, advance } = useTutorial()
+  const { activeStep, isOpen, advance, mode, effectiveStep } = useTutorial()
+  const isReplay = isOpen && mode === 'replay'
+  // replay(다시보기) 모드에서는 실제 선택이 아니라, 그 단계에 도달했는지(누적)로 고정된 값을 보여줌
+  const REPLAY_METHOD_STEP_INDEX = TUTORIAL_STEPS.findIndex(s => s.id === 'payment-register-method-hint')
+  const REPLAY_INSTALLMENT_STEP_INDEX = TUTORIAL_STEPS.findIndex(s => s.id === 'payment-register-installment-hint')
+  const payMethod = isReplay ? (effectiveStep >= REPLAY_METHOD_STEP_INDEX ? '카드' : '수납방법') : livePayMethod
+  const installment = isReplay ? (effectiveStep >= REPLAY_INSTALLMENT_STEP_INDEX ? '일시불' : '할부기간선택') : liveInstallment
   const methodRef = useRef(null)
   const installmentRef = useRef(null)
   const payBtnRef = useRef(null)
@@ -112,7 +118,7 @@ export default function PaymentRegister() {
   }
 
   return (
-    <div style={{ fontFamily: "'Noto Sans KR', sans-serif", padding: '20px 24px', fontSize: 13, color: '#333', minWidth: 520 }}>
+    <div style={{ fontFamily: "'Noto Sans KR', sans-serif", padding: '20px 24px', fontSize: 13, color: '#333', minWidth: 520, ...(isReplay ? { pointerEvents: 'none' } : {}) }}>
       {/* 헤더 */}
       <div style={{ marginBottom: 10 }}>
         <span style={{ fontSize: 17, fontWeight: 700 }}>수납 등록</span>
@@ -184,7 +190,7 @@ export default function PaymentRegister() {
             <td style={formValue}>
               <select ref={methodRef} style={{ ...inputStyle, width: '100%' }} value={payMethod} onChange={e => {
                 const val = e.target.value
-                setPayMethod(val)
+                setLivePayMethod(val)
                 if (showMethodHint && val === '카드') advance()
               }}>
                 {PAY_METHODS.map(m => <option key={m}>{m}</option>)}
@@ -215,7 +221,7 @@ export default function PaymentRegister() {
               <td style={formValue}>
                 <select ref={installmentRef} style={{ ...inputStyle, width: 200 }} value={installment} onChange={e => {
                   const val = e.target.value
-                  setInstallment(val)
+                  setLiveInstallment(val)
                   if (showInstallmentHint && val !== '할부기간선택') advance()
                 }}>
                   <option>할부기간선택</option>
@@ -260,7 +266,7 @@ export default function PaymentRegister() {
         <TutorialTooltip
           rect={methodRect}
           placement="right"
-          message="수납방법(할부기간)을 선택하고 결제를 진행합니다."
+          message="수납방법(할부기간)을 선택합니다."
           onConfirm={() => advance()}
         />
       )}
@@ -286,7 +292,7 @@ export default function PaymentRegister() {
           <TutorialTooltip
             rect={installmentRect}
             placement="top"
-            message="할부기간을 선택하세요."
+            message="할부기간을 선택합니다."
           />
         </>
       )}

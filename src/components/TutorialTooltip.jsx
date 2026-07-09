@@ -1,10 +1,16 @@
+import { useTutorial } from './TutorialContext'
+
 // 다크 오버레이 없이 특정 요소 위/아래/오른쪽에 붙는 말풍선 안내문
 // onConfirm을 전달하면 메시지 옆에 "확인[Enter]"가 붙고 클릭하면 호출됨 (Enter 처리는 호출하는 쪽에서 직접 담당)
+// replay(다시보기) 모드에서는 onConfirm이 전달돼도 "확인[Enter]"를 표시하지 않음 -
+// 다음/이전 버튼과 스페이스/방향키로만 진행하도록 통일함
 // warning을 전달하면 그 아래 왼쪽 정렬된 경고 문구가 표시됨
 // center를 true로 주면 rect의 가운데에 말풍선/말꼬리가 오도록 정렬 (기본은 rect의 왼쪽 끝에 맞춤)
 // minWidth를 주면 말풍선 박스의 최소 가로 크기를 지정함 (기본은 내용 크기에 맞춰 자동)
 export default function TutorialTooltip({ rect, message, placement = 'top', onConfirm, warning, warn, center, rightAlign, minWidth, multiLine, textAlign, tailCenter, tailLeftPx }) {
+  const { mode } = useTutorial()
   if (!rect) return null
+  const showConfirm = onConfirm && mode !== 'replay'
 
   const isRight = placement === 'right'
 
@@ -43,7 +49,7 @@ export default function TutorialTooltip({ rect, message, placement = 'top', onCo
       }}>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: message ? 'flex-start' : 'center', gap: message ? 50 : 0 }}>
           {message && <span style={warn ? { color: '#ff3c00' } : undefined}>{message}</span>}
-          {onConfirm && (
+          {showConfirm && (
             <span
               onClick={e => { e.stopPropagation(); onConfirm() }}
               style={{ fontSize: 11, color: '#F5841F', fontWeight: 600, cursor: 'pointer' }}

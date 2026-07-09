@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './Students.css'
 import TopNav from '../components/TopNav'
-import { useTutorial } from '../components/TutorialContext'
+import { useTutorial, TUTORIAL_STEPS } from '../components/TutorialContext'
 import { useAppData } from '../contexts/AppDataContext'
 import TutorialSpotlight from '../components/TutorialSpotlight'
 import TutorialMultiSpotlight from '../components/TutorialMultiSpotlight'
@@ -21,6 +21,31 @@ import NoticeTab from '../components/student/NoticeTab'
 import MemoTab from '../components/student/MemoTab'
 import ProgressTab from '../components/student/ProgressTab'
 import VehicleTab from '../components/student/VehicleTab'
+
+// 조건검색 날짜/월 필터의 기본값 - 오늘 날짜 기준(예: 오늘이 7/9이면 이번 달 1일~오늘)
+const TODAY = new Date().toISOString().slice(0, 10)
+const CURRENT_MONTH = TODAY.slice(0, 7)
+
+// replay(다시보기) 모드에서 수강생 등록 단계별로 보여줄 고정 샘플 값 - 실제 폼 state는 건드리지 않고,
+// 지금 단계가 그 필드의 안내 단계를 지났는지(인덱스 비교)로만 판단해서 누적으로 채워진 것처럼 보여줌
+const REPLAY_STUDENT_SAMPLE = { name: '홍길동', enrollDate: '2026-05-01', phone: '010-1234-5678', birth: '050101' }
+const REPLAY_STUDENT_STEP_INDEX = {
+  name: TUTORIAL_STEPS.findIndex(s => s.id === 'student-name-hint'),
+  enrollDate: TUTORIAL_STEPS.findIndex(s => s.id === 'student-enroll-hint'),
+  phone: TUTORIAL_STEPS.findIndex(s => s.id === 'student-phone-hint'),
+  birth: TUTORIAL_STEPS.findIndex(s => s.id === 'student-birth-hint'),
+}
+
+// 가족정보 탭에서도 같은 방식(누적 표시)으로 보여줄 고정 샘플 값
+const REPLAY_FAMILY_SAMPLE = { name: '학부모', relation: '모', phone: '010-1234-5678' }
+const REPLAY_FAMILY_STEP_INDEX = {
+  name: TUTORIAL_STEPS.findIndex(s => s.id === 'student-family-name-hint'),
+  relation: TUTORIAL_STEPS.findIndex(s => s.id === 'student-family-relation-hint'),
+  phone: TUTORIAL_STEPS.findIndex(s => s.id === 'student-family-phone-hint'),
+}
+// 수강신청 완료 이후에만(누적) 수강 탭에 고정 샘플 수강내역을 보여줌
+const REPLAY_CLASS_TAB_STEP_INDEX = TUTORIAL_STEPS.findIndex(s => s.id === 'student-class-register-complete-hint')
+const REPLAY_ENROLLMENT_SAMPLE = { id: 'replay-enrollment', className: '튜토리얼반', status: '수강', startDate: '2026-01-01', endDate: '2999-12-31', teacher: '', room: '' }
 
 const MENUS = [
   { id: 'students',    icon: '/icons/students.svg',    label: '수강생관리' },
@@ -108,11 +133,15 @@ export default function Students() {
   })
   const [statusChecked, setStatusChecked] = useState([])
   const [statusPageSize, setStatusPageSize] = useState('20')
+  const statusStateFieldRef = useRef(null)
+  const [statusStateFieldRect, setStatusStateFieldRect] = useState(null)
+  const [showStatusStateHint, setShowStatusStateHint] = useState(false)
+  const [statusStateHintFading, setStatusStateHintFading] = useState(false)
   const [attendFilter, setAttendFilter] = useState({
-    month:'2026-05', searchType:'반그룹', group:'전체', className:'', studentStatus:'전체', name:''
+    month:CURRENT_MONTH, searchType:'반그룹', group:'전체', className:'', studentStatus:'전체', name:''
   })
   const [rideFilter, setRideFilter] = useState({
-    month:'2026-05', group:'전체', className:'', studentStatus:'전체', name:''
+    month:CURRENT_MONTH, group:'전체', className:'', studentStatus:'전체', name:''
   })
   const [noticeSearch, setNoticeSearch] = useState({ type:'제목+내용', keyword:'' })
   const [talkSearch, setTalkSearch] = useState({ type:'제목+내용', keyword:'' })
@@ -126,7 +155,44 @@ export default function Students() {
   const { students, classes, enrollments: contextEnrollments, addStudent, updateStudent, deleteStudent, addEnrollment } = useAppData()
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
-  const { activeStep, isOpen, advance, step, skipTo } = useTutorial()
+  const { activeStep, isOpen, advance, step, skipTo, mode, effectiveStep } = useTutorial()
+  const isReplay = isOpen && mode === 'replay'
+  // 그 필드의 안내 단계에 도달했으면(혹은 지났으면) 샘플 값을, 아직 안 왔으면 빈 값을 보여줌
+  const replayField = (key) => effectiveStep >= REPLAY_STUDENT_STEP_INDEX[key] ? REPLAY_STUDENT_SAMPLE[key] : ''
+  // 가족정보 탭용 - 가족 단계로 들어온 동안에만 적용(다른 replay 단계에서는 건드리지 않음)
+  const replayFamilyRow = isReplay && activeStep?.id?.startsWith('student-family-') ? {
+    name: effectiveStep >= REPLAY_FAMILY_STEP_INDEX.name ? REPLAY_FAMILY_SAMPLE.name : '',
+    relation: effectiveStep >= REPLAY_FAMILY_STEP_INDEX.relation ? REPLAY_FAMILY_SAMPLE.relation : '',
+    phone: effectiveStep >= REPLAY_FAMILY_STEP_INDEX.phone ? REPLAY_FAMILY_SAMPLE.phone : '',
+  } : null
+  const replayEnrollments = effectiveStep >= REPLAY_CLASS_TAB_STEP_INDEX ? [REPLAY_ENROLLMENT_SAMPLE] : []
+
+  // 반별 수강생에서 다른 메뉴로 이동했다가 돌아왔을 때 이전 검색 조건/결과, 선택된 학생 정보자료가 남아있지 않도록 초기화
+  useEffect(() => {
+    if (activeSide !== 'class-students') {
+      setSearchTab('반')
+      setSearch({ group: '', teacher: '', className: '', name: '' })
+      setAppliedSearch(null)
+      setSelectedStudentId(null)
+      setForm(emptyForm)
+      setInfoTab('가족')
+    }
+  }, [activeSide])
+
+  // 수강생현황 페이지에 들어올 때마다(튜토리얼과 무관하게 항상) 수강생상태 필터 위에 안내 말풍선을 3초간 표시 후 서서히 사라짐
+  useEffect(() => {
+    if (activeSide !== 'student-status') { setShowStatusStateHint(false); setStatusStateHintFading(false); return }
+    const measure = () => {
+      if (statusStateFieldRef.current) setStatusStateFieldRect(statusStateFieldRef.current.getBoundingClientRect())
+    }
+    measure()
+    setShowStatusStateHint(true)
+    setStatusStateHintFading(false)
+    window.addEventListener('resize', measure)
+    const fadeTimer = setTimeout(() => setStatusStateHintFading(true), 3000)
+    const hideTimer = setTimeout(() => setShowStatusStateHint(false), 3400)
+    return () => { clearTimeout(fadeTimer); clearTimeout(hideTimer); window.removeEventListener('resize', measure) }
+  }, [activeSide])
   const tutorialShowInfoTabs = isOpen && activeSide === 'class-students' && (
     activeStep?.id?.startsWith('student-family-') || activeStep?.id?.startsWith('student-class-')
   )
@@ -314,12 +380,14 @@ export default function Students() {
   }, [activeStep?.id, isOpen, activeSide])
 
   const [familyHoleRect, setFamilyHoleRect] = useState(null)
+  const [familyTabBtnRect, setFamilyTabBtnRect] = useState(null)
   const showFamilyHint = isOpen && activeStep?.id === 'student-family-hint' && activeSide === 'class-students'
 
   useEffect(() => {
     if (!showFamilyHint) return
     const measure = () => {
       setFamilyHoleRect(unionRects(infoTabsWrapRef.current?.getBoundingClientRect(), infoTabContentRef.current?.getBoundingClientRect()))
+      if (familyTabBtnRef.current) setFamilyTabBtnRect(familyTabBtnRef.current.getBoundingClientRect())
     }
     measure()
     window.addEventListener('resize', measure)
@@ -605,9 +673,8 @@ export default function Students() {
   const showClassRegisterDetailHint = isOpen && activeStep?.id === 'student-class-register-detail-hint' && activeSide === 'class-students'
   const showClassRegisterPaydayHint = isOpen && activeStep?.id === 'student-class-register-payday-hint' && activeSide === 'class-students'
   const showClassRegisterDiscountHint = isOpen && activeStep?.id === 'student-class-register-discount-hint' && activeSide === 'class-students'
-  const showClassRegisterDiscountRepeatHint = isOpen && activeStep?.id === 'student-class-register-discount-repeat-hint' && activeSide === 'class-students'
   const showClassRegisterSubmitHint = isOpen && activeStep?.id === 'student-class-register-submit-hint' && activeSide === 'class-students'
-  const showAnyClassRegisterStep = showClassRegisterHint || showClassRegisterDetailHint || showClassRegisterPaydayHint || showClassRegisterDiscountHint || showClassRegisterDiscountRepeatHint || showClassRegisterSubmitHint
+  const showAnyClassRegisterStep = showClassRegisterHint || showClassRegisterDetailHint || showClassRegisterPaydayHint || showClassRegisterDiscountHint || showClassRegisterSubmitHint
 
   useEffect(() => {
     if (!showAnyClassRegisterStep) setShowClassRegisterModal(false)
@@ -641,11 +708,11 @@ export default function Students() {
 
   const classPaydayRowRef = useRef(null)
   const classDiscountRowRef = useRef(null)
-  const classDiscountRepeatSelectRef = useRef(null)
   const classSubmitBtnRef = useRef(null)
 
   const [classPaydayRect, setClassPaydayRect] = useState(null)
   const [classDiscountRect, setClassDiscountRect] = useState(null)
+  const [classDiscountItemRect, setClassDiscountItemRect] = useState(null)
   const [classDiscountRepeatRect, setClassDiscountRepeatRect] = useState(null)
   const [classSubmitBtnRect, setClassSubmitBtnRect] = useState(null)
 
@@ -667,45 +734,26 @@ export default function Students() {
 
   useEffect(() => {
     if (!showClassRegisterDiscountHint) return
-    const measure = () => { if (classDiscountRowRef.current) setClassDiscountRect(classDiscountRowRef.current.getBoundingClientRect()) }
+    const measure = () => {
+      if (!classDiscountRowRef.current) return
+      setClassDiscountRect(classDiscountRowRef.current.getBoundingClientRect())
+      // 항목 선택란(첫 번째 select)과 반복주기 선택란(두 번째 select)을 각각 펼쳐서 보여줌
+      const selects = classDiscountRowRef.current.querySelectorAll('select')
+      if (selects[0]) setClassDiscountItemRect(selects[0].getBoundingClientRect())
+      if (selects[1]) setClassDiscountRepeatRect(selects[1].getBoundingClientRect())
+    }
     const timer = setTimeout(measure, 80)
     window.addEventListener('resize', measure)
     return () => { clearTimeout(timer); window.removeEventListener('resize', measure) }
   }, [showClassRegisterDiscountHint])
 
-  // 확인을 누르면 "월납/일시납" 설명 단계는 건너뛰고 바로 다음 단계로 이동
-  const handleClassRegisterDiscountConfirm = () => skipTo(step + 2)
+  const handleClassRegisterDiscountConfirm = () => advance()
   useEffect(() => {
     if (!showClassRegisterDiscountHint) return
     const handleKeyDown = e => { if (e.key !== 'Enter') return; handleClassRegisterDiscountConfirm() }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [showClassRegisterDiscountHint])
-
-  // 반복주기 선택란을 누르면(포커스) "월납/일시납" 설명 단계로 진행
-  const handleRepeatFocus = () => {
-    if (showClassRegisterDiscountHint) advance()
-  }
-  // "월납/일시납" 설명 단계에서 실제로 값을 선택하면 다음 단계로 진행
-  const handleRepeatChange = (value) => {
-    if (showClassRegisterDiscountRepeatHint && value !== '선택') advance()
-  }
-
-  useEffect(() => {
-    if (!showClassRegisterDiscountRepeatHint) return
-    const measure = () => { if (classDiscountRepeatSelectRef.current) setClassDiscountRepeatRect(classDiscountRepeatSelectRef.current.getBoundingClientRect()) }
-    const timer = setTimeout(measure, 80)
-    window.addEventListener('resize', measure)
-    return () => { clearTimeout(timer); window.removeEventListener('resize', measure) }
-  }, [showClassRegisterDiscountRepeatHint])
-
-  const handleClassRegisterDiscountRepeatConfirm = () => advance()
-  useEffect(() => {
-    if (!showClassRegisterDiscountRepeatHint) return
-    const handleKeyDown = e => { if (e.key !== 'Enter') return; handleClassRegisterDiscountRepeatConfirm() }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [showClassRegisterDiscountRepeatHint])
 
   useEffect(() => {
     if (!showClassRegisterSubmitHint) return
@@ -732,12 +780,17 @@ export default function Students() {
   const classTabEnrollmentRowRef = useRef(null)
   const [classTabEnrollmentRect, setClassTabEnrollmentRect] = useState(null)
   const [classRegisterCompleteWrapRect, setClassRegisterCompleteWrapRect] = useState(null)
+  const [classTabNameCellRect, setClassTabNameCellRect] = useState(null)
   const showClassRegisterCompleteHint = isOpen && activeStep?.id === 'student-class-register-complete-hint' && activeSide === 'class-students'
 
   useEffect(() => {
     if (!showClassRegisterCompleteHint) return
     const measure = () => {
-      if (classTabEnrollmentRowRef.current) setClassTabEnrollmentRect(classTabEnrollmentRowRef.current.getBoundingClientRect())
+      if (classTabEnrollmentRowRef.current) {
+        setClassTabEnrollmentRect(classTabEnrollmentRowRef.current.getBoundingClientRect())
+        const nameCell = classTabEnrollmentRowRef.current.querySelectorAll('td')[1]
+        if (nameCell) setClassTabNameCellRect(nameCell.getBoundingClientRect())
+      }
       if (infoTabsWrapRef.current) setClassRegisterCompleteWrapRect(infoTabsWrapRef.current.getBoundingClientRect())
     }
     const timer = setTimeout(measure, 120)
@@ -773,19 +826,22 @@ export default function Students() {
     hasClasses: false,
   }
 
+  // 재원/예비는 hasClasses 플래그가 아니라 실제 수강 내역(contextEnrollments) 존재 여부로 판단 -
+  // 플래그를 별도로 관리하면 수강신청/취소 시점에 따라 실제 데이터와 어긋날 수 있음
   const getDisplayStatus = () => {
     if (selectedStudentId === null) return ''
     if (selectedStudentId === 'new' && !form.name) return ''
     if (form.status === '퇴원') return '퇴원'
     if (form.status === '휴원') return '휴원'
-    if (form.hasClasses) return '재원'
+    if (contextEnrollments.some(e => e.studentId === selectedStudentId)) return '재원'
     return '예비'
   }
   const [form, setForm] = useState(emptyForm)
 
   // 학생 이름을 입력해야 다음 단계로 진행, 입력 없이 확인/Enter면 경고 문구로 교체
+  // replay 모드에서는 실제 form이 아니라 고정 샘플을 보여주는 것뿐이라 검증 없이 그냥 진행
   const handleNameConfirm = () => {
-    if (form.name.trim()) advance()
+    if (isReplay || form.name.trim()) advance()
     else setNameEnterWarning(true)
   }
 
@@ -801,7 +857,7 @@ export default function Students() {
 
   // 입학일자를 선택해야 다음 단계로 진행, 미선택 상태로 확인/Enter면 경고 문구로 교체
   const handleEnrollConfirm = () => {
-    if (form.enrollDate) advance()
+    if (isReplay || form.enrollDate) advance()
     else setEnrollEnterWarning(true)
   }
 
@@ -817,7 +873,7 @@ export default function Students() {
 
   // 학생 휴대폰을 입력해야 다음 단계로 진행, 입력 없이 확인/Enter면 경고 문구로 교체
   const handlePhoneConfirm = () => {
-    if (form.phone.trim()) advance()
+    if (isReplay || form.phone.trim()) advance()
     else setPhoneEnterWarning(true)
   }
 
@@ -833,7 +889,7 @@ export default function Students() {
 
   // 생년월일을 입력해야 다음 단계로 진행, 입력 없이 확인/Enter면 경고 문구로 교체
   const handleBirthConfirm = () => {
-    if (form.birth.length === 6) advance()
+    if (isReplay || form.birth.length === 6) advance()
     else setBirthEnterWarning(true)
   }
 
@@ -930,7 +986,7 @@ export default function Students() {
   }
 
   const handleCancelWithdraw = async () => {
-    const restoredStatus = form.hasClasses ? '재원' : '예비'
+    const restoredStatus = contextEnrollments.some(e => e.studentId === selectedStudentId) ? '재원' : '예비'
     const { error } = await updateStudent(selectedStudentId, { ...form, status: restoredStatus })
     if (error) { alert(error.message || '퇴원취소 처리에 실패했습니다.'); return }
     setForm(f => ({ ...f, status: restoredStatus }))
@@ -992,12 +1048,16 @@ export default function Students() {
     return matches
   })()
 
+  // 퇴원/휴원처럼 명시적으로 지정한 상태가 항상 우선하고, 그 외에는 실제 수강 내역(contextEnrollments) 존재 여부로 재원/예비를 가림
+  const deriveStudentStatus = (s) =>
+    s.status === '퇴원' ? '퇴원' : s.status === '휴원' ? '휴원' : (contextEnrollments.some(e => e.studentId === s.id) ? '재원' : '예비')
+
   const filteredStudents = students.map(s => ({
     id: s.id,
     name: s.name || '',
     birth: s.birth || '',
     photo: 'X',
-    status: s.hasClasses ? '재원' : (s.status || '예비'),
+    status: deriveStudentStatus(s),
     classes: contextEnrollments.filter(e => e.studentId === s.id).map(e => `${e.group} > ${e.className}`),
     keypad: s.attendNo || '',
     dept: s.dept || '',
@@ -1011,6 +1071,12 @@ export default function Students() {
   })
 
   const toggleStatusAll = () => setStatusChecked(statusChecked.length===filteredStudents.length ? [] : filteredStudents.map(d=>d.id))
+
+  const statusCounts = students.reduce((acc, s) => {
+    const status = deriveStudentStatus(s)
+    acc[status] = (acc[status] || 0) + 1
+    return acc
+  }, { 재원: 0, 예비: 0, 휴원: 0, 퇴원: 0 })
 
   return (
     <div className="students-wrap">
@@ -1044,7 +1110,7 @@ export default function Students() {
             placement="top"
             message={nameEnterWarning
               ? <span style={{ color: '#ff3c00' }}>내용을 입력하고 확인[Enter]을 누르세요.</span>
-              : '학생 이름을 입력해 주세요.'}
+              : '학생 이름을 입력합니다.'}
             onConfirm={handleNameConfirm}
           />
         </>
@@ -1076,7 +1142,7 @@ export default function Students() {
             placement="top"
             message={phoneEnterWarning
               ? <span style={{ color: '#ff3c00' }}>내용을 입력하고 확인[Enter]을 누르세요.</span>
-              : '학생 휴대폰을 입력해 주세요.'}
+              : '학생 휴대폰을 입력합니다.'}
             onConfirm={handlePhoneConfirm}
           />
         </>
@@ -1107,7 +1173,7 @@ export default function Students() {
           <TutorialTooltip
             rect={saveBtnRect}
             placement="top"
-            message="저장 버튼을 누르고 저장해 주세요!"
+            message="저장 버튼을 눌러 저장합니다."
           />
         </>
       )}
@@ -1135,9 +1201,8 @@ export default function Students() {
             pad={10}
           />
           <TutorialTooltip
-            rect={familyHoleRect}
+            rect={familyTabBtnRect}
             placement="top"
-            center
             message="이곳에서 해당 학생의 가족 정보를 입력할 수 있습니다."
             onConfirm={handleFamilyConfirm}
           />
@@ -1154,7 +1219,7 @@ export default function Students() {
             rect={familyNameRect}
             placement="top"
             center
-            message="학부모님 성명을 작성해주세요."
+            message="학부모님 성명을 작성합니다."
             onConfirm={handleFamilyNameConfirm}
             warn={familyNameWarning}
           />
@@ -1171,7 +1236,7 @@ export default function Students() {
             rect={familyRelationRect}
             placement="top"
             center
-            message="관계를 선택하세요."
+            message="관계를 선택합니다."
             onConfirm={handleFamilyRelationConfirm}
             warn={familyRelationWarning}
           />
@@ -1188,7 +1253,7 @@ export default function Students() {
             rect={familyPhoneRect}
             placement="top"
             center
-            message="휴대폰번호를 입력하세요."
+            message="휴대폰 번호를 입력합니다."
             onConfirm={handleFamilyPhoneConfirm}
             warn={familyPhoneWarning}
           />
@@ -1217,6 +1282,26 @@ export default function Students() {
             holes={[familyMsgTypeRect]}
             pad={4}
           />
+          <div style={{
+            position: 'fixed',
+            left: familyMsgTypeRect.left - 4, top: familyMsgTypeRect.top - 4,
+            width: familyMsgTypeRect.width + 8, height: familyMsgTypeRect.height + 8,
+            zIndex: 3001,
+          }} />
+          <div style={{
+            position: 'fixed',
+            top: familyMsgTypeRect.bottom + 2, left: familyMsgTypeRect.left, width: familyMsgTypeRect.width,
+            background: '#fff', border: '1px solid #ccc', borderRadius: 2,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)', zIndex: 3500, pointerEvents: 'none',
+          }}>
+            {['전체수신','학원관련','학원관련+수납','청구','청구+수납','수신안함'].map(opt => (
+              <div key={opt} style={{
+                padding: '5px 8px', fontSize: 13,
+                color: opt === '청구+수납' ? '#fff' : '#333',
+                background: opt === '청구+수납' ? '#29ABE2' : undefined,
+              }}>{opt}</div>
+            ))}
+          </div>
           <div style={{
             position: 'fixed',
             right: window.innerWidth - familyMsgTypeRect.left + 12,
@@ -1260,7 +1345,6 @@ export default function Students() {
           <TutorialTooltip
             rect={familyCompleteTabsRect}
             placement="top"
-            center
             message="가족 정보 입력이 완료되었습니다."
             onConfirm={handleFamilyCompleteConfirm}
           />
@@ -1292,7 +1376,7 @@ export default function Students() {
             rect={registerBtnRect}
             placement="bottom"
             rightAlign
-            message="수강신청 버튼을 눌러 반을 등록하세요."
+            message="수강신청 버튼을 눌러 반을 등록합니다."
           />
         </>
       )}
@@ -1369,64 +1453,46 @@ export default function Students() {
             holes={[classDiscountRect]}
             pad={8}
           />
+          {classDiscountItemRect && (
+            <div style={{
+              position: 'fixed',
+              top: classDiscountItemRect.bottom + 2, left: classDiscountItemRect.left, width: classDiscountItemRect.width,
+              background: '#fff', border: '1px solid #ccc', borderRadius: 2,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.15)', zIndex: 3500, pointerEvents: 'none',
+            }}>
+              {['선택', '형제할인', '장기할인', '성적우수할인', '일수할인', '기타(특별)할인'].map(opt => (
+                <div key={opt} style={{ padding: '5px 8px', fontSize: 13, color: '#333' }}>{opt}</div>
+              ))}
+            </div>
+          )}
+          {classDiscountRepeatRect && (
+            <>
+              <div style={{
+                position: 'fixed',
+                top: classDiscountRepeatRect.bottom + 2, left: classDiscountRepeatRect.left, width: classDiscountRepeatRect.width,
+                background: '#fff', border: '1px solid #ccc', borderRadius: 2,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)', zIndex: 3500, pointerEvents: 'none',
+              }}>
+                {['선택', '월납', '일시납'].map(opt => (
+                  <div key={opt} style={{ padding: '5px 8px', fontSize: 13, color: '#333' }}>{opt}</div>
+                ))}
+              </div>
+              <div style={{
+                position: 'fixed',
+                top: classDiscountRepeatRect.top + 50, left: classDiscountRepeatRect.right + 20,
+                color: '#fff', fontSize: 13, lineHeight: 2, zIndex: 3500, pointerEvents: 'none',
+              }}>
+                <div>월납: 매달 할인 적용</div>
+                <div>일시납 : 한 번만 할인 적용</div>
+              </div>
+            </>
+          )}
           <TutorialTooltip
             rect={classDiscountRect}
             placement="top"
             message="할인항목에서 할인 금액을 설정할 수 있습니다."
             tailLeftPx={55}
             onConfirm={handleClassRegisterDiscountConfirm}
-          />
-        </>
-      )}
-      {showClassRegisterDiscountRepeatHint && classDiscountRepeatRect && (
-        <>
-          <TutorialMultiSpotlight
-            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
-            holes={[classDiscountRepeatRect]}
-            pad={4}
-          />
-          <div style={{
-            position: 'fixed',
-            left: classDiscountRepeatRect.left - 4,
-            top: classDiscountRepeatRect.top - 4,
-            width: classDiscountRepeatRect.width + 8,
-            height: classDiscountRepeatRect.height + 8,
-            zIndex: 3001,
-          }} />
-          <div style={{
-            position: 'fixed',
-            top: classDiscountRepeatRect.bottom + 2,
-            left: classDiscountRepeatRect.left,
-            width: classDiscountRepeatRect.width,
-            background: '#fff',
-            border: '1px solid #ccc',
-            borderRadius: 2,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            zIndex: 3500,
-            pointerEvents: 'none',
-          }}>
-            {['선택', '월납', '일시납'].map(opt => (
-              <div key={opt} style={{ padding: '5px 8px', fontSize: 13, color: '#333' }}>{opt}</div>
-            ))}
-          </div>
-          <div style={{
-            position: 'fixed',
-            top: classDiscountRepeatRect.top + 50,
-            left: classDiscountRepeatRect.right + 20,
-            color: '#fff',
-            fontSize: 13,
-            lineHeight: 2,
-            zIndex: 3500,
-            pointerEvents: 'none',
-          }}>
-            <div>월납 : 매달 할인 적용</div>
-            <div>일시납 : 한 번만 할인 적용</div>
-          </div>
-          <TutorialTooltip
-            rect={classDiscountRepeatRect}
-            placement="top"
-            center
-            onConfirm={handleClassRegisterDiscountRepeatConfirm}
           />
         </>
       )}
@@ -1468,9 +1534,16 @@ export default function Students() {
             pad={8}
           />
           <TutorialTooltip
-            rect={classRegisterCompleteWrapRect}
+            rect={classTabNameCellRect ? {
+              left: classTabNameCellRect.left,
+              right: classTabNameCellRect.right,
+              width: classTabNameCellRect.width,
+              top: classRegisterCompleteWrapRect.top,
+              bottom: classRegisterCompleteWrapRect.bottom,
+              height: classRegisterCompleteWrapRect.height,
+            } : classRegisterCompleteWrapRect}
             placement="bottom"
-            tailLeftPx={66}
+            center
             message="수강신청이 완료되었습니다."
             onConfirm={handleClassRegisterCompleteConfirm}
           />
@@ -1487,16 +1560,13 @@ export default function Students() {
           resetKey={classRegisterResetKey}
           classPaydayRowRef={classPaydayRowRef}
           classDiscountRowRef={classDiscountRowRef}
-          classDiscountRepeatSelectRef={classDiscountRepeatSelectRef}
           classSubmitBtnRef={classSubmitBtnRef}
           onSubmitClick={handleSubmitClick}
           autoSelectFirstClass={showAnyClassRegisterStep && !showClassRegisterHint}
-          onRepeatFocus={handleRepeatFocus}
-          onRepeatChange={handleRepeatChange}
         />
       )}
       <TopNav />
-      <div className="menu-bar">
+      <div className="menu-bar" style={isReplay ? { pointerEvents: 'none' } : undefined}>
         <button className="hamburger-btn" onClick={()=>setSidebarOpen(s=>!s)}>☰</button>
         <div className="menu-list">
           {MENUS.map(m=>{
@@ -1551,7 +1621,7 @@ export default function Students() {
         </div>
       </div>
 
-      <div className="students-body">
+      <div className="students-body" style={isReplay ? { pointerEvents: 'none' } : undefined}>
         {sidebarOpen && (
           <div className="students-sidebar">
             <div className="ss-title">수강생관리</div>
@@ -1734,17 +1804,17 @@ export default function Students() {
                           </div>
                           <label className="if-label">상태</label>
                           <div className="if-cell">
-                            <span style={{fontSize:13,color:getDisplayStatus()==='퇴원'?'#ff3c00':getDisplayStatus()==='휴원'?'#0100FF':'#333',minWidth:40,display:'inline-block'}}>{getDisplayStatus()}</span>
+                            <span style={{fontSize:13,color:getDisplayStatus()==='퇴원'?'#ff3c00':(getDisplayStatus()==='휴원'||getDisplayStatus()==='예비')?'#0100FF':'#333',minWidth:40,display:'inline-block'}}>{getDisplayStatus()}</span>
                           </div>
                         </div>
                         <div className="if-row">
                           <label className="if-label required" ref={nameLabelRef}>성명</label>
                           <div className="if-cell" ref={nameCellRef}>
-                            <input ref={nameInputRef} className="if-input" value={form.name} onChange={e=>{setForm(f=>({...f,name:e.target.value})); setNameEnterWarning(false)}}/>
+                            <input ref={nameInputRef} className="if-input" value={isReplay ? replayField('name') : form.name} onChange={e=>{setForm(f=>({...f,name:e.target.value})); setNameEnterWarning(false)}}/>
                           </div>
                           <label className="if-label required" ref={birthLabelRef}>생년월일</label>
                           <div className="if-cell" ref={birthCellRef}>
-                            <input className="if-input" placeholder="예) 901230" style={{width:120}} value={form.birth} onChange={e=>{const digits=e.target.value.replace(/\D/g,'').slice(0,6); setForm(f=>({...f,birth:digits})); setBirthEnterWarning(false)}}/>
+                            <input className="if-input" placeholder="예) 901230" style={{width:120}} value={isReplay ? replayField('birth') : form.birth} onChange={e=>{const digits=e.target.value.replace(/\D/g,'').slice(0,6); setForm(f=>({...f,birth:digits})); setBirthEnterWarning(false)}}/>
                             <select className="if-input" style={{width:80}} value={form.gender} onChange={e=>setForm(f=>({...f,gender:e.target.value}))}>
                               <option>남자</option><option>여자</option>
                             </select>
@@ -1764,7 +1834,7 @@ export default function Students() {
                         <div className="if-row">
                           <label className="if-label required" ref={enrollLabelRef}>입학일자</label>
                           <div className="if-cell" ref={enrollCellRef}>
-                            <DatePicker value={form.enrollDate} onChange={v=>{setForm(f=>({...f,enrollDate:v})); setEnrollEnterWarning(false)}}/>
+                            <DatePicker value={isReplay ? replayField('enrollDate') : form.enrollDate} onChange={v=>{setForm(f=>({...f,enrollDate:v})); setEnrollEnterWarning(false)}}/>
                           </div>
                           <label className="if-label">주 결제방법</label>
                           <div className="if-cell">
@@ -1774,7 +1844,7 @@ export default function Students() {
                         <div className="if-row">
                           <label className="if-label required" ref={phoneLabelRef}>학생 휴대폰</label>
                           <div className="if-cell" ref={phoneCellRef}>
-                            <input className="if-input" placeholder="예) 010-1234-5678" value={form.phone} onChange={e=>{
+                            <input className="if-input" placeholder="예) 010-1234-5678" value={isReplay ? replayField('phone') : form.phone} onChange={e=>{
                               const digits = e.target.value.replace(/\D/g,'').slice(0,11)
                               const formatted = digits.length <= 3 ? digits
                                 : digits.length <= 7 ? `${digits.slice(0,3)}-${digits.slice(3)}`
@@ -1851,8 +1921,8 @@ export default function Students() {
                       </div>
                       {(selectedStudentId !== null && selectedStudentId !== 'new' || tutorialShowInfoTabs) && (
                         <div className="info-tab-content" ref={infoTabContentRef}>
-                          {infoTab==='가족'     && <FamilyTab key={selectedStudentId} nameInputRef={familyNameInputRef} relationSelectRef={familyRelationSelectRef} phoneInputRef={familyPhoneInputRef} msgTypeSelectRef={familyMsgTypeSelectRef} onMsgTypeChange={handleFamilyMsgTypeChange} onMsgTypeClick={handleFamilyMsgTypeClick} saveBtnRef={familySaveBtnRef} onSaveClick={handleFamilySaveClick} initialRows={form.family} />}
-                          {infoTab==='수강'     && <ClassTab onRegisterClick={handleRegisterBtnClick} enrollments={contextEnrollments.filter(e => e.studentId === selectedStudentId)} enrollmentRowRef={classTabEnrollmentRowRef} registerBtnRef={registerBtnRef} onEnrollmentClick={handleEnrollmentClick} />}
+                          {infoTab==='가족'     && <FamilyTab key={selectedStudentId} nameInputRef={familyNameInputRef} relationSelectRef={familyRelationSelectRef} phoneInputRef={familyPhoneInputRef} msgTypeSelectRef={familyMsgTypeSelectRef} onMsgTypeChange={handleFamilyMsgTypeChange} onMsgTypeClick={handleFamilyMsgTypeClick} saveBtnRef={familySaveBtnRef} onSaveClick={handleFamilySaveClick} initialRows={form.family} replayRow={replayFamilyRow} />}
+                          {infoTab==='수강'     && <ClassTab onRegisterClick={handleRegisterBtnClick} enrollments={isReplay ? replayEnrollments : contextEnrollments.filter(e => e.studentId === selectedStudentId)} enrollmentRowRef={classTabEnrollmentRowRef} registerBtnRef={registerBtnRef} onEnrollmentClick={handleEnrollmentClick} />}
                           {infoTab==='수납'     && <PaymentTab studentId={selectedStudentId} studentName={form.name} />}
                           {infoTab==='결제'     && <BillingTab studentId={selectedStudentId} studentName={form.name} />}
                           {infoTab==='상담'     && <ConsultTab />}
@@ -1875,6 +1945,15 @@ export default function Students() {
           {/* 수강생현황 */}
           {activeSide==='student-status'&&(
             <>
+              {showStatusStateHint && statusStateFieldRect && (
+                <div style={{ opacity: statusStateHintFading ? 0 : 1, transition: 'opacity 0.4s ease' }}>
+                  <TutorialTooltip
+                    rect={statusStateFieldRect}
+                    placement="top"
+                    message="수강생 상태를 확인하세요."
+                  />
+                </div>
+              )}
               <div className="sm-page-title"><span style={{color:'#F5C518'}}>⭐</span> 수강생 현황</div>
               <div className="sts-section">
                 <div className="sts-sec-head">
@@ -1890,7 +1969,7 @@ export default function Students() {
                     <div className="sts-filter-item"><label className="sts-filter-label first">강사</label><select className="sts-input" value={statusFilter.teacher} onChange={e=>setStatusFilter(f=>({...f,teacher:e.target.value}))}><option>전체</option></select></div>
                     <div className="sts-filter-item"><label className="sts-filter-label">반 그룹</label><select className="sts-input" value={statusFilter.group} onChange={e=>setStatusFilter(f=>({...f,group:e.target.value}))}><option>전체</option></select></div>
                     <div className="sts-filter-item"><label className="sts-filter-label">반명</label><select className="sts-input" value={statusFilter.className} onChange={e=>setStatusFilter(f=>({...f,className:e.target.value}))}><option>전체</option></select></div>
-                    <div className="sts-filter-item"><label className="sts-filter-label">수강생상태</label><select className="sts-input" value={statusFilter.studentStatus} onChange={e=>setStatusFilter(f=>({...f,studentStatus:e.target.value}))}><option>선택하기</option><option>재원</option><option>예비</option><option>휴원</option><option>퇴원</option><option>예비+휴원+퇴원</option></select></div>
+                    <div className="sts-filter-item"><label className="sts-filter-label" ref={statusStateFieldRef}>수강생상태</label><select className="sts-input" value={statusFilter.studentStatus} onChange={e=>setStatusFilter(f=>({...f,studentStatus:e.target.value}))}><option>선택하기</option><option>재원</option><option>예비</option><option>휴원</option><option>퇴원</option><option>예비+휴원+퇴원</option></select></div>
                     <div className="sts-filter-item">
                       <select className="sts-input" style={{width:120,marginLeft:14}} value={statusFilter.searchType} onChange={e=>setStatusFilter(f=>({...f,searchType:e.target.value}))}><option>수강생-성명</option><option>수강생-휴대폰</option><option>수강생-집전화</option></select>
                       <input className="sts-input" style={{width:150,marginLeft:14}} value={statusFilter.keyword} onChange={e=>setStatusFilter(f=>({...f,keyword:e.target.value}))}/>
@@ -1918,7 +1997,7 @@ export default function Students() {
                 <div className="sts-list-head">
                   <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
                     <span className="sts-sec-title">수강생 목록</span>
-                    <span className="sts-count-info">검색인원:12명 &nbsp;<span style={{color:'#555'}}>(전체수강생)</span>&nbsp;재원:<strong style={{color:'#333'}}>11명</strong>&nbsp;예비:<strong style={{color:'#29ABE2'}}>3명</strong>&nbsp;휴원:<strong>0명</strong>&nbsp;퇴원:<strong style={{color:'#E8445A'}}>33명</strong></span>
+                    <span className="sts-count-info">검색인원:{filteredStudents.length}명 &nbsp;<span style={{color:'#555'}}>(전체수강생)</span>&nbsp;재원:<strong style={{color:'#333'}}>{statusCounts.재원}명</strong>&nbsp;예비:<strong style={{color:'#29ABE2'}}>{statusCounts.예비}명</strong>&nbsp;휴원:<strong>{statusCounts.휴원}명</strong>&nbsp;퇴원:<strong style={{color:'#E8445A'}}>{statusCounts.퇴원}명</strong></span>
                   </div>
                   <div style={{display:'flex',alignItems:'center',gap:6}}>
                     <span style={{fontSize:12,color:'#666'}}>페이지당 조회</span>
@@ -1942,7 +2021,7 @@ export default function Students() {
                           <td><span className="sts-name-link" onClick={()=>{ sessionStorage.setItem('studentDetailData', JSON.stringify(d)); window.open('/student-detail','_blank','width=1250,height=850'); }}>{d.name}</span></td>
                           <td>{d.birth}</td>
                           <td style={{textAlign:'center'}}>{d.photo}</td>
-                          <td style={{textAlign:'center'}}>{d.status}</td>
+                          <td style={{textAlign:'center',color:d.status==='퇴원'?'#ff3c00':(d.status==='휴원'||d.status==='예비')?'#0100FF':'#333'}}>{d.status}</td>
                           <td>{d.classes.map((c,i)=><div key={i} style={{fontSize:11,color:'#444',lineHeight:'1.6'}}>{c}</div>)}</td>
                           <td>{d.keypad}</td><td>{d.dept}</td><td>{d.school}</td>
                           <td style={{textAlign:'center'}}>{d.grade}</td>

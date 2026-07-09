@@ -3,7 +3,7 @@ import { TutorialProvider } from './components/TutorialContext'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { AppDataProvider } from './contexts/AppDataContext'
 import TutorialFloatingButton from './components/TutorialFloatingButton'
-import TutorialDevNav from './components/TutorialDevNav'
+import TutorialReplayNav from './components/TutorialReplayNav'
 import Signup from './pages/Signup'
 import Demo from './pages/Demo'
 import ConversionRequest from './pages/ConversionRequest'
@@ -71,7 +71,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
         <TutorialFloatingButton />
-        <TutorialDevNav />
+        <TutorialReplayNav />
       </BrowserRouter>
     </TutorialProvider>
     </AppDataProvider>

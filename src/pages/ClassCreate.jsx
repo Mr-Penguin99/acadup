@@ -15,8 +15,28 @@ const emptyLesson  = () => ({ id:Date.now()+Math.random(), sh:'09', sm:'00', eh:
 const emptyTeacher = () => ({ id:Date.now()+Math.random(), name:'', homeroom:false, subject:'' })
 const emptyPayment = () => ({ id:Date.now()+Math.random(), item:'', price:'', required:true, cycle:'' })
 
+// replay(다시보기) 모드에서는 실제로 타이핑하지 않으므로, 각 단계의 확인 조건(이름/과목/운영기간/수납항목 등)이
+// 항상 이미 채워져 있도록 고정 샘플 값으로 시작함 - 나머지(납부주기/운영방식 등)는 원래 기본값 자체가 유효해서 그대로 둠
+const REPLAY_SAMPLE_FORM = {
+  code:'', group:'', name:'튜토리얼반',
+  subject:'국어', room:'', capacity:'',
+  payCycle:'1개월납', payDay:'1',
+  opType:'기간반', opFrom:'2026-01-01', opTo:'2999-12-31',
+}
+const REPLAY_SAMPLE_PAYMENTS = [{ id: 1, item:'수강료01', price:'100,000', required:true, cycle:'월납' }]
+// 리셋 상태에서도 수납항목 행 자체(선택란/입력란)는 남기고 내용만 비워둠
+const REPLAY_EMPTY_PAYMENTS = [{ id: 1, item:'', price:'', required:true, cycle:'' }]
+// "신규 반 등록" 단계에서 보여줄 리셋된 화면 - 실제 상태를 건드리지 않는 고정값이라
+// 이전/다음으로 왔다갔다해도 항상 같은 모습으로 보임
+const REPLAY_EMPTY_FORM = {
+  code:'', group:'', name:'',
+  subject:'', room:'', capacity:'',
+  payCycle:'1개월납', payDay:'1',
+  opType:'기간반', opFrom:'', opTo:'',
+}
+
 const REQUIRED_FIELDS_OVERLAY_STEP_IDS = [
-  'class-create-required-fields', 'class-create-payday-hint',
+  'class-create-required-fields',
 ]
 
 // 이 단계들에서는 안내만 보고 확인/Enter로 진행하도록, 입력란을 직접 수정할 수 없게 막음
@@ -26,6 +46,12 @@ const INPUT_LOCKED_STEP_IDS = [
 
 export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) {
   const { classes, addClass, updateClass, deleteClass } = useAppData()
+  const { activeStep, isOpen, advance, mode } = useTutorial()
+  const isReplay = isOpen && mode === 'replay'
+  // replay 모드에서 "신규 반 등록" 단계에 있는 동안만 리셋된 화면을 보여줌 - 실제 state를
+  // 건드리는 게 아니라 그 단계일 때만 다른 값을 "보여주는" 것이므로, 이전/다음으로 이동해도
+  // 항상 그 단계에 맞는 내용이 그대로 나옴 (페이지 UI처럼 고정된 화면)
+  const isReplayResetStep = isReplay && activeStep?.id === 'class-create-new-register-hint'
   const [editingClass, setEditingClass] = useState(() => {
     if (embedded) return null
     try {
@@ -34,7 +60,7 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
       return parsed
     } catch { return null }
   })
-  const [form, setForm] = useState(() => editingClass ? {
+  const [liveForm, setLiveForm] = useState(() => editingClass ? {
     code: editingClass.code || '', group: editingClass.group || '', name: editingClass.name || '',
     subject: editingClass.subject || '', room: editingClass.room || '', capacity: '',
     payCycle: '1개월납', payDay: editingClass.payDay || '1',
@@ -47,10 +73,14 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
   })
   const [lessons,  setLessons]  = useState([emptyLesson()])
   const [teachers, setTeachers] = useState([emptyTeacher()])
-  const [payments, setPayments] = useState(() => editingClass?.payments?.length ? editingClass.payments : [emptyPayment()])
+  const [livePayments, setLivePayments] = useState(() =>
+    editingClass?.payments?.length ? editingClass.payments : [emptyPayment()]
+  )
 
-  const { activeStep, isOpen, advance } = useTutorial()
-  const inputsLocked = isOpen && INPUT_LOCKED_STEP_IDS.includes(activeStep?.id)
+  const form = isReplay ? (isReplayResetStep ? REPLAY_EMPTY_FORM : REPLAY_SAMPLE_FORM) : liveForm
+  const payments = isReplay ? (isReplayResetStep ? REPLAY_EMPTY_PAYMENTS : REPLAY_SAMPLE_PAYMENTS) : livePayments
+
+  const inputsLocked = isOpen && (INPUT_LOCKED_STEP_IDS.includes(activeStep?.id) || isReplay)
   const codeInputRef = useRef(null)
   const [codeInputRect, setCodeInputRect] = useState(null)
   const showCodeHint = isOpen && activeStep?.id === 'class-create-code-hint'
@@ -250,35 +280,22 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
   // 납부기준일/운영기간 단계로 넘어가도 강조 오버레이는 계속 유지
   const showRequiredFieldsOverlay = isOpen && REQUIRED_FIELDS_OVERLAY_STEP_IDS.includes(activeStep?.id)
   const showNewRegisterHint = isOpen && activeStep?.id === 'class-create-new-register-hint'
-  // 신규 반 등록 클릭 후, 모달을 닫기 전까지 확인[Enter] 말풍선만 띄우는 단계
-  const showClosingOverlay = isOpen && activeStep?.id === 'class-create-closing'
   // 입력란 강조 영역 측정은 신규 반 등록 강조 단계에서도 필요
   const needsFieldHoles = showRequiredFieldsOverlay || showNewRegisterHint
 
-  const [closingModalRect, setClosingModalRect] = useState(null)
+  // 신규 반 등록 단계에서는 버튼만이 아니라 모달 전체를 강조함
+  const [newRegisterModalRect, setNewRegisterModalRect] = useState(null)
 
   useEffect(() => {
-    if (!showClosingOverlay) return
+    if (!showNewRegisterHint) return
     const measure = () => {
-      if (modalBoxRef?.current) setClosingModalRect(modalBoxRef.current.getBoundingClientRect())
+      if (modalBoxRef?.current) setNewRegisterModalRect(modalBoxRef.current.getBoundingClientRect())
     }
     measure()
     window.addEventListener('resize', measure)
     return () => window.removeEventListener('resize', measure)
-  }, [showClosingOverlay])
+  }, [showNewRegisterHint])
 
-  // 확인 클릭 또는 Enter만 누르면 다음 단계로 진행 (반 등록 모달 닫기 단계)
-  const handleClosingConfirm = () => advance()
-
-  useEffect(() => {
-    if (!showClosingOverlay) return
-    const handleKeyDown = e => {
-      if (e.key !== 'Enter') return
-      handleClosingConfirm()
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [showClosingOverlay])
 
   // 여러 영역(제목+입력란 등)을 하나로 합쳐 깨지지 않는 큰 강조 영역으로 만듦
   const unionRects = (...rects) => rects.filter(Boolean).reduce((acc, r) => {
@@ -320,12 +337,14 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
   }, [needsFieldHoles])
 
   const [payDayHintRect, setPayDayHintRect] = useState(null)
+  const [payDayHoleRect, setPayDayHoleRect] = useState(null)
   const showPayDayHint = isOpen && activeStep?.id === 'class-create-payday-hint'
 
   useEffect(() => {
     if (!showPayDayHint) return
     const measure = () => {
       if (payDayLabelRef.current) setPayDayHintRect(payDayLabelRef.current.getBoundingClientRect())
+      setPayDayHoleRect(unionRects(payDayLabelRef.current?.getBoundingClientRect(), payDayCellRef.current?.getBoundingClientRect()))
     }
     measure()
     window.addEventListener('resize', measure)
@@ -479,7 +498,7 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [showPaymentHint, payments])
 
-  const setF = (key, val) => setForm(f => ({...f, [key]: val}))
+  const setF = (key, val) => setLiveForm(f => ({...f, [key]: val}))
 
   /* 수업 */
   const addLesson    = () => setLessons(p => [...p, emptyLesson()])
@@ -493,17 +512,17 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
   const updateTeacher = (id, key, val) => setTeachers(p => p.map(r => r.id===id ? {...r, [key]:val} : r))
 
   /* 수납 */
-  const addPayment    = () => setPayments(p => [...p, emptyPayment()])
-  const removePayment = id => setPayments(p => p.length===1 ? [emptyPayment()] : p.filter(r=>r.id!==id))
-  const updatePayment = (id, key, val) => setPayments(p => p.map(r => r.id===id ? {...r, [key]:val} : r))
+  const addPayment    = () => setLivePayments(p => [...p, emptyPayment()])
+  const removePayment = id => setLivePayments(p => p.length===1 ? [emptyPayment()] : p.filter(r=>r.id!==id))
+  const updatePayment = (id, key, val) => setLivePayments(p => p.map(r => r.id===id ? {...r, [key]:val} : r))
 
   const formatPrice = val => val.replace(/[^\d]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 
   const reloadOpener = () => { try { if (window.opener && !window.opener.closed) window.opener.__refreshAppData?.() } catch {} }
 
   const resetForm = () => {
-    setForm({code:'',group:'',name:'',subject:'',room:'',capacity:'',payCycle:'1개월납',payDay:'1',opType:'기간반',opFrom:'',opTo:''})
-    setLessons([emptyLesson()]); setTeachers([emptyTeacher()]); setPayments([emptyPayment()])
+    setLiveForm({code:'',group:'',name:'',subject:'',room:'',capacity:'',payCycle:'1개월납',payDay:'1',opType:'기간반',opFrom:'',opTo:''})
+    setLessons([emptyLesson()]); setTeachers([emptyTeacher()]); setLivePayments([emptyPayment()])
   }
   const handleNew  = () => {
     resetForm()
@@ -569,7 +588,7 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
         <TutorialTooltip
           rect={requiredFieldsRects.nameRect}
           placement="top"
-          message={<><span className="cc-req">*</span>표시가 된 필수 입력란을 입력하고, 운영기간·수납까지 작성해 주세요.</>}
+          message={<><span className="cc-req">*</span>표시가 된 필수 입력란을 입력하고, 운영기간·수납까지 작성합니다.</>}
           onConfirm={handleRequiredFieldsConfirm}
         />
       )}
@@ -582,7 +601,7 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
           <TutorialTooltip
             rect={nameTooltipRect}
             placement="top"
-            message={nameEnterWarning ? <span style={{ color: '#ff3c00' }}>내용을 입력하고 확인[Enter]을 누르세요.</span> : '반 명을 입력해 주세요.'}
+            message={nameEnterWarning ? <span style={{ color: '#ff3c00' }}>내용을 입력하고 확인[Enter]을 누르세요.</span> : '반 명을 입력합니다.'}
             onConfirm={handleNameConfirm}
           />
         </>
@@ -596,7 +615,7 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
           <TutorialTooltip
             rect={subjectTooltipRect}
             placement="top"
-            message={subjectEnterWarning ? <span style={{ color: '#ff3c00' }}>선택하고 확인[Enter]을 누르세요.</span> : '과목명을 선택하세요.'}
+            message={subjectEnterWarning ? <span style={{ color: '#ff3c00' }}>선택하고 확인[Enter]을 누르세요.</span> : '과목명을 선택합니다.'}
             onConfirm={handleSubjectConfirm}
           />
         </>
@@ -610,7 +629,7 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
           <TutorialTooltip
             rect={payCycleTooltipRect}
             placement="top"
-            message={payCycleEnterWarning ? <span style={{ color: '#ff3c00' }}>선택하고 확인[Enter]을 누르세요.</span> : '납부주기를 선택하세요.'}
+            message={payCycleEnterWarning ? <span style={{ color: '#ff3c00' }}>선택하고 확인[Enter]을 누르세요.</span> : '납부주기를 선택합니다.'}
             onConfirm={handlePayCycleConfirm}
           />
         </>
@@ -624,18 +643,34 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
           <TutorialTooltip
             rect={opTypeTooltipRect}
             placement="top"
-            message={opTypeEnterWarning ? <span style={{ color: '#ff3c00' }}>선택하고 확인[Enter]을 누르세요.</span> : '운영방식을 선택하세요.'}
+            message={opTypeEnterWarning ? <span style={{ color: '#ff3c00' }}>선택하고 확인[Enter]을 누르세요.</span> : '운영방식을 선택합니다.'}
             onConfirm={handleOpTypeConfirm}
           />
         </>
       )}
       {showPayDayHint && (
-        <TutorialTooltip
-          rect={payDayHintRect && { left: payDayHintRect.left + 10, top: payDayHintRect.top + 15, bottom: payDayHintRect.bottom }}
-          placement="top"
-          message="수강 신청 시 학생마다 납부기준일을 다르게 설정할 수 있습니다."
-          onConfirm={handlePayDayConfirm}
-        />
+        <>
+          <TutorialMultiSpotlight
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[payDayHoleRect]}
+          />
+          <TutorialTooltip
+            rect={payDayHintRect}
+            placement="top"
+            tailLeftPx={payDayHintRect ? payDayHintRect.width / 2 : 16}
+            message="해당 반의 납부기준일을 입력합니다."
+            onConfirm={handlePayDayConfirm}
+          />
+          {payDayHoleRect && (
+            <div style={{
+              position: 'fixed', zIndex: 3500,
+              left: payDayHoleRect.left, top: payDayHoleRect.bottom + 8,
+              color: '#fff', fontSize: 13,
+            }}>
+              수강생이 수강 신청 시 학생들마다 납부기준일을 다르게 설정할 수 있습니다.
+            </div>
+          )}
+        </>
       )}
       {showPeriodFromHint && (
         <>
@@ -648,7 +683,7 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
             placement="top"
             message={periodFromEnterWarning
               ? <span style={{ color: '#ff3c00' }}>운영기간을 설정하고 확인[Enter]을 누르세요.</span>
-              : '반의 운영기간을 입력하세요.'}
+              : '반의 운영기간을 입력합니다.'}
             onConfirm={handlePeriodFromConfirm}
           />
         </>
@@ -682,7 +717,7 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
             center
             message={paymentEnterWarning
               ? <span style={{ color: '#ff3c00' }}>수납 항목을 모두 입력하고 확인[Enter]을 누르세요.</span>
-              : '수납 항목을 입력하세요.'}
+              : '수납 항목을 입력합니다.'}
             onConfirm={handlePaymentConfirm}
           />
         </>
@@ -693,36 +728,20 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
           <TutorialTooltip
             rect={saveHintRects.rect}
             placement="top"
-            message="내용을 저장하고 등할 때는 저장 버튼을 눌러 저장해 주세요."
+            message="내용을 저장하고 등록할 때는 저장 버튼을 눌러주세요."
           />
         </>
       )}
       {showNewRegisterHint && (
         <>
           <TutorialMultiSpotlight
-            boundsRect={requiredFieldsRects.bounds}
-            holes={[requiredFieldsRects.newRegisterRect && { rect: requiredFieldsRects.newRegisterRect, pad: 3 }]}
+            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
+            holes={[newRegisterModalRect]}
           />
           <TutorialTooltip
             rect={requiredFieldsRects.newRegisterRect}
             placement="top"
             message="신규 반 등록을 클릭 시 내용을 리셋하고 이어서 반 등록을 할 수 있습니다."
-          />
-        </>
-      )}
-      {showClosingOverlay && (
-        <>
-          <TutorialMultiSpotlight
-            boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
-            holes={[closingModalRect]}
-          />
-          <TutorialTooltip
-            rect={closingModalRect}
-            placement="top"
-            center
-            minWidth={140}
-            message={null}
-            onConfirm={handleClosingConfirm}
           />
         </>
       )}
@@ -732,7 +751,7 @@ export default function ClassCreate({ onClose, embedded, onSave, modalBoxRef }) 
         {onClose && <button className="cc-close-btn" onClick={onClose}>✕</button>}
       </div>
 
-      <div className="cc-btn-row">
+      <div className="cc-btn-row" style={isReplay ? { pointerEvents: 'none' } : undefined}>
         {editingClass ? (
           <>
             <button className="cc-btn cc-btn-edit" onClick={handleUpdate}>수정</button>

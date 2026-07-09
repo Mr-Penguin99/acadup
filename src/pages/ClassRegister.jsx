@@ -1,11 +1,17 @@
 import { useState, useEffect } from 'react'
 import { useAppData } from '../contexts/AppDataContext'
+import { useTutorial } from '../components/TutorialContext'
 
 const REPEAT_OPTIONS = ['선택', '월납', '일시납']
 const DISCOUNT_OPTIONS = ['선택', '형제할인', '장기할인', '성적우수할인', '일수할인', '기타(특별)할인']
+// replay(다시보기) 모드에서는 실제 반 목록 대신 반관리 단계에서 등록했던 것과 같은 이름의 고정 샘플 반만 보여줌
+const REPLAY_MOCK_CLASS = { group: '', name: '튜토리얼반', teacher: '', period: '2026-01-01~2999-12-31', opFrom: '2026-01-01', opTo: '2999-12-31', room: '', payments: [{ price: '100,000' }], opType: '기간반', payDay: '1' }
 
 export default function ClassRegister({ classSectionRef, classNameRowRef, classSelectRef, onClassSelect, classPaydayRowRef, classDiscountRowRef, classDiscountRepeatSelectRef, classSubmitBtnRef, onSubmitClick, autoSelectFirstClass, onRepeatFocus, onRepeatChange }) {
   const { classes: contextClasses, students, enrollments, addEnrollment, updateEnrollment, deleteEnrollment } = useAppData()
+  const { isOpen, mode } = useTutorial()
+  const isReplay = isOpen && mode === 'replay'
+  const effectiveClasses = isReplay ? [REPLAY_MOCK_CLASS] : contextClasses
 
   // 독립 창(팝업)으로 열렸을 때만 사용 - 임베디드(튜토리얼) 모드에서는 onSubmitClick prop으로 동작
   const [context] = useState(() => {
@@ -18,14 +24,14 @@ export default function ClassRegister({ classSectionRef, classNameRowRef, classS
   // 메인 창을 통째로 새로고침하지 않고, 데이터만 다시 불러오도록 요청 (선택된 학생/탭 등 화면 상태 유지)
   const reloadOpener = () => { try { if (window.opener && !window.opener.closed) window.opener.__refreshAppData?.() } catch {} }
 
-  const GROUPS = [...new Set(contextClasses.map(c => c.group || '반 그룹'))].filter(Boolean)
-  const CLASS_OPTIONS = contextClasses.reduce((acc, c) => {
+  const GROUPS = [...new Set(effectiveClasses.map(c => c.group || '반 그룹'))].filter(Boolean)
+  const CLASS_OPTIONS = effectiveClasses.reduce((acc, c) => {
     const g = c.group || '반 그룹'
     if (!acc[g]) acc[g] = []
     acc[g].push(c.name)
     return acc
   }, {})
-  const CLASS_INFO = contextClasses.reduce((acc, c) => {
+  const CLASS_INFO = effectiveClasses.reduce((acc, c) => {
     acc[c.name] = {
       teacher: c.teacher || '',
       period: c.period || `${c.opFrom || ''}~${c.opTo || ''}`,
@@ -161,8 +167,8 @@ export default function ClassRegister({ classSectionRef, classNameRowRef, classS
         </tbody>
       </table>
 
-      {/* 신청 정보 */}
-      <div ref={classSectionRef}>
+      {/* 신청 정보 - replay 모드에서는 실제로 입력/선택할 수 없고 등록 버튼으로만 다음 단계로 진행 */}
+      <div ref={classSectionRef} style={isReplay ? { pointerEvents: 'none' } : undefined}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
         <div style={{ width: 14, height: 14, background: '#F5841F', borderRadius: 2 }} />
         <span style={{ fontSize: 14, fontWeight: 700 }}>신청 정보</span>
@@ -231,7 +237,7 @@ export default function ClassRegister({ classSectionRef, classNameRowRef, classS
             <tr ref={classPaydayRowRef} style={{ borderBottom: '1px solid #e0e0e0' }}>
               <td style={labelCell}>납부기준일</td>
               <td style={valueCell}>
-                <input style={{ ...inputStyle, width: 60 }} value={payDay} onChange={e => setPayDay(e.target.value)} />
+                <input style={{ ...inputStyle, width: 60, textAlign: 'center' }} value={payDay} onChange={e => setPayDay(e.target.value)} />
               </td>
             </tr>
 
@@ -258,10 +264,7 @@ export default function ClassRegister({ classSectionRef, classNameRowRef, classS
                         <td style={subTd}>{row.item}</td>
                         <td style={subTd}>{row.amt}</td>
                         <td style={{ ...subTd, textAlign: 'center' }}>
-                          <select style={{ ...selectStyle, width: 80 }} value={row.repeat}
-                            onChange={e => setPayItems(prev => prev.map(r => r.id === row.id ? { ...r, repeat: e.target.value } : r))}>
-                            {REPEAT_OPTIONS.map(o => <option key={o}>{o}</option>)}
-                          </select>
+                          <span style={{ display: 'inline-block', width: 56, textAlign: 'center' }}>{row.repeat}</span>
                         </td>
                       </tr>
                     ))}
@@ -281,7 +284,7 @@ export default function ClassRegister({ classSectionRef, classNameRowRef, classS
                       <th style={subTh}>금액(원)</th>
                       <th style={subTh}>반복주기</th>
                       <th style={{ ...subTh, textAlign: 'center' }}>
-                        <button onClick={addDiscount} style={{ ...btnStyle('#29ABE2'), fontSize: 13, padding: '2px 8px' }}>+ 추가</button>
+                        <button onClick={addDiscount} style={{ ...btnStyle('#29ABE2'), fontSize: 13, padding: '2px 8px', width: 56, boxSizing: 'border-box' }}>+ 추가</button>
                       </th>
                     </tr>
                   </thead>

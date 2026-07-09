@@ -7,11 +7,16 @@ import BillingTab from '../components/student/BillingTab'
 import PaymentTab from '../components/student/PaymentTab'
 import TutorialMultiSpotlight from '../components/TutorialMultiSpotlight'
 import TutorialTooltip from '../components/TutorialTooltip'
-import { useTutorial } from '../components/TutorialContext'
+import { useTutorial, TUTORIAL_STEPS } from '../components/TutorialContext'
 import { useAppData } from '../contexts/AppDataContext'
 import ManualRegister from './ManualRegister'
 import PaymentRegister from './PaymentRegister'
 import PaymentCancel from './PaymentCancel'
+
+// 조건검색 날짜/월 필터의 기본값 - 오늘 날짜 기준(예: 오늘이 7/9이면 이번 달 1일~오늘)
+const TODAY = new Date().toISOString().slice(0, 10)
+const CURRENT_MONTH = TODAY.slice(0, 7)
+const MONTH_START = `${CURRENT_MONTH}-01`
 
 const UNLOCKED_MENUS = ['students','payments','classes']
 
@@ -87,23 +92,28 @@ const CLASS_STATUS_DATA = [
 
 export default function Payments() {
   const navigate = useNavigate()
-  const { activeStep, isOpen, advance } = useTutorial()
+  const { activeStep, isOpen, advance, mode, effectiveStep } = useTutorial()
+  const isReplay = isOpen && mode === 'replay'
+  // 결제완료 단계부터는 청구/미납내역에서 사라지고, 결제내역 목록 단계부터는 결제내역에 나타나는 것처럼
+  // 누적으로 보여주기 위한 기준 인덱스
+  const PAYMENT_COMPLETED_STEP_INDEX = TUTORIAL_STEPS.findIndex(s => s.id === 'payment-completed-list-hint')
+  const PAYMENT_HISTORY_LIST_STEP_INDEX = TUTORIAL_STEPS.findIndex(s => s.id === 'payment-history-list-hint')
   const { students, enrollments, payments: paymentRecords } = useAppData()
   const [activeMenu, setActiveMenu] = useState('payments')
   const [activeSide, setActiveSide] = useState('unpaid')
   const [expanded, setExpanded] = useState(['payment-mgmt'])
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [checked, setChecked] = useState([])
-  const [bulkFilter, setBulkFilter] = useState({ month:'2026-05', group:'전체', status:'개강', name:'' })
+  const [bulkFilter, setBulkFilter] = useState({ month:CURRENT_MONTH, group:'전체', status:'개강', name:'' })
   const [classBillFilter, setClassBillFilter] = useState({ searchType:'반별', group:'전체', className:'', remaining:'3회 이하', student:'' })
-  const [monthlyPayFilter, setMonthlyPayFilter] = useState({ month:'2026-05', group:'전체', className:'', searchType:'수강생-성명', keyword:'' })
-  const [payHistoryFilter, setPayHistoryFilter] = useState({ dateFrom:'2026-01-01', dateTo:'2026-05-26', group:'전체', className:'', searchType:'수강생-성명', keyword:'' })
-  const [dailyFilter, setDailyFilter] = useState({ date:'2026-05-01', group:'전체', className:'', searchType:'수강생-성명', keyword:'' })
-  const [monthlyFilter, setMonthlyFilter] = useState({ searchType:'수납월', month:'2026-05', group:'전체', className:'' })
-  const [classStatusFilter, setClassStatusFilter] = useState({ month:'2026-05', group:'전체', className:'' })
+  const [monthlyPayFilter, setMonthlyPayFilter] = useState({ month:CURRENT_MONTH, group:'전체', className:'', searchType:'수강생-성명', keyword:'' })
+  const [payHistoryFilter, setPayHistoryFilter] = useState({ dateFrom:MONTH_START, dateTo:TODAY, group:'전체', className:'', searchType:'수강생-성명', keyword:'' })
+  const [dailyFilter, setDailyFilter] = useState({ date:TODAY, group:'전체', className:'', searchType:'수강생-성명', keyword:'' })
+  const [monthlyFilter, setMonthlyFilter] = useState({ searchType:'수납월', month:CURRENT_MONTH, group:'전체', className:'' })
+  const [classStatusFilter, setClassStatusFilter] = useState({ month:CURRENT_MONTH, group:'전체', className:'' })
   const [bulkChecked, setBulkChecked] = useState([])
   const [pageSize, setPageSize] = useState('20')
-  const [filter, setFilter] = useState({ month:'2026-05', group:'전체', className:'', type:'수강생-성명', keyword:'' })
+  const [filter, setFilter] = useState({ month:CURRENT_MONTH, group:'전체', className:'', type:'수강생-성명', keyword:'' })
 
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [expandedPayId, setExpandedPayId] = useState(null)
@@ -400,7 +410,15 @@ export default function Payments() {
   const toggleBulkAll   = () => setBulkChecked(bulkChecked.length===BULK_DATA.length?[]:BULK_DATA.map(d=>d.id))
   const toggleCheck   = id => setChecked(c=>c.includes(id)?c.filter(x=>x!==id):[...c,id])
 
-  const unpaidData = students.map(s => {
+  // replay(다시보기) 모드에서는 실제 미납 데이터 대신 고정 샘플 학생 한 명만 보여줌
+  const REPLAY_UNPAID_SAMPLE = {
+    id: 'replay-unpaid-1', name: '홍길동', method: '',
+    classes: [{ cls: '튜토리얼반', day: '1일' }],
+    unpaid: 100000, phone: '010-1234-5678', sentDate: '',
+    rel: '모', guardPhone: '010-1234-5678', guardSent: '',
+  }
+
+  const unpaidData = isReplay ? (effectiveStep >= PAYMENT_COMPLETED_STEP_INDEX ? [] : [REPLAY_UNPAID_SAMPLE]) : students.map(s => {
     const rows = enrollments
       .filter(e => e.studentId === s.id)
       .map(e => {
@@ -426,7 +444,15 @@ export default function Payments() {
     }
   }).filter(Boolean)
 
-  const payHistoryData = students.map(s => {
+  // replay(다시보기) 모드에서는 결제내역 목록 단계에 도달했을 때만(누적) 고정 샘플 한 명이 나타남
+  const REPLAY_HISTORY_SAMPLE = {
+    id: 'replay-history-1', name: '홍길동', classes: ['튜토리얼반'],
+    payAmt: 100000, refund: 0, phone: '010-1234-5678', guardRel: '모', guardPhone: '010-1234-5678',
+  }
+
+  const payHistoryData = isReplay
+    ? (effectiveStep >= PAYMENT_HISTORY_LIST_STEP_INDEX ? [REPLAY_HISTORY_SAMPLE] : [])
+    : students.map(s => {
     // 결제취소된 건은 청구/미납내역으로 돌아가므로, 결제내역 수강생 목록에서는 제외 (수강생관리 > 결제 탭에서만 확인 가능)
     const studentPayments = paymentRecords.filter(p => p.studentId === s.id && !p.cancelled)
     if (studentPayments.length === 0) return null
@@ -496,7 +522,7 @@ export default function Payments() {
   return (
     <div className="payments-wrap">
       <TopNav/>
-      <div className="menu-bar">
+      <div className="menu-bar" style={isReplay ? { pointerEvents: 'none' } : undefined}>
         <button className="hamburger-btn" onClick={()=>setSidebarOpen(s=>!s)}>☰</button>
         <div className="menu-list">
           {MENUS.map(m=>{
@@ -585,7 +611,7 @@ export default function Payments() {
         </div>
       )}
 
-<div className="payments-body">
+<div className="payments-body" style={isReplay ? { pointerEvents: 'none' } : undefined}>
         {sidebarOpen&&(
           <div className="payments-sidebar">
             <div className="ss-title">수납관리</div>
@@ -1044,8 +1070,15 @@ export default function Payments() {
           }} />
           {paymentsPageTitleRect && (
             <TutorialTooltip
-              rect={paymentsPageTitleRect}
-              placement="right"
+              rect={{
+                left: paymentsPageTitleRect.left,
+                right: paymentsPageTitleRect.right,
+                width: paymentsPageTitleRect.width,
+                height: paymentsPageTitleRect.height,
+                top: paymentsPageTitleRect.top - 5,
+                bottom: paymentsPageTitleRect.bottom - 5,
+              }}
+              placement="top"
               message={showPaymentPageHint
                 ? "수납관리 메뉴로 이동하면 청구/미납내역 페이지가 먼저 나옵니다."
                 : "청구/미납내역에서 결제를 진행해보겠습니다."}
@@ -1086,7 +1119,7 @@ export default function Payments() {
             rect={studentNameRect}
             placement="top"
             center
-            message="학생의 이름을 클릭하세요."
+            message="학생의 이름을 클릭합니다."
           />
         </>
       )}
@@ -1119,9 +1152,11 @@ export default function Payments() {
               <ManualRegister />
               <div style={{ position: 'absolute', inset: 0 }} />
             </div>
-            <div style={{ textAlign: 'center', padding: '12px 0', borderTop: '1px solid #eee' }}>
-              <span style={{ color: '#F5841F', fontWeight: 500, fontSize: 13, textDecoration: 'underline', cursor: 'pointer' }} onClick={() => advance()}>다음 단계로 이동 - 확인[Enter]</span>
-            </div>
+            {!isReplay && (
+              <div style={{ textAlign: 'center', padding: '12px 0', borderTop: '1px solid #eee' }}>
+                <span style={{ color: '#F5841F', fontWeight: 500, fontSize: 13, textDecoration: 'underline', cursor: 'pointer' }} onClick={() => advance()}>다음 단계로 이동 - 확인[Enter]</span>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -1145,10 +1180,12 @@ export default function Payments() {
             message={
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
                 <span>수기 등록 화면 예시</span>
-                <span
-                  onClick={e => { e.stopPropagation(); advance() }}
-                  style={{ fontSize: 11, color: '#F5841F', fontWeight: 600, cursor: 'pointer' }}
-                >확인[Enter]</span>
+                {!isReplay && (
+                  <span
+                    onClick={e => { e.stopPropagation(); advance() }}
+                    style={{ fontSize: 11, color: '#F5841F', fontWeight: 600, cursor: 'pointer' }}
+                  >확인[Enter]</span>
+                )}
               </div>
             }
           />
@@ -1295,6 +1332,14 @@ export default function Payments() {
             boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
             holes={[{ rect: payHistoryListRect, pad: 10 }]}
           />
+          <div style={{
+            position: 'fixed',
+            left: payHistoryListRect.left - 10,
+            top: payHistoryListRect.top - 10,
+            width: payHistoryListRect.width + 20,
+            height: payHistoryListRect.height + 20,
+            zIndex: 3001,
+          }} />
           <TutorialTooltip
             rect={payHistoryListRect}
             placement="top"
@@ -1337,6 +1382,14 @@ export default function Payments() {
             boundsRect={{ left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }}
             holes={[{ rect: paymentDetailRect, pad: 10 }]}
           />
+          <div style={{
+            position: 'fixed',
+            left: paymentDetailRect.left - 10,
+            top: paymentDetailRect.top - 10,
+            width: paymentDetailRect.width + 20,
+            height: paymentDetailRect.height + 20,
+            zIndex: 3001,
+          }} />
           <TutorialTooltip
             rect={statusHeaderRect || paymentDetailRect}
             placement="top"

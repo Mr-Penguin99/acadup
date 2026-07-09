@@ -10,8 +10,8 @@ import TutorialSpotlight from '../components/TutorialSpotlight'
 import ClassCreate from './ClassCreate'
 
 const UNLOCKED_MENUS = ['students','payments','classes']
-const MODAL_TUTORIAL_STEP_IDS = ['class-create-code-hint', 'class-create-required-fields', 'class-create-name-hint', 'class-create-subject-hint', 'class-create-paycycle-hint', 'class-create-optype-hint', 'class-create-payday-hint', 'class-create-period-from-hint', 'class-create-period-hint', 'class-create-payment-hint', 'class-create-save-hint', 'class-create-new-register-hint', 'class-create-closing']
-const FULL_OVERLAY_STEP_IDS = ['class-create-required-fields', 'class-create-name-hint', 'class-create-subject-hint', 'class-create-paycycle-hint', 'class-create-optype-hint', 'class-create-payday-hint', 'class-create-period-from-hint', 'class-create-period-hint', 'class-create-payment-hint', 'class-create-save-hint', 'class-create-new-register-hint', 'class-create-closing']
+const MODAL_TUTORIAL_STEP_IDS = ['class-create-code-hint', 'class-create-required-fields', 'class-create-name-hint', 'class-create-subject-hint', 'class-create-paycycle-hint', 'class-create-optype-hint', 'class-create-payday-hint', 'class-create-period-from-hint', 'class-create-period-hint', 'class-create-payment-hint', 'class-create-save-hint', 'class-create-new-register-hint']
+const FULL_OVERLAY_STEP_IDS = ['class-create-required-fields', 'class-create-name-hint', 'class-create-subject-hint', 'class-create-paycycle-hint', 'class-create-optype-hint', 'class-create-payday-hint', 'class-create-period-from-hint', 'class-create-period-hint', 'class-create-payment-hint', 'class-create-save-hint', 'class-create-new-register-hint']
 
 const MENUS = [
   { id: 'students',    icon: '/icons/students.svg',    label: '수강생관리' },
@@ -82,7 +82,14 @@ export default function Classes() {
     if (data) setNewClassId(data.id)
   }
 
-  const { activeStep, isOpen, autoStart, advance, profileSynced } = useTutorial()
+  const { activeStep, isOpen, autoStart, advance, profileSynced, mode } = useTutorial()
+  const isReplay = isOpen && mode === 'replay'
+  // replay(다시보기) 모드에서는 실제로 반을 등록하지 않으므로, "반 등록 완료" 단계에서
+  // 하이라이트할 실제 데이터가 없음 - 실제 반 목록 대신 고정 샘플 한 줄만 보여줌
+  const REPLAY_MOCK_CLASS_ID = 1
+  const displayClasses = isReplay
+    ? [{ id: REPLAY_MOCK_CLASS_ID, group: '', name: '튜토리얼반', code: 'CLASS00001', status: '개강', type: '국어', teacher: '', period: '2026-01-01~2999-12-31', room: '', count: '재원: 0명' }]
+    : classes
   const registerBtnRef = useRef(null)
   const [registerBtnRect, setRegisterBtnRect] = useState(null)
   const newRowRef = useRef(null)
@@ -105,7 +112,11 @@ export default function Classes() {
   // 반대로 (개발용 이전/다음 버튼 등으로) 튜토리얼 진행 중 모달 단계를 벗어나면 자동으로 닫아줌
   // (튜토리얼이 꺼져있을 때는 반 등록 버튼 등으로 수동 열고 닫는 기존 동작을 건드리지 않음)
   useEffect(() => {
-    if (!isOpen) return
+    if (!isOpen) {
+      // 튜토리얼 자체가 닫히면(예: 리플레이 "창닫기" 버튼) 열려있던 반 등록 모달도 같이 닫음
+      if (showClassCreateModal) setShowClassCreateModal(false)
+      return
+    }
     const isModalStep = MODAL_TUTORIAL_STEP_IDS.includes(activeStep?.id)
     if (isModalStep && !showClassCreateModal) setShowClassCreateModal(true)
     else if (!isModalStep && showClassCreateModal) setShowClassCreateModal(false)
@@ -209,7 +220,8 @@ export default function Classes() {
         </div>
       )}
       <TopNav/>
-      <div className="menu-bar">
+      {/* replay 모드에서는 실제 메뉴 이동/버튼 클릭을 막고, 이전/다음 버튼으로만 훑어보게 함 */}
+      <div className="menu-bar" style={isReplay ? { pointerEvents: 'none' } : undefined}>
         <button className="hamburger-btn" onClick={()=>setSidebarOpen(s=>!s)}>☰</button>
         <div className="menu-list">
           {MENUS.map(m=>{
@@ -302,7 +314,7 @@ export default function Classes() {
         </div>
       )}
 
-<div className="classes-body">
+<div className="classes-body" style={isReplay ? { pointerEvents: 'none' } : undefined}>
         {sidebarOpen&&(
           <div className="classes-sidebar">
             <div className="ss-title">반관리</div>
@@ -561,6 +573,7 @@ export default function Classes() {
                   <button
                     ref={registerBtnRef}
                     className="cl-reg-btn"
+                    style={isReplay && showRegisterBtnSpotlight ? { pointerEvents: 'auto' } : undefined}
                     onClick={()=>{
                       if(activeStep?.id==='class-status-register-btn'){
                         setShowClassCreateModal(true)
@@ -579,11 +592,11 @@ export default function Classes() {
                   <table className="cl-table">
                     <thead><tr><th>출력순서</th><th>반 그룹</th><th>반 명</th><th>반 코드</th><th>상태</th><th>중분류</th><th>담임</th><th>수강기간</th><th>강의실</th><th>수강생수</th><th>기능</th></tr></thead>
                     <tbody>
-                      {classes.length === 0 && (
+                      {displayClasses.length === 0 && (
                         <tr className="cl-empty-row"><td colSpan={11} style={{textAlign:'center',padding:'32px 0',color:'#aaa',fontSize:13}}>검색된 자료가 없습니다.</td></tr>
                       )}
-                      {classes.map(d=>(
-                        <tr key={d.id} ref={d.id===newClassId ? newRowRef : null}>
+                      {displayClasses.map(d=>(
+                        <tr key={d.id} ref={d.id===(isReplay ? REPLAY_MOCK_CLASS_ID : newClassId) ? newRowRef : null}>
                           <td className="td-center">{d.id}</td><td>{d.group}</td><td>{d.name}</td><td>{d.code}</td>
                           <td className="td-center">{d.status}</td><td className="td-center">{d.type}</td>
                           <td>{d.teacher}</td><td>{d.period}</td><td>{d.room}</td><td>{d.count}</td>

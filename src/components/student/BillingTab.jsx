@@ -10,7 +10,8 @@ export default function BillingTab({ studentId, studentName }) {
   const [filter, setFilter] = useState('결제')
   const [checked, setChecked] = useState([])
 
-  const { activeStep, isOpen, advance } = useTutorial()
+  const { activeStep, isOpen, advance, mode } = useTutorial()
+  const isReplay = isOpen && mode === 'replay'
   const firstRowCheckboxRef = useRef(null)
   const cancelBtnRef = useRef(null)
   const [checkboxHintRect, setCheckboxHintRect] = useState(null)
@@ -35,7 +36,14 @@ export default function BillingTab({ studentId, studentName }) {
     return () => window.removeEventListener('resize', measure)
   }, [showCancelBtnHint])
 
-  const allRows = payments.filter(p => p.studentId === studentId).map(p => ({
+  // replay(다시보기) 모드에서는 실제 결제내역 대신 고정 샘플 한 줄만 보여줌
+  const REPLAY_BILLING_SAMPLE = {
+    id: 'replay-billing-1', date: '2026.06.05', processStatus: '정상', payStatus: '수납',
+    payDiv: '현장결제', payMethod: '카드', payAmt: 100000, refund: '', cardNo: '', approvalNo: '',
+    month: '2026-06', className: '튜토리얼반', cancelled: false, cancelReason: '',
+  }
+
+  const allRows = isReplay ? [REPLAY_BILLING_SAMPLE] : payments.filter(p => p.studentId === studentId).map(p => ({
     id: p.id,
     date: p.payDate,
     processStatus: p.cancelled ? '결제취소' : '정상',
