@@ -8,6 +8,7 @@ import PaymentTab from '../components/student/PaymentTab'
 import TutorialMultiSpotlight from '../components/TutorialMultiSpotlight'
 import TutorialTooltip from '../components/TutorialTooltip'
 import { useTutorial, TUTORIAL_STEPS } from '../components/TutorialContext'
+import { logConversionClick } from '../lib/trackConversion'
 import { useAppData } from '../contexts/AppDataContext'
 import ManualRegister from './ManualRegister'
 import PaymentRegister from './PaymentRegister'
@@ -51,16 +52,9 @@ const SIDE_MENUS = [
   ]},
 ]
 const MONTHLY_PAY_DATA = [
-  { id:1,  name:'@이순신',    cls:'to_반그룹 > from_반_CCC',    billAmt:'222',     tradeDate:'', payMethod:'', status:'미납', payAmt:'',  unpaid:'222',     created:'일괄수동' },
-  { id:2,  name:'@하늘땅',    cls:'to_반그룹 > from_반_CCC',    billAmt:'222',     tradeDate:'', payMethod:'', status:'미납', payAmt:'',  unpaid:'222',     created:'일괄수동' },
-  { id:3,  name:'회차_김333', cls:'to_반그룹 > from_반_CCC',    billAmt:'222',     tradeDate:'', payMethod:'', status:'미납', payAmt:'',  unpaid:'222',     created:'일괄수동' },
-  { id:4,  name:'@이순신',    cls:'to_반그룹 > to_반_001_배정', billAmt:'100,000', tradeDate:'', payMethod:'', status:'미납', payAmt:'',  unpaid:'100,000', created:'일괄수동' },
-  { id:5,  name:'김학생AA',   cls:'to_반그룹 > to_반_001_배정', billAmt:'100,000', tradeDate:'', payMethod:'', status:'미납', payAmt:'',  unpaid:'100,000', created:'일괄수동' },
-  { id:6,  name:'김학생CC',   cls:'to_반그룹 > to_반_001_배정', billAmt:'100,000', tradeDate:'', payMethod:'', status:'미납', payAmt:'',  unpaid:'100,000', created:'일괄수동' },
-  { id:7,  name:'@예비',      cls:'to_반그룹 > to_반_AAA_배정', billAmt:'100',     tradeDate:'', payMethod:'', status:'미납', payAmt:'',  unpaid:'100',     created:'수기등록' },
-  { id:8,  name:'@이순신',    cls:'to_반그룹 > to_반_AAA_배정', billAmt:'',        tradeDate:'', payMethod:'', status:'완납', payAmt:'0', unpaid:'',        created:'수기등록' },
-  { id:9,  name:'가나다',     cls:'to_반그룹 > to_반_AAA_배정', billAmt:'10,000',  tradeDate:'', payMethod:'', status:'미납', payAmt:'',  unpaid:'10,000',  created:'수기등록' },
-  { id:10, name:'홍길동ab',   cls:'to_반그룹 > to_반_AAA_배정', billAmt:'5,000',   tradeDate:'', payMethod:'', status:'미납', payAmt:'',  unpaid:'5,000',   created:'일괄수동' },
+  { id:1, name:'김민준', cls:'고1 수학반',   billAmt:'360,000', tradeDate:'', payMethod:'', status:'완납', payAmt:'360,000', unpaid:'0',       created:'수기등록' },
+  { id:2, name:'이서연', cls:'고1 수학반',   billAmt:'180,000', tradeDate:'', payMethod:'', status:'미납', payAmt:'',        unpaid:'180,000', created:'일괄수동', birth:'10.06.05' },
+  { id:3, name:'박도윤', cls:'수능 실전반', billAmt:'220,000', tradeDate:'', payMethod:'', status:'완납', payAmt:'220,000', unpaid:'0',       created:'일괄자동' },
 ]
 const CLASS_BILL_DATA = [
   { group:'반그룹_02(회차반)', name:'회차반_001', code:'CLASS00050', status:'개강', count:'2 명', period:'2026.03.01~2026.12.31' },
@@ -70,25 +64,27 @@ const CLASS_BILL_DATA = [
   { group:'no-use반모음', name:'02_피아노(2개월)_일시납', code:'CLASS00013', status:'개강', count:'1 명', period:'2016.03.01~2029.03.31' },
 ]
 const BULK_DATA = [
-  { id:1,  group:'',         name:'수업2_영어',        code:'CLASS00014', status:'개강', count:'0 명', billRound:'미생성', billCnt:'', amount:'',      unpaid:'',      period:'2015.09.01~2026.12.31' },
-  { id:2,  group:'',         name:'test02',            code:'CLASS00018', status:'개강', count:'1 명', billRound:'미생성', billCnt:'', amount:'',      unpaid:'',      period:'2016.09.01~2027.09.30' },
-  { id:3,  group:'',         name:'test03',            code:'CLASS00020', status:'개강', count:'0 명', billRound:'미생성', billCnt:'', amount:'',      unpaid:'',      period:'2015.11.06~2028.11.03' },
-  { id:4,  group:'to_반그룹', name:'to_반_AAA_배정',   code:'CLASS00030', status:'개강', count:'4 명', billRound:'1차',   billCnt:'4', amount:'15,100', unpaid:'15,100', period:'2025.01.01~2026.12.31' },
-  { id:5,  group:'to_반그룹', name:'to_반_AAA_이동',   code:'CLASS00031', status:'개강', count:'0 명', billRound:'미생성', billCnt:'', amount:'',      unpaid:'',      period:'2026.01.01~2026.12.31' },
-  { id:6,  group:'to_반그룹', name:'to_반_AAA_미개강', code:'CLASS00032', status:'개강', count:'0 명', billRound:'미생성', billCnt:'', amount:'',      unpaid:'',      period:'2026.04.01~2026.12.31' },
-  { id:7,  group:'to_반그룹', name:'to_반_XXX_배정',   code:'CLASS00040', status:'개강', count:'0 명', billRound:'미생성', billCnt:'', amount:'',      unpaid:'',      period:'2026.01.01~2026.12.31' },
-  { id:8,  group:'to_반그룹', name:'to_반_XXX_이동',   code:'CLASS00041', status:'개강', count:'0 명', billRound:'미생성', billCnt:'', amount:'',      unpaid:'',      period:'2026.01.01~2026.12.31' },
-  { id:9,  group:'to_반그룹', name:'to_반_XXX_미개강', code:'CLASS00042', status:'개강', count:'0 명', billRound:'미생성', billCnt:'', amount:'',      unpaid:'',      period:'2026.05.01~2026.12.31' },
-  { id:10, group:'to_반그룹', name:'from_반_AAA',       code:'CLASS00033', status:'개강', count:'0 명', billRound:'미생성', billCnt:'', amount:'',      unpaid:'',      period:'2025.01.01~2026.12.31' },
+  { id:1, group:'고등부', name:'고1 수학반',   code:'CLASS00001', status:'개강', count:'12명', billRound:'2차', billCnt:'18', amount:'3,240,000', unpaid:'430,000', period:'2026.02.01~2999.12.31' },
+  { id:2, group:'고등부', name:'고2 수학반',   code:'CLASS00002', status:'개강', count:'8명',  billRound:'2차', billCnt:'12', amount:'2,160,000', unpaid:'',        period:'2026.02.01~2999.12.31' },
+  { id:3, group:'입시부', name:'수능 실전반', code:'CLASS00003', status:'개강', count:'13명', billRound:'1차', billCnt:'13', amount:'2,860,000', unpaid:'440,000', period:'2026.02.01~2999.12.31' },
 ]
 const CLASS_STATUS_DATA = [
-  { id:1, cls:'고등_AA > 고등_AA_기초반',            month:'2026-05', billCnt:2, billAmt:'200,000', payCnt:'', payAmt:'', refundCnt:'', refundAmt:'', unpaidCnt:2, unpaidAmt:'200,000' },
-  { id:2, cls:'반그룹_수업1 > 수업1_영어(일화목토)', month:'2026-05', billCnt:1, billAmt:'10,000',  payCnt:'', payAmt:'', refundCnt:'', refundAmt:'', unpaidCnt:1, unpaidAmt:'10,000' },
-  { id:3, cls:'반그룹_01(기간반) > 01_국어(222개월)', month:'2026-05', billCnt:2, billAmt:'19,000', payCnt:'', payAmt:'', refundCnt:'', refundAmt:'', unpaidCnt:2, unpaidAmt:'19,000' },
-  { id:4, cls:'to_반그룹 > to_반_001_배정',           month:'2026-05', billCnt:3, billAmt:'300,000',payCnt:'', payAmt:'', refundCnt:'', refundAmt:'', unpaidCnt:3, unpaidAmt:'300,000' },
-  { id:5, cls:'to_반그룹 > to_반_AAA_배정',           month:'2026-05', billCnt:3, billAmt:'15,100', payCnt:'', payAmt:'', refundCnt:'', refundAmt:'', unpaidCnt:3, unpaidAmt:'15,100' },
-  { id:6, cls:'to_반그룹 > from_반_CCC',              month:'2026-05', billCnt:3, billAmt:'666',    payCnt:'', payAmt:'', refundCnt:'', refundAmt:'', unpaidCnt:3, unpaidAmt:'666' },
+  { id:1, cls:'고1 수학반',   month:'2026-06', billCnt:2, billAmt:'3,240,000', payCnt:15, payAmt:'2,700,000', refundCnt:'', refundAmt:'', unpaidCnt:3, unpaidAmt:'430,000' },
+  { id:2, cls:'고2 수학반',   month:'2026-06', billCnt:2, billAmt:'2,160,000', payCnt:12, payAmt:'2,160,000', refundCnt:'', refundAmt:'', unpaidCnt:'', unpaidAmt:'' },
+  { id:3, cls:'수능 실전반', month:'2026-06', billCnt:1, billAmt:'2,860,000', payCnt:11, payAmt:'2,420,000', refundCnt:'', refundAmt:'', unpaidCnt:2, unpaidAmt:'440,000' },
 ]
+// 표 하단 합계 - CLASS_STATUS_DATA 값이 바뀌어도 항상 실제 합계로 계산됨
+const sumClassStatusField = (key) => CLASS_STATUS_DATA.reduce((s, d) => s + (parseInt(String(d[key]).replace(/,/g, ''), 10) || 0), 0)
+const CLASS_STATUS_TOTALS = {
+  billCnt: sumClassStatusField('billCnt'),
+  billAmt: sumClassStatusField('billAmt').toLocaleString(),
+  payCnt: sumClassStatusField('payCnt'),
+  payAmt: sumClassStatusField('payAmt').toLocaleString(),
+  refundCnt: sumClassStatusField('refundCnt'),
+  refundAmt: sumClassStatusField('refundAmt').toLocaleString(),
+  unpaidCnt: sumClassStatusField('unpaidCnt'),
+  unpaidAmt: sumClassStatusField('unpaidAmt').toLocaleString(),
+}
 
 export default function Payments() {
   const navigate = useNavigate()
@@ -98,6 +94,10 @@ export default function Payments() {
   // 누적으로 보여주기 위한 기준 인덱스
   const PAYMENT_COMPLETED_STEP_INDEX = TUTORIAL_STEPS.findIndex(s => s.id === 'payment-completed-list-hint')
   const PAYMENT_HISTORY_LIST_STEP_INDEX = TUTORIAL_STEPS.findIndex(s => s.id === 'payment-history-list-hint')
+  // 결제취소 완료 단계부터는 결제내역에서도 사라짐(청구/미납내역으로 다시 미납 표시되는 흐름)
+  const PAYMENT_CANCEL_COMPLETED_STEP_INDEX = TUTORIAL_STEPS.findIndex(s => s.id === 'payment-cancel-completed-list-hint')
+  // "학생 이름 클릭" 단계(청구/미납내역으로 되돌아온 시점)부터 다시 미납 목록에 나타남
+  const PAYMENT_FINAL_LIST_STEP_INDEX = TUTORIAL_STEPS.findIndex(s => s.id === 'payment-final-list-hint')
   const { students, enrollments, payments: paymentRecords } = useAppData()
   const [activeMenu, setActiveMenu] = useState('payments')
   const [activeSide, setActiveSide] = useState('unpaid')
@@ -129,9 +129,18 @@ export default function Payments() {
 
   useEffect(() => {
     if (!showPaymentPageHint && !showPaymentPageDetailHint) return
+    // 강조표시는 "청구/미납내역" 제목부터 수강생목록 끝까지 - 두 rect를 합쳐서 하나의 강조 영역으로 만듦
     const measure = () => {
-      if (paymentsMainRef.current) setPaymentsMainRect(paymentsMainRef.current.getBoundingClientRect())
-      if (paymentsPageTitleRef.current) setPaymentsPageTitleRect(paymentsPageTitleRef.current.getBoundingClientRect())
+      const titleRect = paymentsPageTitleRef.current?.getBoundingClientRect()
+      const listRect = studentListSectionRef.current?.getBoundingClientRect()
+      if (titleRect) setPaymentsPageTitleRect(titleRect)
+      if (titleRect && listRect) {
+        const left = Math.min(titleRect.left, listRect.left)
+        const right = Math.max(titleRect.right, listRect.right)
+        const top = titleRect.top
+        const bottom = listRect.bottom
+        setPaymentsMainRect({ left, right, top, bottom, width: right - left, height: bottom - top })
+      }
     }
     const timer = setTimeout(measure, 80)
     window.addEventListener('resize', measure)
@@ -418,7 +427,9 @@ export default function Payments() {
     rel: '모', guardPhone: '010-1234-5678', guardSent: '',
   }
 
-  const unpaidData = isReplay ? (effectiveStep >= PAYMENT_COMPLETED_STEP_INDEX ? [] : [REPLAY_UNPAID_SAMPLE]) : students.map(s => {
+  const unpaidData = isReplay
+    ? (effectiveStep >= PAYMENT_COMPLETED_STEP_INDEX && effectiveStep < PAYMENT_FINAL_LIST_STEP_INDEX ? [] : [REPLAY_UNPAID_SAMPLE])
+    : students.map(s => {
     const rows = enrollments
       .filter(e => e.studentId === s.id)
       .map(e => {
@@ -451,7 +462,7 @@ export default function Payments() {
   }
 
   const payHistoryData = isReplay
-    ? (effectiveStep >= PAYMENT_HISTORY_LIST_STEP_INDEX ? [REPLAY_HISTORY_SAMPLE] : [])
+    ? (effectiveStep >= PAYMENT_HISTORY_LIST_STEP_INDEX && effectiveStep < PAYMENT_CANCEL_COMPLETED_STEP_INDEX ? [REPLAY_HISTORY_SAMPLE] : [])
     : students.map(s => {
     // 결제취소된 건은 청구/미납내역으로 돌아가므로, 결제내역 수강생 목록에서는 제외 (수강생관리 > 결제 탭에서만 확인 가능)
     const studentPayments = paymentRecords.filter(p => p.studentId === s.id && !p.cancelled)
@@ -546,7 +557,7 @@ export default function Payments() {
                 <img src={m.icon} alt={m.label} className="menu-icon"/><span className="menu-label">{m.label}</span>
                 {isLocked && (
                   <span style={{position:'absolute',inset:0,background:'rgba(200,200,200,0.75)',display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}>
-                    <svg width="22" height="27" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg width="18" height="22" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <rect x="1" y="7" width="12" height="9" rx="1.5" fill="#fff"/>
                       <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 5V7" stroke="#fff" strokeWidth="2" strokeLinecap="round" fill="none"/>
                       <circle cx="7" cy="11.5" r="1.5" fill="rgba(200,200,200,0.75)"/>
@@ -599,7 +610,7 @@ export default function Payments() {
               </svg>
             </div>
             <p style={{fontSize:15,color:'#333',lineHeight:1.7,marginBottom:20}}>무료로 정식 계정으로 전환하고<br/>모든 기능을 제한없이 이용해보세요!</p>
-            <button style={{padding:'10px 24px',background:'#F5841F',color:'#fff',border:'none',borderRadius:6,fontSize:13,fontWeight:400,cursor:'pointer',fontFamily:'inherit'}} onClick={()=>setShowUpgradeModal(false)}>
+            <button style={{padding:'10px 24px',background:'#F5841F',color:'#fff',border:'none',borderRadius:6,fontSize:13,fontWeight:400,cursor:'pointer',fontFamily:'inherit'}} onClick={()=>window.open('https://www.acadup.co.kr/home/member/signup_agree.asp','_blank')}>
                 <svg width="13" height="15" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg" style={{display:'inline-block',verticalAlign:'middle',marginRight:6,marginTop:-2}}>
                   <rect x="1" y="7" width="12" height="9" rx="1.5" fill="white"/>
                   <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 4" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none"/>
@@ -658,7 +669,7 @@ export default function Payments() {
           {['bulk-bill','class-bill','monthly-pay','daily-status','monthly-status','class-status'].includes(activeSide)&&(
             <div style={{background:'#f8f9fb',borderRadius:4,padding:'6px 16px',marginBottom:12,fontSize:14,color:'#ff9000',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
               <span>이 화면은 미리보기입니다. 정식 버전으로 전환하시면 지금 보이는 기능을 바로 사용하실 수 있습니다.</span>
-              <button style={{flexShrink:0,marginLeft:16,padding:'3px 20px',background:'#ff9000',color:'#fff',border:'none',borderRadius:4,fontSize:13,fontWeight:400,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}} onClick={()=>window.open('/conversion-request','_blank','width=560,height=780')}>
+              <button style={{flexShrink:0,marginLeft:16,padding:'3px 20px',background:'#ff9000',color:'#fff',border:'none',borderRadius:4,fontSize:13,fontWeight:400,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}} onClick={()=>{logConversionClick(); window.open('https://www.acadup.co.kr/home/member/signup_agree.asp','_blank')}}>
                 <svg width="13" height="15" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg" style={{display:'inline-block',verticalAlign:'middle',marginRight:6,marginTop:-2}}>
                   <rect x="1" y="7" width="12" height="9" rx="1.5" fill="white"/>
                   <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 4" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none"/>
@@ -858,6 +869,11 @@ export default function Payments() {
                               month: monthlyPayFilter.month,
                               billAmt: d.billAmt,
                               item: '수강료01',
+                              studentName: d.name,
+                              studentBirth: d.birth,
+                              // 수강월 청구/수납 페이지는 고정 UI라, 여기서 연 수기등록 창의
+                              // 수정/삭제 버튼은 다른 +수기등록 진입 경로와 달리 실제 동작 없이 UI만 보여줌
+                              fixedUi: true,
                             }))
                             const w = 650, h = 800
                             const left = window.screenX + (window.outerWidth - w) / 2
@@ -868,10 +884,6 @@ export default function Payments() {
                       ))}
                     </tbody>
                   </table>
-                </div>
-                <div className="pm-pagination">
-                  <div className="pm-pages">{[1,2].map(p=><button key={p} className={`pm-page-btn ${p===1?'active':''}`}>{p}</button>)}</div>
-                  <span className="pm-page-info">1 / 2 Pages</span>
                 </div>
               </div>
             </>
@@ -1044,7 +1056,7 @@ export default function Payments() {
                         </tr>
                       ))}
                     </tbody>
-                    <tfoot><tr className="pm-table-foot"><td colSpan={2}></td><td style={{textAlign:'center',fontWeight:700}}>합계</td><td style={{textAlign:'center',fontWeight:700}}>14</td><td style={{textAlign:'center',fontWeight:700}}>544,766</td><td style={{textAlign:'center',fontWeight:700}}>0</td><td style={{textAlign:'center',fontWeight:700}}>0</td><td style={{textAlign:'center',fontWeight:700}}>0</td><td style={{textAlign:'center',fontWeight:700}}>0</td><td style={{textAlign:'center',fontWeight:700}}>14</td><td style={{textAlign:'center',fontWeight:700}}>544,766</td></tr></tfoot>
+                    <tfoot><tr className="pm-table-foot"><td colSpan={2}></td><td style={{textAlign:'center',fontWeight:700}}>합계</td><td style={{textAlign:'center',fontWeight:700}}>{CLASS_STATUS_TOTALS.billCnt}</td><td style={{textAlign:'center',fontWeight:700}}>{CLASS_STATUS_TOTALS.billAmt}</td><td style={{textAlign:'center',fontWeight:700}}>{CLASS_STATUS_TOTALS.payCnt}</td><td style={{textAlign:'center',fontWeight:700}}>{CLASS_STATUS_TOTALS.payAmt}</td><td style={{textAlign:'center',fontWeight:700}}>{CLASS_STATUS_TOTALS.refundCnt}</td><td style={{textAlign:'center',fontWeight:700}}>{CLASS_STATUS_TOTALS.refundAmt}</td><td style={{textAlign:'center',fontWeight:700}}>{CLASS_STATUS_TOTALS.unpaidCnt}</td><td style={{textAlign:'center',fontWeight:700}}>{CLASS_STATUS_TOTALS.unpaidAmt}</td></tr></tfoot>
                   </table>
                 </div>
               </div>
@@ -1196,7 +1208,6 @@ export default function Payments() {
           <div ref={payRegisterModalBoxRef} style={{ width: 650, maxWidth: '90vw', maxHeight: '90vh', background: '#fff', borderRadius: 8, boxShadow: '0 12px 40px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column' }}>
             <div style={{ position: 'relative', overflowY: 'auto', minHeight: 0 }}>
               <PaymentRegister />
-              {showPayRegisterIntro && <div style={{ position: 'absolute', inset: 0, cursor: 'pointer' }} onClick={() => advance()} />}
             </div>
           </div>
         </div>
@@ -1396,6 +1407,8 @@ export default function Payments() {
             center
             message="미납 내역으로 표시"
           />
+          {/* 이 단계는 튜토리얼의 마지막 스텝이라, 리플레이 중에도 예외적으로 이 버튼만은 클릭 가능하게
+              둠 - 눌러서 나가면 advance()가 마지막 단계 완료 처리(100%로 저장 + 종료)까지 같이 해줌 */}
           <div style={{
             position: 'fixed',
             left: '50%',

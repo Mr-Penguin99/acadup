@@ -6,10 +6,10 @@ const EMP_NO = '260001'
 
 export default function TopNav() {
   const navigate = useNavigate()
-  const { profile } = useAuth()
+  const { profile, signOut } = useAuth()
   const [showQuick, setShowQuick] = useState(false)
-  const academyName = profile?.biz_name || 'OO학원'
-  const userName = profile?.owner_name || '원장'
+  const academyName = profile?.biz_name || '아카데미업'
+  const userName = profile?.owner_name || '홍길동'
   const [favorites, setFavorites] = useState(() => {
     try { return JSON.parse(localStorage.getItem('favorites')) || [] }
     catch { return [] }
@@ -109,7 +109,7 @@ export default function TopNav() {
           <img src="/icons/tnav-remote.svg" className="tnav-icon" /> 원격지원
         </span>
 
-        <span className="tnav-link" onClick={() => navigate('/')}>
+        <span className="tnav-link" onClick={async () => { await signOut(); navigate('/'); }}>
           <img src="/icons/tnav-logout.svg" className="tnav-icon" /> 로그아웃
         </span>
       </div>

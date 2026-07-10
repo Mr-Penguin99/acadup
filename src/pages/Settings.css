@@ -90,15 +90,29 @@
 
 .sm-edit-btn {
   padding: 5px 14px;
-  background: #F5841F;
+  background: #ff3c00;
   color: #fff;
-  border: none;
+  border: 1px solid #ff3c00;
   border-radius: 4px;
   font-size: 13px;
   font-weight: 400;
   cursor: pointer;
   font-family: inherit;
 }
+.sm-edit-btn:hover { background: transparent; color: #000; }
+
+.au-reg-btn {
+  padding: 5px 14px;
+  background: #00a2ff;
+  color: #fff;
+  border: 1px solid #00a2ff;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  font-family: inherit;
+}
+.au-reg-btn:hover { background: transparent; color: #000; }
 
 .sm-basic-edit-btn {
   background: #ff3c00;
@@ -199,6 +213,7 @@
   text-align: center;
   color: #444;
   font-weight: 500;
+  font-size: 14px;
 }
 .auth-table tbody tr {
   border-bottom: 1px solid #eee;
@@ -227,16 +242,16 @@
 /* 초기화 버튼 */
 .au-reset-btn {
   padding: 5px 14px;
-  background: #888;
+  background: #6e7576;
   color: #fff;
-  border: none;
+  border: 1px solid #6e7576;
   border-radius: 4px;
   font-size: 13px;
   font-weight: 400;
   cursor: pointer;
   font-family: inherit;
 }
-.au-reset-btn:hover { background: #666; }
+.au-reset-btn:hover { background: transparent; color: #000; }
 
 /* 사용자별 권한 테이블 */
 .au-table {
@@ -295,16 +310,16 @@
 
 .au-delete-btn {
   padding: 5px 14px;
-  background: #29b6f6;
+  background: #ff3c00;
   color: #fff;
-  border: none;
+  border: 1px solid #ff3c00;
   border-radius: 4px;
   font-size: 13px;
   font-weight: 400;
   cursor: pointer;
   font-family: inherit;
 }
-.au-delete-btn:hover { background: #0288d1; }
+.au-delete-btn:hover { background: transparent; color: #000; }
 
 /* 기본정보 테이블형 레이아웃 */
 .sm-table-row {

@@ -122,43 +122,40 @@ export function TutorialProvider({ children }) {
   // update가 실패해도(RLS 정책 누락 등) 그동안 조용히 무시되어, 다음 로그인 시
   // DB에는 진행상태가 저장 안 된 채로 남아 처음부터 다시 시작되는 것처럼 보이는 문제가 있었음 -
   // 최소한 콘솔에는 에러가 보이도록 함
+  // DB에 tutorial_started:true를 같이 쓰는 김에 로컬 started도 항상 맞춰줌 -
+  // 그래야 이후 autoStart가 (step 값과 무관하게) started만 보고 정확히 판단할 수 있음
   const persistStep = (n) => {
     setStep(n)
+    setStarted(true)
     if (user) supabase.from('profiles').update({ tutorial_step: n, tutorial_started: true }).eq('id', user.id)
       .then(({ error }) => { if (error) console.error('튜토리얼 진행상태 저장 실패(tutorial_step):', error) })
   }
 
-  const markStarted = () => {
-    setStarted(true)
-    if (user) supabase.from('profiles').update({ tutorial_started: true }).eq('id', user.id)
-      .then(({ error }) => { if (error) console.error('튜토리얼 진행상태 저장 실패(tutorial_started):', error) })
-  }
-
   // 로그인/가입 후 처음 진입했을 때 자동으로 한 번만 띄움(=live 모드로 진입) -
-  // "시작하기" 버튼을 실제로 눌러야 step이 0에서 벗어나므로, step===0이면 아직 한 번도
-  // 제대로 시작한 적이 없는 계정이라는 뜻 (도중에 창을 닫아버린 경우 포함) - 그런 계정은
-  // 몇 번을 다시 들어와도 계속 live 모드로 자동 시작됨. 한 번이라도 시작하기를 눌렀다면
-  // (step>0) 이후로는 절대 자동으로 안 열리고, 튜토리얼 박스를 눌러야만(=replay) 다시 볼 수 있음
-  // profile 동기화가 끝나기 전(step이 아직 기본값일 때)에는 호출해도 무시 -
-  // 그렇지 않으면 이미 진행한 사용자가 profile 로딩 중에 이 페이지로 들어왔을 때
-  // 기본값(step=0)만 보고 튜토리얼을 다시 시작시켜버리는 경쟁 상태가 생김
+  // "진행하기/건너뛰기" 중 하나를 실제로 눌러야(=persistStep이 한 번이라도 호출돼야) started가
+  // true가 되므로, started가 false면 아직 한 번도 실제 선택을 한 적이 없는 계정이라는 뜻
+  // (웰컴 화면만 보고 그냥 닫아버린 경우 포함) - 그런 계정은 몇 번을 다시 들어와도 계속
+  // live 모드로 자동 시작됨. 한 번이라도 선택했다면(started=true) 이후로는 절대 자동으로
+  // 안 열리고, 튜토리얼 박스를 눌러야만(=replay) 다시 볼 수 있음
+  // profile 동기화가 끝나기 전에는 호출해도 무시 - 그렇지 않으면 이미 진행한 사용자가 profile
+  // 로딩 중에 이 페이지로 들어왔을 때 기본값(started=false)만 보고 다시 시작시켜버리는 경쟁 상태가 생김
   const autoStart = (stepId) => {
     if (!profileSynced) return
-    if (step === 0 && TUTORIAL_STEPS[0]?.id === stepId) {
+    if (!started && TUTORIAL_STEPS[0]?.id === stepId) {
       setMode('live')
       setIsOpen(true)
-      markStarted()
     }
   }
 
   // 특정 버튼 클릭/입력 등 실제 행동을 했을 때 다음 단계로 진행
   // 다음 단계가 같은 흐름에 더 남아있으면 바로 이어서 보여주고, 마지막 단계면 닫음
-  // replay 모드에서는 실제 진행상태(step)를 건드리지 않고 replayStep만 옮김
+  // replay 모드에서는 도중에는 실제 진행상태(step)를 건드리지 않고 replayStep만 옮기지만,
+  // 끝까지 다 보고 자연스럽게 완료되면(100%) 그 완료 상태도 실제 진행상태로 저장함
   const advance = () => {
     if (mode === 'replay') {
       setReplayStep(s => {
         const next = s + 1
-        if (next >= totalSteps) setIsOpen(false)
+        if (next >= totalSteps) { persistStep(next); setIsOpen(false) }
         return next
       })
       return
@@ -171,8 +168,9 @@ export function TutorialProvider({ children }) {
   }
 
   // 이전 단계로 이동 - replay 모드에서 사용자가 직접 훑어볼 때 씀 (live 모드에서는 노출 안 함)
+  // replay에서는 웰컴 단계(index 0)로 절대 돌아갈 수 없도록 1(반관리 시작)에서 멈춤
   const goBack = () => {
-    if (mode === 'replay') { setReplayStep(s => Math.max(s - 1, 0)); return }
+    if (mode === 'replay') { setReplayStep(s => Math.max(s - 1, 1)); return }
     if (step > 0) persistStep(step - 1)
   }
 
@@ -182,13 +180,32 @@ export function TutorialProvider({ children }) {
     if (n >= totalSteps) setIsOpen(false)
   }
 
-  const close = () => setIsOpen(false)
+  // 웰컴 단계에서 "건너뛰기"를 눌렀을 때 사용 - live 모드에서는 진행도를 (웰컴 바로 다음인)
+  // 반관리 시작 지점으로 남기고 닫음. 진행도 %는 사실상 0%에 가깝게 표시되고, 이후 튜토리얼
+  // 박스를 누르면 정확히 반관리 단계("반 현황 페이지입니다")부터 replay로 이어짐
+  // (started는 persistStep이 true로 만들어주므로 웰컴이 자동으로 다시 뜨진 않음)
+  // replay 모드(미리보기)에서는 실제 진행상태를 절대 건드리지 않고 그냥 리플레이만 종료함
+  const skip = () => {
+    if (mode === 'replay') { setReplayStep(totalSteps); setIsOpen(false); return }
+    persistStep(1)
+    setIsOpen(false)
+  }
+
+  // "창닫기"로 리플레이를 나갈 때는, 지금 훑어보던 위치(replayStep)를 실제 진행상태로 저장함 -
+  // 예: 98% 위치에서 창닫기하면 실제 진행도도 98%로, 10% 위치에서 닫으면 10%로 남음.
+  // 단, 마지막 단계를 보고 있는 상태에서 닫으면 그것도 완료로 쳐서 100%로 저장함
+  const close = () => {
+    if (mode === 'replay') persistStep(replayStep >= totalSteps - 1 ? totalSteps : replayStep)
+    setIsOpen(false)
+  }
 
   // 튜토리얼 박스를 눌러 replay 모드로 열기 - 실제 진행상태(step)는 전혀 건드리지 않으므로
   // 완료 여부와 상관없이 확인창 없이 바로 열림. atIndex를 안 주면 지금 저장된 진행 위치에서 이어봄
+  // (100% 완료 후 "처음부터"를 포함해) 웰컴 단계(index 0)로는 절대 안 열리고 항상 반관리
+  // 시작 지점("반 현황 페이지입니다") 이상에서 시작함
   const openReplay = (atIndex) => {
     setMode('replay')
-    setReplayStep(atIndex ?? Math.min(step, totalSteps - 1))
+    setReplayStep(Math.max(atIndex ?? Math.min(step, totalSteps - 1), 1))
     setIsOpen(true)
   }
 
@@ -198,7 +215,7 @@ export function TutorialProvider({ children }) {
   return (
     <TutorialContext.Provider value={{
       step, totalSteps, activeStep, isOpen, started, profileSynced, mode, replayStep, effectiveStep,
-      autoStart, advance, resume, openReplay, close, goBack, skipTo,
+      autoStart, advance, resume, openReplay, close, goBack, skipTo, skip,
     }}>
       {children}
     </TutorialContext.Provider>

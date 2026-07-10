@@ -7,7 +7,7 @@ export default function PaymentMemo() {
     <div style={{fontFamily:"'Noto Sans KR', sans-serif", padding:'20px', fontSize:13, color:'#333'}}>
       {/* 헤더 */}
       <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', paddingBottom:12, borderBottom:'1px solid #e0e0e0', marginBottom:20}}>
-        <span style={{fontSize:16, fontWeight:700}}>수납메모 등록</span>
+        <span style={{fontSize:17, fontWeight:700}}>수납메모 등록</span>
         <div style={{display:'flex', gap:6}}>
           <button style={btnStyle('#29ABE2')}>저장</button>
           <button style={btnStyle('#E8445A')}>삭제</button>

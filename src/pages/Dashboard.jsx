@@ -7,6 +7,7 @@ import {
 } from 'recharts'
 import './Dashboard.css'
 import TopNav from '../components/TopNav'
+import { logConversionClick } from '../lib/trackConversion'
 
 const MENUS = [
   { id: 'students',    icon: '/icons/students.svg',     label: '수강생관리' },
@@ -143,7 +144,7 @@ export default function Dashboard() {
                 <span className="menu-label">{m.label}</span>
                 {isLocked && (
                   <span style={{position:'absolute',inset:0,background:'rgba(200,200,200,0.75)',display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}>
-                    <svg width="22" height="27" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg width="18" height="22" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <rect x="1" y="7" width="12" height="9" rx="1.5" fill="#fff"/>
                       <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 5V7" stroke="#fff" strokeWidth="2" strokeLinecap="round" fill="none"/>
                       <circle cx="7" cy="11.5" r="1.5" fill="rgba(200,200,200,0.75)"/>
@@ -196,7 +197,7 @@ export default function Dashboard() {
               </svg>
             </div>
             <p style={{fontSize:15,color:'#333',lineHeight:1.7,marginBottom:20}}>무료로 정식 계정으로 전환하고<br/>모든 기능을 제한없이 이용해보세요!</p>
-            <button style={{padding:'10px 24px',background:'#F5841F',color:'#fff',border:'none',borderRadius:6,fontSize:13,fontWeight:400,cursor:'pointer',fontFamily:'inherit'}} onClick={()=>setShowUpgradeModal(false)}>
+            <button style={{padding:'10px 24px',background:'#F5841F',color:'#fff',border:'none',borderRadius:6,fontSize:13,fontWeight:400,cursor:'pointer',fontFamily:'inherit'}} onClick={()=>window.open('https://www.acadup.co.kr/home/member/signup_agree.asp','_blank')}>
                 <svg width="13" height="15" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg" style={{display:'inline-block',verticalAlign:'middle',marginRight:6,marginTop:-2}}>
                   <rect x="1" y="7" width="12" height="9" rx="1.5" fill="white"/>
                   <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 4" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none"/>
@@ -211,7 +212,7 @@ export default function Dashboard() {
       {/* 미리보기 배너 */}
       <div style={{background:'#f8f9fb',borderRadius:4,padding:'6px 16px',margin:'10px 16px 10px',fontSize:14,color:'#ff9000',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
         <span>이 화면은 미리보기입니다. 정식 버전으로 전환하시면 지금 보이는 기능을 바로 사용하실 수 있습니다.</span>
-        <button style={{flexShrink:0,marginLeft:16,padding:'3px 20px',background:'#ff9000',color:'#fff',border:'none',borderRadius:4,fontSize:13,fontWeight:400,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}} onClick={()=>window.open('/conversion-request','_blank','width=560,height=780')}>
+        <button style={{flexShrink:0,marginLeft:16,padding:'3px 20px',background:'#ff9000',color:'#fff',border:'none',borderRadius:4,fontSize:13,fontWeight:400,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}} onClick={()=>{logConversionClick(); window.open('https://www.acadup.co.kr/home/member/signup_agree.asp','_blank')}}>
           <svg width="13" height="15" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg" style={{display:'inline-block',verticalAlign:'middle',marginRight:6,marginTop:-2}}>
             <rect x="1" y="7" width="12" height="9" rx="1.5" fill="white"/>
             <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 4" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none"/>
@@ -312,7 +313,7 @@ export default function Dashboard() {
           <div className="card card-blue">
             <div className="card-head blue">
               <span className="ch-title">수납현황</span>
-              <button className="ch-btn white">일월 청구관리</button>
+              <button className="ch-btn white">일괄 청구관리</button>
             </div>
             <div className="card-body">
               <table className="pay-table">

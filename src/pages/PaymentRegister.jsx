@@ -9,14 +9,21 @@ const PAY_METHODS = ['수납방법', '카드', '현금', '계좌', '제로페이
 const formatAmount = (val) => val.replace(/[^0-9]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 const toNumber = (val) => parseInt(String(val).replace(/[^0-9]/g, ''), 10) || 0
 
+// replay(다시보기) 모드에서는 실제 sessionStorage 데이터가 없으므로 고정 샘플로 대체
+const REPLAY_BILLS = [{ enrollmentId: 'replay-bill-1', month: '2026-06', className: '튜토리얼반', billAmt: 100000, unpaid: 100000 }]
+const REPLAY_PAY_DATE = '2026-06-05'
+
 export default function PaymentRegister() {
   const { addPayment } = useAppData()
+  const { activeStep, isOpen, advance, mode, effectiveStep } = useTutorial()
+  const isReplay = isOpen && mode === 'replay'
   const [data] = useState(() => {
     try { return JSON.parse(sessionStorage.getItem('paymentRegisterData')) } catch { return null }
   })
-  const bills = data?.bills || []
+  const bills = isReplay ? REPLAY_BILLS : (data?.bills || [])
 
-  const [payDate, setPayDate] = useState(new Date().toISOString().slice(0, 10))
+  const [livePayDate, setLivePayDate] = useState(new Date().toISOString().slice(0, 10))
+  const payDate = isReplay ? REPLAY_PAY_DATE : livePayDate
   const [livePayMethod, setLivePayMethod] = useState('수납방법')
   const [liveInstallment, setLiveInstallment] = useState('할부기간선택')
   const [classAmt, setClassAmt] = useState(formatAmount(String(bills.reduce((s, b) => s + (b.billAmt || 0), 0))))
@@ -26,9 +33,6 @@ export default function PaymentRegister() {
   const [saving, setSaving] = useState(false)
   const [payHover, setPayHover] = useState(false)
   const [closeHover, setCloseHover] = useState(false)
-
-  const { activeStep, isOpen, advance, mode, effectiveStep } = useTutorial()
-  const isReplay = isOpen && mode === 'replay'
   // replay(다시보기) 모드에서는 실제 선택이 아니라, 그 단계에 도달했는지(누적)로 고정된 값을 보여줌
   const REPLAY_METHOD_STEP_INDEX = TUTORIAL_STEPS.findIndex(s => s.id === 'payment-register-method-hint')
   const REPLAY_INSTALLMENT_STEP_INDEX = TUTORIAL_STEPS.findIndex(s => s.id === 'payment-register-installment-hint')
@@ -142,7 +146,7 @@ export default function PaymentRegister() {
         <tbody>
           <tr style={{ borderBottom: '1px solid #e0e0e0' }}>
             <td style={labelCell}>수강생 정보</td>
-            <td style={valueCell}><strong>{data?.studentName ? `${data.studentName}(${data.studentBirth || ''})` : '수강생 미지정'}</strong></td>
+            <td style={valueCell}><strong>{isReplay ? '홍길동(050101)' : (data?.studentName ? `${data.studentName}(${data.studentBirth || ''})` : '수강생 미지정')}</strong></td>
           </tr>
         </tbody>
       </table>
@@ -181,14 +185,16 @@ export default function PaymentRegister() {
             <td style={formLabel}>수납일자</td>
             <td style={formValue}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <input type="date" style={inputStyle} value={payDate} onChange={e => setPayDate(e.target.value)} />
+                <input type="date" style={inputStyle} value={payDate} onChange={e => setLivePayDate(e.target.value)} />
               </div>
             </td>
           </tr>
           <tr style={{ borderBottom: '1px solid #f0f0f0' }}>
             <td style={formLabel}>수납방법</td>
             <td style={formValue}>
-              <select ref={methodRef} style={{ ...inputStyle, width: '100%' }} value={payMethod} onChange={e => {
+              <select ref={methodRef} style={{ ...inputStyle, width: '100%' }} value={payMethod}
+                onClick={() => { if (showIntroHint) advance() }}
+                onChange={e => {
                 const val = e.target.value
                 setLivePayMethod(val)
                 if (showMethodHint && val === '카드') advance()

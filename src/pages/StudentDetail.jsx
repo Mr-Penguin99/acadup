@@ -183,14 +183,14 @@ export default function StudentDetail() {
             </div>
             <p style={{fontSize:15,color:'#333',lineHeight:1.7,marginBottom:20}}>무료로 정식 계정으로 전환하고<br/>모든 기능을 제한없이 이용해보세요!</p>
             <button style={{padding:'10px 24px',background:'#F5841F',color:'#fff',border:'none',borderRadius:6,fontSize:13,fontWeight:400,cursor:'pointer',fontFamily:'inherit'}}
-              onClick={()=>setShowUpgradeModal(false)}>잠금 해제하러 가기</button>
+              onClick={()=>window.open('https://www.acadup.co.kr/home/member/signup_agree.asp','_blank')}>잠금 해제하러 가기</button>
           </div>
         </div>
       )}
 
       <div className="info-panel" style={{margin:0, minHeight:'100vh', borderRadius:0, padding:30}}>
         <div style={{display:'flex',flexDirection:'column',gap:0,marginBottom:12}}>
-          <span className="info-title" style={{borderLeft:'none',paddingLeft:0,paddingBottom:12,fontSize:18,fontWeight:500}}>수강생 등록</span>
+          <span className="info-title" style={{borderLeft:'none',paddingLeft:0,paddingBottom:12,fontSize:17,fontWeight:500}}>수강생 등록</span>
           <div style={{borderBottom:'1px solid #e0e0e0',marginBottom:10}}/>
           <div style={{display:'flex',gap:6,justifyContent:'flex-end'}}>
             {isNew ? <>

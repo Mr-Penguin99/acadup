@@ -112,7 +112,7 @@ export default function ClassRegister({ classSectionRef, classNameRowRef, classS
     <div style={{ fontFamily: "'Noto Sans KR', sans-serif", padding: '24px', fontSize: 13, color: '#333', minWidth: 580 }}>
       {/* 헤더 */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <span style={{ fontSize: 18, fontWeight: 700 }}>수강신청</span>
+        <span style={{ fontSize: 17, fontWeight: 700 }}>수강신청</span>
         {info && (
           onSubmitClick ? (
             <button
@@ -130,7 +130,7 @@ export default function ClassRegister({ classSectionRef, classNameRowRef, classS
               })}
               onMouseEnter={() => setSubmitHover(true)}
               onMouseLeave={() => setSubmitHover(false)}
-              style={submitHover ? submitBtnHoverStyle : submitBtnStyle}
+              style={isReplay ? { ...(submitHover ? submitBtnHoverStyle : submitBtnStyle), pointerEvents: 'none' } : (submitHover ? submitBtnHoverStyle : submitBtnStyle)}
             >등록</button>
           ) : editTarget ? (
             <div style={{ display: 'flex', gap: 6 }}>

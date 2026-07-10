@@ -7,20 +7,25 @@ const formatJoinDate = (isoDate) => {
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
 }
 
+// 익명 계정은 user_id에 로그인 아이디 대신 Supabase auth uuid가 그대로 들어있어서,
+// 화면에 uuid를 그대로 노출하지 않고 빈 값으로 놔둠
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const displayUserId = (userId) => (userId && !UUID_RE.test(userId)) ? userId : ''
+
 export default function MyInfo() {
   const { profile } = useAuth()
   const [form, setForm] = useState({
     empNo: localStorage.getItem('userEmpNo') || '200001',
-    name: profile?.owner_name || localStorage.getItem('userName') || '원장',
+    name: profile?.owner_name || localStorage.getItem('userName') || '홍길동',
     resId1: '000000', resId2: '1111111',
-    id: profile?.user_id || '10102093',
+    id: displayUserId(profile?.user_id) || '10102093',
     pw: '',
     phone: profile?.phone || '010-0000-0000',
     msgType: 'SMS수신',
     emergency: '',
     extension: '',
-    email1: profile?.email?.split('@')[0] || 'abcdefg123',
-    email2: profile?.email?.split('@')[1] || 'naver.com',
+    email1: profile?.email?.split('@')[0] || '',
+    email2: profile?.email?.split('@')[1] || '',
     emailType: '직접입력',
     zip: '', addr: profile?.address || '', addrDetail: profile?.address_detail || '',
     empStatus: '재직',
@@ -37,7 +42,7 @@ export default function MyInfo() {
     setForm(f => ({
       ...f,
       name: profile.owner_name || f.name,
-      id: profile.user_id || f.id,
+      id: profile.user_id ? displayUserId(profile.user_id) : f.id,
       phone: profile.phone || f.phone,
       email1: profile.email?.split('@')[0] || f.email1,
       email2: profile.email?.split('@')[1] || f.email2,

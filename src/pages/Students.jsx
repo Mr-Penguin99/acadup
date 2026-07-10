@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import './Students.css'
 import TopNav from '../components/TopNav'
 import { useTutorial, TUTORIAL_STEPS } from '../components/TutorialContext'
+import { logConversionClick } from '../lib/trackConversion'
 import { useAppData } from '../contexts/AppDataContext'
 import TutorialSpotlight from '../components/TutorialSpotlight'
 import TutorialMultiSpotlight from '../components/TutorialMultiSpotlight'
@@ -45,6 +46,9 @@ const REPLAY_FAMILY_STEP_INDEX = {
 }
 // 수강신청 완료 이후에만(누적) 수강 탭에 고정 샘플 수강내역을 보여줌
 const REPLAY_CLASS_TAB_STEP_INDEX = TUTORIAL_STEPS.findIndex(s => s.id === 'student-class-register-complete-hint')
+// "수강생 정보가 저장되었습니다!" 단계 이후부터는(누적) 저장 전 버튼(저장/신규 수강생 등록) 대신
+// 실제 저장된 학생에게 보이는 버튼 행(수정/퇴원/휴원/삭제/수강생파일/알림톡전송)을 보여줌
+const REPLAY_STUDENT_SAVED_STEP_INDEX = TUTORIAL_STEPS.findIndex(s => s.id === 'student-save-complete-hint')
 const REPLAY_ENROLLMENT_SAMPLE = { id: 'replay-enrollment', className: '튜토리얼반', status: '수강', startDate: '2026-01-01', endDate: '2999-12-31', teacher: '', room: '' }
 
 const MENUS = [
@@ -107,10 +111,14 @@ const NOTICE_DATA = [
   { id:2, type:'공지', title:'공자사항 제 001 호', linked:true,  sentStatus:'전송완료', writer:'김관리자', date:'2024-04-01' },
   { id:1, type:'',    title:'공지사항 제 002 호', linked:false, sentStatus:'미전송',   writer:'김관리자', date:'2024-04-01' },
 ]
+// 요일(getDay 기준: 일0 월1 화2 수3 목4 금5 토6)별 수업 시간에 맞춰 등원/하원 시간을 채움
+// (등원은 수업 시작 10분 전, 하원은 수업 종료 10분 후)
 const ATTEND_DATA = [
-  { id:1, name:'@예비' }, { id:2, name:'@이순신' }, { id:3, name:'@하늘땅' },
-  { id:4, name:'abc' },   { id:5, name:'가나다' },   { id:6, name:'교재수령수강생' },
-  { id:7, name:'김학생AA' }, { id:8, name:'김학생CC' }, { id:9, name:'학생1' }, { id:10, name:'홍길동ab' },
+  { id:1,  name:'김민준', days:[2,5], checkIn:'13:50', checkOut:'15:40' },
+  { id:2,  name:'이서연', days:[2,5], checkIn:'13:50', checkOut:'15:40' },
+  { id:3,  name:'박도윤', days:[1,3], checkIn:'15:50', checkOut:'17:40' },
+  { id:4,  name:'최하은', days:[3,5], checkIn:'17:50', checkOut:'19:40' },
+  { id:5,  name:'정시우', days:[2,5], checkIn:'13:50', checkOut:'15:40' },
 ]
 const INFO_TABS = ['가족','수강','수납','결제','상담','출결','학원성적','학교성적','알림내역','메모','진도','차량']
 const LOCKED_TABS = ['상담','출결','학원성적','학교성적','알림내역','메모','진도','차량']
@@ -193,8 +201,12 @@ export default function Students() {
     const hideTimer = setTimeout(() => setShowStatusStateHint(false), 3400)
     return () => { clearTimeout(fadeTimer); clearTimeout(hideTimer); window.removeEventListener('resize', measure) }
   }, [activeSide])
+  // student-family-*/student-class-* 단계는 물론, 리플레이에서 "저장된 학생" 상태에 들어선
+  // 이후의(예: 수납관리 메뉴 클릭 단계처럼 접두사가 다른) 모든 단계에서도 직전까지 보이던
+  // 학생 정보 탭 UI를 계속 그대로 유지해서 보여줌
   const tutorialShowInfoTabs = isOpen && activeSide === 'class-students' && (
-    activeStep?.id?.startsWith('student-family-') || activeStep?.id?.startsWith('student-class-')
+    activeStep?.id?.startsWith('student-family-') || activeStep?.id?.startsWith('student-class-') ||
+    (isReplay && effectiveStep >= REPLAY_STUDENT_SAVED_STEP_INDEX)
   )
   const infoPanelRef = useRef(null)
   const [infoPanelRect, setInfoPanelRect] = useState(null)
@@ -811,9 +823,13 @@ export default function Students() {
   const showPaymentMenuHint = isOpen && activeStep?.id === 'payment-menu-hint'
 
   useEffect(() => {
-    if (!showPaymentMenuHint) return
+    if (!showPaymentMenuHint) { setPaymentMenuRect(null); return }
     const measure = () => { if (paymentMenuRef.current) setPaymentMenuRect(paymentMenuRef.current.getBoundingClientRect()) }
-    const timer = setTimeout(measure, 50)
+    // replay에서 다른 페이지(수납관리)로 갔다가 "이전"으로 이 단계에 다시 들어오면 라우트 전환
+    // 직후라 레이아웃이 아직 안 잡혀있을 수 있어서, 짧은 지연 한 번으로는 놓칠 수 있음 -
+    // 즉시 한 번 + 지연 후 한 번 더 재측정해서 확실히 잡음
+    measure()
+    const timer = setTimeout(measure, 150)
     window.addEventListener('resize', measure)
     return () => { clearTimeout(timer); window.removeEventListener('resize', measure) }
   }, [showPaymentMenuHint])
@@ -1373,8 +1389,8 @@ export default function Students() {
             holes={[classTabContentRect]}
           />
           <TutorialTooltip
-            rect={registerBtnRect}
-            placement="bottom"
+            rect={classTabContentRect}
+            placement="top"
             rightAlign
             message="수강신청 버튼을 눌러 반을 등록합니다."
           />
@@ -1573,7 +1589,7 @@ export default function Students() {
             const isLocked = !UNLOCKED_MENUS.includes(m.id)
             return (
               <div key={m.id} ref={m.id === 'payments' ? paymentMenuRef : undefined} className={`menu-item ${activeMenu===m.id?'active':''} ${isLocked?'locked':''}`}
-                style={{position:'relative', ...(m.id === 'payments' && showPaymentMenuHint ? { pointerEvents: 'auto' } : {})}}
+                style={{position:'relative', ...(m.id === 'payments' && showPaymentMenuHint && !isReplay ? { pointerEvents: 'auto' } : {})}}
                 onClick={()=>{
                   if(isLocked){
                     setShowUpgradeModal(true)
@@ -1595,7 +1611,7 @@ export default function Students() {
                     display:'flex', alignItems:'center', justifyContent:'center',
                     pointerEvents:'none',
                   }}>
-                    <svg width="22" height="27" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg width="18" height="22" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <rect x="1" y="7" width="12" height="9" rx="1.5" fill="#fff"/>
                       <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 5V7" stroke="#fff" strokeWidth="2" strokeLinecap="round" fill="none"/>
                       <circle cx="7" cy="11.5" r="1.5" fill="rgba(200,200,200,0.75)"/>
@@ -1680,7 +1696,7 @@ export default function Students() {
                 padding:'10px 24px', background:'#F5841F', color:'#fff',
                 border:'none', borderRadius:6, fontSize:13, fontWeight:400,
                 cursor:'pointer', fontFamily:'inherit',
-              }} onClick={()=>setShowUpgradeModal(false)}>
+              }} onClick={()=>window.open('https://www.acadup.co.kr/home/member/signup_agree.asp','_blank')}>
                 <svg width="13" height="15" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg" style={{display:'inline-block',verticalAlign:'middle',marginRight:6,marginTop:-2}}>
                   <rect x="1" y="7" width="12" height="9" rx="1.5" fill="white"/>
                   <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 4" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none"/>
@@ -1756,7 +1772,7 @@ export default function Students() {
                   <div className="info-header">
                     <span className="info-title">학생 정보자료</span>
                     <div style={{display:'flex',gap:6}}>
-                      {typeof selectedStudentId === 'number' ? <>
+                      {(typeof selectedStudentId === 'number' || (isReplay && effectiveStep >= REPLAY_STUDENT_SAVED_STEP_INDEX)) ? <>
                         <button className="info-action-btn blue narrow" onClick={handleUpdateStudent}>수정</button>
                         {form.status === '퇴원'
                           ? <button className="info-action-btn red narrow" onClick={handleCancelWithdraw}>퇴원취소</button>
@@ -1884,7 +1900,7 @@ export default function Students() {
                     </div>
                     <div className="info-tabs-wrap" ref={infoTabsWrapRef} style={
                       (showInfoPanelHint || showRequiredFieldsHint || showFamilyCompleteHint || showClassTabHint) ? { pointerEvents: 'none' } :
-                      showClassTabContentHint ? { pointerEvents: 'auto' } :
+                      showClassTabContentHint && !isReplay ? { pointerEvents: 'auto' } :
                       undefined
                     }>
                       <div className="info-tabs" style={showClassTabContentHint ? { pointerEvents: 'none' } : undefined}>
@@ -1899,7 +1915,7 @@ export default function Students() {
                                 if(t === '수강' && showClassTabHint) handleClassTabConfirm()
                               }
                             }}
-                            style={{position:'relative', ...(LOCKED_TABS.includes(t)?{borderRadius:0}:{}), ...(t === '수강' && showClassTabHint ? {pointerEvents:'auto'} : {})}}>
+                            style={{position:'relative', ...(LOCKED_TABS.includes(t)?{borderRadius:0}:{}), ...(t === '수강' && showClassTabHint && !isReplay ? {pointerEvents:'auto'} : {})}}>
                             {t}
                             {LOCKED_TABS.includes(t) && (
                               <span style={{
@@ -2039,7 +2055,7 @@ export default function Students() {
           {['attend-inout','attend-ride','notice-board','notice-talk','notice-replace','notice-schedule'].includes(activeSide)&&(
             <div style={{background:'#f8f9fb',borderRadius:4,padding:'6px 16px',marginBottom:12,fontSize:14,color:'#ff9000',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
               <span>이 화면은 미리보기입니다. 정식 버전으로 전환하시면 지금 보이는 기능을 바로 사용하실 수 있습니다.</span>
-              <button style={{flexShrink:0,marginLeft:16,padding:'3px 20px',background:'#ff9000',color:'#fff',border:'none',borderRadius:4,fontSize:13,fontWeight:400,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}} onClick={()=>window.open('/conversion-request','_blank','width=560,height=780')}>
+              <button style={{flexShrink:0,marginLeft:16,padding:'3px 20px',background:'#ff9000',color:'#fff',border:'none',borderRadius:4,fontSize:13,fontWeight:400,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}} onClick={()=>{logConversionClick(); window.open('https://www.acadup.co.kr/home/member/signup_agree.asp','_blank')}}>
                 <svg width="13" height="15" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg" style={{display:'inline-block',verticalAlign:'middle',marginRight:6,marginTop:-2}}>
                   <rect x="1" y="7" width="12" height="9" rx="1.5" fill="white"/>
                   <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 4" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none"/>
@@ -2091,16 +2107,27 @@ export default function Students() {
                       {ATTEND_DATA.map(d=>(
                         <tr key={d.id}>
                           <td className="att-td-no">{d.id}</td>
-                          <td className="att-td-name"><div style={{display:'flex',alignItems:'center',gap:4}}><span>👤</span><span>{d.name}</span></div></td>
-                          {(()=>{const[y,m]=attendFilter.month.split('-').map(Number);const days=new Date(y,m,0).getDate();return Array.from({length:days},(_,i)=><td key={i} className="att-td-day"></td>)})()}
+                          <td className="att-td-name"><div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:4}}><span>{d.name}</span></div></td>
+                          {(()=>{
+                            const [y,m]=attendFilter.month.split('-').map(Number)
+                            const days=new Date(y,m,0).getDate()
+                            return Array.from({length:days},(_,i)=>{
+                              const day=i+1
+                              const dow=new Date(y,m-1,day).getDay()
+                              const attend = d.days?.includes(dow)
+                              return (
+                                <td key={i} className="att-td-day">
+                                  {attend && (
+                                    <div style={{fontSize:11,lineHeight:1.3,whiteSpace:'pre-line'}}>{`${d.checkIn}\n${d.checkOut}`}</div>
+                                  )}
+                                </td>
+                              )
+                            })
+                          })()}
                         </tr>
                       ))}
                     </tbody>
                   </table>
-                </div>
-                <div className="sts-pagination">
-                  <div className="sts-pages">{[1,2].map(p=><button key={p} className={`sts-page-btn ${p===1?'active':''}`}>{p}</button>)}</div>
-                  <span className="sts-page-info">1 / 2 Pages</span>
                 </div>
               </div>
             </>
@@ -2144,7 +2171,7 @@ export default function Students() {
                       {ATTEND_DATA.map(d=>(
                         <tr key={d.id}>
                           <td className="att-td-no">{d.id}</td>
-                          <td className="att-td-name"><div style={{display:'flex',alignItems:'center',gap:4}}><span>👤</span><span>{d.name}</span></div></td>
+                          <td className="att-td-name"><div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:4}}><span>{d.name}</span></div></td>
                           {(()=>{const[y,m]=rideFilter.month.split('-').map(Number);const days=new Date(y,m,0).getDate();return Array.from({length:days},(_,i)=><td key={i} className="att-td-day"></td>)})()}
                         </tr>
                       ))}
@@ -2163,7 +2190,7 @@ export default function Students() {
           {activeSide==='notice-board'&&(
             <>
               <div className="sm-page-title"><span style={{color:'#ccc'}}>☆</span> 공지사항</div>
-              <div className="notice-subtitle">수강생 및 학부모에게 안내하는 {localStorage.getItem('academyName') || 'OO학원'} 소식입니다.</div>
+              <div className="notice-subtitle">수강생 및 학부모에게 안내하는 {localStorage.getItem('academyName') || '아카데미업'} 소식입니다.</div>
               <div className="notice-search-wrap">
                 <select className="sts-input" style={{width:120}} value={noticeSearch.type} onChange={e=>setNoticeSearch(f=>({...f,type:e.target.value}))}><option>제목+내용</option><option>제목</option><option>내용</option></select>
                 <div className="notice-search-box"><input className="notice-search-input" value={noticeSearch.keyword} onChange={e=>setNoticeSearch(f=>({...f,keyword:e.target.value}))}/><button className="notice-search-icon">🔍</button></div>

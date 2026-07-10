@@ -15,7 +15,7 @@ export default function ResidExceptionAdd() {
       fontSize: 13,
       color: '#333',
     }}>
-      <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 20 }}>
+      <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 20 }}>
         주민번호 예외 등록
       </div>
 

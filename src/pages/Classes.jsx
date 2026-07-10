@@ -8,6 +8,12 @@ import { useAppData } from '../contexts/AppDataContext'
 import TutorialOverlay from '../components/TutorialOverlay'
 import TutorialSpotlight from '../components/TutorialSpotlight'
 import ClassCreate from './ClassCreate'
+import { logConversionClick } from '../lib/trackConversion'
+
+const CLASS_GROUP_DATA = [
+  { order: 1, code: 'GROUP00001', name: '고등부', use: '사용' },
+  { order: 2, code: 'GROUP00002', name: '입시부', use: '사용' },
+]
 
 const UNLOCKED_MENUS = ['students','payments','classes']
 const MODAL_TUTORIAL_STEP_IDS = ['class-create-code-hint', 'class-create-required-fields', 'class-create-name-hint', 'class-create-subject-hint', 'class-create-paycycle-hint', 'class-create-optype-hint', 'class-create-payday-hint', 'class-create-period-from-hint', 'class-create-period-hint', 'class-create-payment-hint', 'class-create-save-hint', 'class-create-new-register-hint']
@@ -55,6 +61,8 @@ export default function Classes() {
   const [prospectRightFilter, setProspectRightFilter] = useState({ group:'전체', className:'선택', name:'', dateFrom:'', dateTo:'' })
 
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [progressCardHover, setProgressCardHover] = useState(false)
+  const [skipCardHover, setSkipCardHover] = useState(false)
   const [menuLockedClickCount, setMenuLockedClickCount] = useState(0)
   const [showClassCreateModal, setShowClassCreateModal] = useState(false)
   const [newClassId, setNewClassId] = useState(null)
@@ -82,7 +90,7 @@ export default function Classes() {
     if (data) setNewClassId(data.id)
   }
 
-  const { activeStep, isOpen, autoStart, advance, profileSynced, mode } = useTutorial()
+  const { activeStep, isOpen, autoStart, advance, profileSynced, mode, skip } = useTutorial()
   const isReplay = isOpen && mode === 'replay'
   // replay(다시보기) 모드에서는 실제로 반을 등록하지 않으므로, "반 등록 완료" 단계에서
   // 하이라이트할 실제 데이터가 없음 - 실제 반 목록 대신 고정 샘플 한 줄만 보여줌
@@ -172,12 +180,83 @@ export default function Classes() {
       }}
     >
       {showTutorialWelcome && (
-        <TutorialOverlay
-          title="반갑습니다. 아카데미업입니다."
-          description={'현재 가입하신 곳은 데모 버전이며, 정식 전환 신청을 통해 아카데미업 정식 버전을 이용하실 수 있습니다. 또한, 아카데미업 서비스는 무료이며 정식 버전 전환에 발생하는 비용은 없습니다.\n\n그럼 기본적인 기능 튜토리얼을 시작하겠습니다. (약 5분 소요)'}
-          nextLabel="시작하기"
-          onNext={advance}
-        />
+        <div style={{
+          position: 'fixed', inset: 0, background: '#F5F7F9', overflowY: 'auto',
+          zIndex: 3000, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+          <div style={{ textAlign: 'center', padding: '0 20px 32px' }}>
+            <p style={{ margin: '0 0 12px', fontSize: 32, fontWeight: 700, lineHeight: 1.4, color: '#1a1a1a' }}>
+              반갑습니다 아카데미업입니다
+            </p>
+            <p style={{ margin: 0, fontSize: 15, lineHeight: 1.8, whiteSpace: 'nowrap', color: '#555' }}>
+              이 페이지는 데모 체험 버전이며, 정식전환을 통해 아카데미업 정식 버전을 이용하실 수 있습니다
+            </p>
+            <p style={{ margin: 0, fontSize: 15, lineHeight: 1.8, color: '#555' }}>
+              또한, 아카데미업 서비스는 무료이며 정식버전 전환에 발생하는 비용은 없습니다
+            </p>
+          </div>
+          <div style={{ width: '100%', background: '#FED400', boxSizing: 'border-box', padding: '32px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 32 }}>
+          <p style={{ margin: 0, fontSize: 24, lineHeight: 1.8, color: '#fff', fontWeight: 700 }}>
+            튜토리얼 진행 방식을 선택하세요
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'row', gap: 20 }}>
+            <div
+              onClick={advance}
+              onMouseEnter={() => setProgressCardHover(true)}
+              onMouseLeave={() => setProgressCardHover(false)}
+              style={{
+                cursor: 'pointer', background: '#fff', border: '4px solid #FCF0B6', borderRadius: 10,
+                width: 300, height: 360, boxSizing: 'border-box', padding: 24,
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                transform: progressCardHover ? 'scale(1.015)' : 'scale(1)',
+                boxShadow: progressCardHover ? '0 12px 28px rgba(0,0,0,0.18)' : '0 4px 16px rgba(0,0,0,0.10)',
+              }}
+            >
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <svg width="44" height="44" viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg">
+                  <polygon points="74.8,48 21.2,17 21.2,79" fill={progressCardHover ? '#F5841F' : '#333'} />
+                </svg>
+                <div style={{ fontSize: 24, fontWeight: 700, color: progressCardHover ? '#F5841F' : '#333', marginTop: 8, whiteSpace: 'nowrap', transition: 'color 0.15s ease' }}>진행하기</div>
+              </div>
+              <div style={{ marginTop: 30, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, textAlign: 'center' }}>
+                <div style={{ fontSize: 14, fontWeight: 650, color: '#555', lineHeight: 1.6 }}>튜토리얼을 직접 진행합니다</div>
+                <div style={{ fontSize: 14, color: '#888', lineHeight: 1.6 }}>해당 선택지를 클릭하면 직접 입력해보시면서 튜토리얼을 진행해보실 수 있습니다</div>
+              </div>
+              <div style={{ marginTop: 'auto', fontSize: 14, color: '#888', lineHeight: 1.5, textAlign: 'center', whiteSpace: 'pre-line' }}>{'반, 수강생, 수납관리 튜토리얼로\n기초적인 사용법을 숙지해 보세요'}</div>
+            </div>
+            <div
+              onClick={skip}
+              onMouseEnter={() => setSkipCardHover(true)}
+              onMouseLeave={() => setSkipCardHover(false)}
+              style={{
+                cursor: 'pointer', background: '#fff', border: '4px solid #FCF0B6', borderRadius: 10,
+                width: 300, height: 360, boxSizing: 'border-box', padding: 24,
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                transform: skipCardHover ? 'scale(1.015)' : 'scale(1)',
+                boxShadow: skipCardHover ? '0 12px 28px rgba(0,0,0,0.18)' : '0 4px 16px rgba(0,0,0,0.10)',
+              }}
+            >
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <svg width="44" height="44" viewBox="0 0 96 96" xmlns="http://www.w3.org/2000/svg">
+                  <polygon points="58.2,48 4.5,17 4.5,79" fill={skipCardHover ? '#F5841F' : '#333'} />
+                  <polygon points="91.5,48 37.8,17 37.8,79" fill={skipCardHover ? '#F5841F' : '#333'} />
+                </svg>
+                <div style={{ fontSize: 24, fontWeight: 700, color: skipCardHover ? '#F5841F' : '#333', marginTop: 8, whiteSpace: 'nowrap', transition: 'color 0.15s ease' }}>건너뛰기</div>
+              </div>
+              <div style={{ marginTop: 30, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, textAlign: 'center' }}>
+                <div style={{ fontSize: 14, fontWeight: 650, color: '#555', lineHeight: 1.6 }}>튜토리얼을 진행하지 않고 건너뜁니다</div>
+                <div style={{ fontSize: 14, color: '#888', lineHeight: 1.6 }}>해당 선택지를 클릭하면 튜토리얼을 스킵하고 즉시 데모 체험 버전을 이용할 수 있습니다</div>
+              </div>
+              <div style={{ marginTop: 'auto', fontSize: 14, color: '#888', lineHeight: 1.5, textAlign: 'center', whiteSpace: 'pre-line' }}>{'건너뛰기한 튜토리얼은\n언제든지 다시볼 수 있습니다'}</div>
+            </div>
+          </div>
+          </div>
+          <img src="/logo.svg" alt="아카데미UP" style={{ width: 160, marginTop: 32 }} />
+          </div>
+        </div>
       )}
       {showClassStatusIntro && (
         <TutorialOverlay
@@ -249,7 +328,7 @@ export default function Classes() {
                 <img src={m.icon} alt={m.label} className="menu-icon"/><span className="menu-label">{m.label}</span>
                 {isLocked && (
                   <span style={{position:'absolute',inset:0,background:'rgba(200,200,200,0.75)',display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}>
-                    <svg width="22" height="27" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg width="18" height="22" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <rect x="1" y="7" width="12" height="9" rx="1.5" fill="#fff"/>
                       <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 5V7" stroke="#fff" strokeWidth="2" strokeLinecap="round" fill="none"/>
                       <circle cx="7" cy="11.5" r="1.5" fill="rgba(200,200,200,0.75)"/>
@@ -302,7 +381,7 @@ export default function Classes() {
               </svg>
             </div>
             <p style={{fontSize:15,color:'#333',lineHeight:1.7,marginBottom:20}}>무료로 정식 계정으로 전환하고<br/>모든 기능을 제한없이 이용해보세요!</p>
-            <button style={{padding:'10px 24px',background:'#F5841F',color:'#fff',border:'none',borderRadius:6,fontSize:13,fontWeight:400,cursor:'pointer',fontFamily:'inherit'}} onClick={()=>setShowUpgradeModal(false)}>
+            <button style={{padding:'10px 24px',background:'#F5841F',color:'#fff',border:'none',borderRadius:6,fontSize:13,fontWeight:400,cursor:'pointer',fontFamily:'inherit'}} onClick={()=>window.open('https://www.acadup.co.kr/home/member/signup_agree.asp','_blank')}>
                 <svg width="13" height="15" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg" style={{display:'inline-block',verticalAlign:'middle',marginRight:6,marginTop:-2}}>
                   <rect x="1" y="7" width="12" height="9" rx="1.5" fill="white"/>
                   <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 4" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none"/>
@@ -337,10 +416,10 @@ export default function Classes() {
         <div className="classes-main">
 
           {/* 미리보기 배너 */}
-          {['assign-enrolled','assign-prospect'].includes(activeSide)&&(
+          {['assign-enrolled','assign-prospect','class-group'].includes(activeSide)&&(
             <div style={{background:'#f8f9fb',borderRadius:4,padding:'6px 16px',marginBottom:12,fontSize:14,color:'#ff9000',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
               <span>이 화면은 미리보기입니다. 정식 버전으로 전환하시면 지금 보이는 기능을 바로 사용하실 수 있습니다.</span>
-              <button style={{flexShrink:0,marginLeft:16,padding:'3px 20px',background:'#ff9000',color:'#fff',border:'none',borderRadius:4,fontSize:13,fontWeight:400,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}} onClick={()=>window.open('/conversion-request','_blank','width=560,height=780')}>
+              <button style={{flexShrink:0,marginLeft:16,padding:'3px 20px',background:'#ff9000',color:'#fff',border:'none',borderRadius:4,fontSize:13,fontWeight:400,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}} onClick={()=>{logConversionClick(); window.open('https://www.acadup.co.kr/home/member/signup_agree.asp','_blank')}}>
                 <svg width="13" height="15" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg" style={{display:'inline-block',verticalAlign:'middle',marginRight:6,marginTop:-2}}>
                   <rect x="1" y="7" width="12" height="9" rx="1.5" fill="white"/>
                   <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 4" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none"/>
@@ -376,9 +455,12 @@ export default function Classes() {
                   <table className="cl-table">
                     <thead><tr><th>출력순서</th><th>반그룹 코드</th><th>반 그룹 명</th><th>사용유무</th></tr></thead>
                     <tbody>
-                      {classes.length === 0 && (
-                        <tr className="cl-empty-row"><td colSpan={4} style={{textAlign:'center',padding:'32px 0',color:'#aaa',fontSize:13}}>검색된 자료가 없습니다.</td></tr>
-                      )}
+                      {CLASS_GROUP_DATA.map(g=>(
+                        <tr key={g.order}>
+                          <td className="td-center">{g.order}</td><td className="td-center">{g.code}</td>
+                          <td>{g.name}</td><td className="td-center">{g.use}</td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
@@ -570,10 +652,10 @@ export default function Classes() {
               </div>
               <div className="cl-section" style={{borderTop:'none'}}>
                 <div className="cl-table-header">
+                  {/* 리플레이 중에는 이 버튼도 클릭으로 동작하면 안 되므로 pointerEvents auto 예외를 두지 않음 (classes-body의 none 잠금을 그대로 적용받음) */}
                   <button
                     ref={registerBtnRef}
                     className="cl-reg-btn"
-                    style={isReplay && showRegisterBtnSpotlight ? { pointerEvents: 'auto' } : undefined}
                     onClick={()=>{
                       if(activeStep?.id==='class-status-register-btn'){
                         setShowClassCreateModal(true)
@@ -595,9 +677,9 @@ export default function Classes() {
                       {displayClasses.length === 0 && (
                         <tr className="cl-empty-row"><td colSpan={11} style={{textAlign:'center',padding:'32px 0',color:'#aaa',fontSize:13}}>검색된 자료가 없습니다.</td></tr>
                       )}
-                      {displayClasses.map(d=>(
+                      {displayClasses.map((d, idx)=>(
                         <tr key={d.id} ref={d.id===(isReplay ? REPLAY_MOCK_CLASS_ID : newClassId) ? newRowRef : null}>
-                          <td className="td-center">{d.id}</td><td>{d.group}</td><td>{d.name}</td><td>{d.code}</td>
+                          <td className="td-center">{idx + 1}</td><td>{d.group}</td><td>{d.name}</td><td>{d.code}</td>
                           <td className="td-center">{d.status}</td><td className="td-center">{d.type}</td>
                           <td>{d.teacher}</td><td>{d.period}</td><td>{d.room}</td><td>{d.count}</td>
                           <td className="td-center"><button className="cl-edit-btn" onClick={()=>{

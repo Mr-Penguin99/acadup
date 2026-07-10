@@ -5,6 +5,7 @@ import TopNav from '../components/TopNav'
 import FavStar from '../components/FavStar'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
+import { logConversionClick } from '../lib/trackConversion'
 
 const UNLOCKED_MENUS = ['students','payments','classes']
 
@@ -101,11 +102,11 @@ export default function Settings() {
     Object.fromEntries(AUTH_GROUPS.map(g => [g.code, '']))
   )
   const [form, setForm] = useState({
-    name: profile?.biz_name || localStorage.getItem('academyName') || 'OO학원', bizNo: profile?.biz_num || '123-45-67891',
-    code: profile?.code || '10102093', taxType: '면세',
+    name: profile?.biz_name || localStorage.getItem('academyName') || '아카데미업', bizNo: profile?.biz_num || '123-45-67891',
+    code: profile?.code || '10100001', taxType: '면세',
     region1: '서울', region2: '중구',
-    regNo: '000000', tel: profile?.tel || '010-0000-0000',
-    adminTel: '010-0000-0000',
+    regNo: '', tel: profile?.tel || '',
+    adminTel: '',
     email1: '', email2: '', emailType: '직접입력',
     fax: '', zip: '', addr: '', addrDetail: '',
     ownerName: profile?.owner_name || '홍길동', nationality: '내국인',
@@ -173,7 +174,7 @@ export default function Settings() {
                 <span className="menu-label">{m.label}</span>
                 {isLocked && (
                   <span style={{position:'absolute',inset:0,background:'rgba(200,200,200,0.75)',display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}>
-                    <svg width="22" height="27" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg width="18" height="22" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <rect x="1" y="7" width="12" height="9" rx="1.5" fill="#fff"/>
                       <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 5V7" stroke="#fff" strokeWidth="2" strokeLinecap="round" fill="none"/>
                       <circle cx="7" cy="11.5" r="1.5" fill="rgba(200,200,200,0.75)"/>
@@ -226,7 +227,7 @@ export default function Settings() {
               </svg>
             </div>
             <p style={{fontSize:15,color:'#333',lineHeight:1.7,marginBottom:20}}>무료로 정식 계정으로 전환하고<br/>모든 기능을 제한없이 이용해보세요!</p>
-            <button style={{padding:'10px 24px',background:'#F5841F',color:'#fff',border:'none',borderRadius:6,fontSize:13,fontWeight:400,cursor:'pointer',fontFamily:'inherit'}} onClick={()=>setShowUpgradeModal(false)}>
+            <button style={{padding:'10px 24px',background:'#F5841F',color:'#fff',border:'none',borderRadius:6,fontSize:13,fontWeight:400,cursor:'pointer',fontFamily:'inherit'}} onClick={()=>window.open('https://www.acadup.co.kr/home/member/signup_agree.asp','_blank')}>
                 <svg width="13" height="15" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg" style={{display:'inline-block',verticalAlign:'middle',marginRight:6,marginTop:-2}}>
                   <rect x="1" y="7" width="12" height="9" rx="1.5" fill="white"/>
                   <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 4" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none"/>
@@ -273,7 +274,7 @@ export default function Settings() {
           {/* 미리보기 배너 */}
           <div style={{background:'#f8f9fb',borderRadius:4,padding:'6px 16px',marginBottom:12,fontSize:14,color:'#ff9000',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
             <span>이 화면은 미리보기입니다. 정식 버전으로 전환하시면 지금 보이는 기능을 바로 사용하실 수 있습니다.</span>
-            <button style={{flexShrink:0,marginLeft:16,padding:'3px 20px',background:'#ff9000',color:'#fff',border:'none',borderRadius:4,fontSize:13,fontWeight:400,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}} onClick={()=>window.open('/conversion-request','_blank','width=560,height=780')}>
+            <button style={{flexShrink:0,marginLeft:16,padding:'3px 20px',background:'#ff9000',color:'#fff',border:'none',borderRadius:4,fontSize:13,fontWeight:400,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}} onClick={()=>{logConversionClick(); window.open('https://www.acadup.co.kr/home/member/signup_agree.asp','_blank')}}>
               <svg width="13" height="15" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg" style={{display:'inline-block',verticalAlign:'middle',marginRight:6,marginTop:-2}}>
                 <rect x="1" y="7" width="12" height="9" rx="1.5" fill="white"/>
                 <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 4" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none"/>
@@ -724,7 +725,7 @@ export default function Settings() {
                   <div style={{display:'flex',alignItems:'center',gap:20}}>
                     <div style={{display:'flex',alignItems:'center',gap:8}}>
                       <label style={{fontSize:13,color:'#444',minWidth:24}}>부서</label>
-                      <select className="sm-input" style={{width:120, background:'#fff'}}>
+                      <select className="sm-input" style={{width:120, background:'#fff', fontSize:12}}>
                         <option>선택하기</option>
                         <option>관리 부문</option>
                         <option>행정 부문</option>
@@ -795,7 +796,7 @@ export default function Settings() {
                   <div style={{display:'flex',alignItems:'center',gap:20}}>
                     <div style={{display:'flex',alignItems:'center',gap:8}}>
                       <label style={{fontSize:13,color:'#444',minWidth:40}}>권한그룹</label>
-                      <select className="sm-input" style={{width:140}}>
+                      <select className="sm-input" style={{width:140, fontSize:12}}>
                         <option>선택하기</option>
                         {AUTH_GROUPS.map(g=>(
                           <option key={g.code} value={g.code}>{g.name}</option>
@@ -804,7 +805,7 @@ export default function Settings() {
                     </div>
                     <div style={{display:'flex',alignItems:'center',gap:8}}>
                       <label style={{fontSize:13,color:'#444',minWidth:40}}>사용자구분</label>
-                      <select className="sm-input" style={{width:140}}>
+                      <select className="sm-input" style={{width:140, fontSize:12}}>
                         <option>전체사용자</option>
                         <option>권한사용자</option>
                         <option>사용권한없음</option>
@@ -819,7 +820,7 @@ export default function Settings() {
                 <div className="sm-sec-head" style={{borderBottom:'none'}}>
                   <div className="sm-sec-title">직원 목록</div>
                   <div style={{display:'flex',gap:6}}>
-                    <button className="sm-edit-btn">권한등록</button>
+                    <button className="au-reg-btn">권한등록</button>
                     <button className="au-delete-btn">권한삭제</button>
                   </div>
                 </div>
@@ -866,7 +867,7 @@ export default function Settings() {
                   <div style={{display:'flex',alignItems:'center',gap:20,flexWrap:'wrap'}}>
                     <div style={{display:'flex',alignItems:'center',gap:8}}>
                       <label style={{fontSize:13,color:'#444',minWidth:40}}>코드구분</label>
-                      <select className="sm-input" style={{width:130}}>
+                      <select className="sm-input" style={{width:130, fontSize:12}}>
                         <option>선택하기</option>
                         <option>강의실</option>
                         <option>과목</option>
@@ -901,7 +902,7 @@ export default function Settings() {
               <div className="sm-section" style={{borderTop:'none'}}>
                 <div className="sm-sec-head" style={{borderBottom:'none'}}>
                   <div className="sm-sec-title" style={{visibility:'hidden'}}>-</div>
-                  <button className="sm-preview-btn" style={{background:'#29b6f6'}}>코드 등록</button>
+                  <button className="au-reg-btn">코드 등록</button>
                 </div>
                 <div style={{padding:0}}>
                   <table className="auth-table">
@@ -940,7 +941,7 @@ export default function Settings() {
                 <div className="sm-form">
                   <div style={{display:'flex',alignItems:'center',gap:8}}>
                     <label style={{fontSize:13,color:'#444',minWidth:40}}>주민번호</label>
-                    <input className="sm-input" style={{width:200}} />
+                    <input className="sm-input" style={{width:200, fontSize:12}} />
                   </div>
                 </div>
               </div>
@@ -949,7 +950,7 @@ export default function Settings() {
               <div className="sm-section" style={{borderTop:'none'}}>
                 <div className="sm-sec-head" style={{borderBottom:'none'}}>
                   <div className="sm-sec-title" style={{visibility:'hidden'}}>-</div>
-                  <button className="sm-preview-btn" style={{background:'#29b6f6'}}
+                  <button className="au-reg-btn"
                     onClick={() => window.open('/resid-add', '_blank', 'width=500,height=600')}>
                     주민번호 예외 등록
                   </button>

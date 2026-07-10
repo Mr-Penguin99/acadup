@@ -5,7 +5,7 @@ import { useTutorial } from '../components/TutorialContext'
 // replay(다시보기) 모드에서는 실제 sessionStorage 데이터가 없으므로, 반관리/수납관리에서 써온 것과
 // 같은 고정 샘플(튜토리얼반)로 화면을 채워서 보여줌
 const REPLAY_PREFILL = {
-  studentName: '홍길동', studentBirth: '',
+  studentName: '홍길동', studentBirth: '050101',
   className: '튜토리얼반', month: '2026-06', item: '수강료01', billAmt: 100000, unpaid: 100000,
 }
 
@@ -119,7 +119,7 @@ export default function ManualRegister() {
     if (isReplay) {
       setPrefillData(REPLAY_PREFILL)
       setTargetStart(REPLAY_PREFILL.month); setTargetEnd(REPLAY_PREFILL.month)
-      setPayItems([{ id: 1, item: REPLAY_PREFILL.item, amt: String(REPLAY_PREFILL.billAmt) }])
+      setPayItems([{ id: 1, item: REPLAY_PREFILL.item, amt: formatAmount(String(REPLAY_PREFILL.billAmt)) }])
       return
     }
     const raw = sessionStorage.getItem('manualRegisterData')
@@ -191,14 +191,23 @@ export default function ManualRegister() {
     <div style={{ fontFamily: "'Noto Sans KR', sans-serif", padding: '12px 20px', fontSize: 12, color: '#333', minWidth: 560 }}>
       {/* 헤더 */}
       <div style={{ marginBottom: 10 }}>
-        <span style={{ fontSize: 16, fontWeight: 700 }}>수기 등록</span>
+        <span style={{ fontSize: 17, fontWeight: 700 }}>수기 등록</span>
       </div>
       <div style={{ borderTop: '1px solid #eee', marginBottom: 14 }} />
 
       {showForm && (
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 14 }}>
-          <button style={{ ...btnStyle('#555'), fontSize: 12 }} disabled={saving} onClick={handleUpdate}>수정</button>
-          <button style={{ ...btnStyle('#555'), fontSize: 12 }} disabled={saving} onClick={handleDelete}>삭제</button>
+          {prefillData?.fixedUi ? (
+            <>
+              <button style={{ ...btnStyle('#555'), fontSize: 12 }}>수정</button>
+              <button style={{ ...btnStyle('#555'), fontSize: 12 }}>삭제</button>
+            </>
+          ) : (
+            <>
+              <button style={{ ...btnStyle('#555'), fontSize: 12 }} disabled={saving} onClick={handleUpdate}>수정</button>
+              <button style={{ ...btnStyle('#555'), fontSize: 12 }} disabled={saving} onClick={handleDelete}>삭제</button>
+            </>
+          )}
         </div>
       )}
 
