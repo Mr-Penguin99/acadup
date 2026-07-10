@@ -95,21 +95,16 @@ const SIDE_MENUS = [
 ]
 
 const REPLACE_DATA = [
-  { id:13, title:'아카데미업 레벨테스트 결과 발표', hasFile:true,  target:3, sentStatus:'미전송',    writer:'장up다(원장)', date:'2026-04-13' },
-  { id:12, title:'간단한 내용11',                  hasFile:false, target:2, sentStatus:'미전송',    writer:'장up다(원장)', date:'2026-04-10' },
-  { id:11, title:'ㅎ ㅎ ㅎ ㅎ ㅎ ㅎ ㅎ ㅎ ㅎ ㅎ ㅎ ㅎ ㅎ ㅎ ㅎ', hasFile:true, target:2, sentStatus:'미전송', writer:'장up다(원장)', date:'2026-03-18' },
-  { id:10, title:'2월 정기이사회 안건',             hasFile:true,  target:3, sentStatus:'전송완료',  writer:'장up다(원장)', date:'2026-02-06' },
-  { id:9,  title:'새해인사 드립니다',               hasFile:true,  target:4, sentStatus:'3/4건 전송',writer:'장up다(원장)', date:'2026-02-02' },
-  { id:8,  title:'월례회의 공지',                   hasFile:false, target:2, sentStatus:'전송완료',  writer:'장up다(원장)', date:'2026-01-28' },
-  { id:7,  title:'발신자번호를 지우고 작성하는 학원공지', hasFile:false, target:1, sentStatus:'미전송', writer:'장up다(원장)', date:'2026-01-06' },
+  { id:1, title:'수강생 명단, 안전하게 지키고 계신가요?', hasFile:false, target:2, sentStatus:'전송완료', writer:'관리자', date:'2026-07-01' },
+  { id:2, title:'다음 달 퇴원할 가능성이 높은 학생을 미리 발견할 수 있어요.', hasFile:false, target:2, sentStatus:'전송완료', writer:'관리자', date:'2026-07-05' },
 ]
 const TALK_DATA = [
-  { id:1, title:'우리 아이 아랑이가 피아노를치고 있어요....', sentStatus:'전송완료', writer:'장해남', date:'2025-05-14' },
+  { id:1, title:'우리 아이 아랑이가 피아노를치고 있어요....', sentStatus:'전송완료', writer:'홍길동', date:'2025-05-14' },
 ]
 const NOTICE_DATA = [
-  { id:3, type:'공지', title:'241203공지사항',    linked:true,  sentStatus:'전송완료', writer:'김관리자', date:'2024-12-03' },
-  { id:2, type:'공지', title:'공자사항 제 001 호', linked:true,  sentStatus:'전송완료', writer:'김관리자', date:'2024-04-01' },
-  { id:1, type:'',    title:'공지사항 제 002 호', linked:false, sentStatus:'미전송',   writer:'김관리자', date:'2024-04-01' },
+  { id:3, type:'공지', title:'"청구서 알림톡" 자동발송 기능',        linked:true,  sentStatus:'전송완료', writer:'관리자', date:'2026-07-01' },
+  { id:2, type:'공지', title:'모바일 바로결제로 간편수납!',           linked:true,  sentStatus:'전송완료', writer:'관리자', date:'2026-06-20' },
+  { id:1, type:'공지', title:'AI..학원관리 프로그램에도 도입해보았다!', linked:false, sentStatus:'전송완료', writer:'관리자', date:'2026-06-10' },
 ]
 // 요일(getDay 기준: 일0 월1 화2 수3 목4 금5 토6)별 수업 시간에 맞춰 등원/하원 시간을 채움
 // (등원은 수업 시작 10분 전, 하원은 수업 종료 10분 후)
@@ -2257,9 +2252,7 @@ export default function Students() {
             <>
               <div className="sm-page-title"><span style={{color:'#ccc'}}>☆</span> 문자치환 공지</div>
               <div className="notice-subtitle" style={{lineHeight:'1.8'}}>
-                문자치환 알림톡은 고객이 신청하거나 계약관계(수강신청 등)가 있을 때만 발송할 수 있습니다.<br/>
-                불특정 다수에게 발송하여 스팸신고가 접수되는 경우, 카카오 채널이 차단될 수 있습니다.&nbsp;
-                <span style={{color:'#E8445A',fontWeight:400,cursor:'pointer'}}>( 카카오 알림톡 방침 )</span>
+                문자를 보낼 때 학생 이름, 반 이름, 수강료 등을 치환해 학생별로 다르게 보낼 수 있어 모두에게 맞춤 문자로 발송할 수 있어요.
               </div>
               <div className="notice-search-wrap">
                 <select className="sts-input" style={{width:120}} value={replaceSearch.type} onChange={e=>setReplaceSearch(f=>({...f,type:e.target.value}))}><option>제목+내용</option><option>제목</option><option>내용</option></select>
