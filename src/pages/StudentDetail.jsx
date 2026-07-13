@@ -14,6 +14,7 @@ import NoticeTab from '../components/student/NoticeTab'
 import MemoTab from '../components/student/MemoTab'
 import ProgressTab from '../components/student/ProgressTab'
 import VehicleTab from '../components/student/VehicleTab'
+import { openConversionWindow } from '../lib/openConversionWindow'
 
 const INFO_TABS   = ['가족','수강','수납','결제','상담','출결','학원성적','학교성적','알림내역','메모','진도','차량']
 const LOCKED_TABS = ['상담','출결','학원성적','학교성적','알림내역','메모','진도','차량']
@@ -183,7 +184,7 @@ export default function StudentDetail() {
             </div>
             <p style={{fontSize:15,color:'#333',lineHeight:1.7,marginBottom:20}}>무료로 정식 계정으로 전환하고<br/>모든 기능을 제한없이 이용해보세요!</p>
             <button style={{padding:'10px 24px',background:'#F5841F',color:'#fff',border:'none',borderRadius:6,fontSize:13,fontWeight:400,cursor:'pointer',fontFamily:'inherit'}}
-              onClick={()=>window.open('https://www.acadup.co.kr/home/member/signup_agree.asp','_blank')}>잠금 해제하러 가기</button>
+              onClick={()=>{setShowUpgradeModal(false); openConversionWindow()}}>잠금 해제하러 가기</button>
           </div>
         </div>
       )}

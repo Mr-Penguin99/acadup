@@ -4,6 +4,7 @@ import './Students.css'
 import TopNav from '../components/TopNav'
 import { useTutorial, TUTORIAL_STEPS } from '../components/TutorialContext'
 import { logConversionClick } from '../lib/trackConversion'
+import { openConversionWindow } from '../lib/openConversionWindow'
 import { useAppData } from '../contexts/AppDataContext'
 import TutorialSpotlight from '../components/TutorialSpotlight'
 import TutorialMultiSpotlight from '../components/TutorialMultiSpotlight'
@@ -1691,7 +1692,7 @@ export default function Students() {
                 padding:'10px 24px', background:'#F5841F', color:'#fff',
                 border:'none', borderRadius:6, fontSize:13, fontWeight:400,
                 cursor:'pointer', fontFamily:'inherit',
-              }} onClick={()=>window.open('https://www.acadup.co.kr/home/member/signup_agree.asp','_blank')}>
+              }} onClick={()=>{setShowUpgradeModal(false); openConversionWindow()}}>
                 <svg width="13" height="15" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg" style={{display:'inline-block',verticalAlign:'middle',marginRight:6,marginTop:-2}}>
                   <rect x="1" y="7" width="12" height="9" rx="1.5" fill="white"/>
                   <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 4" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none"/>
@@ -2050,7 +2051,7 @@ export default function Students() {
           {['attend-inout','attend-ride','notice-board','notice-talk','notice-replace','notice-schedule'].includes(activeSide)&&(
             <div style={{background:'#f8f9fb',borderRadius:4,padding:'6px 16px',marginBottom:12,fontSize:14,color:'#ff9000',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
               <span>이 화면은 미리보기입니다. 정식 버전으로 전환하시면 지금 보이는 기능을 바로 사용하실 수 있습니다.</span>
-              <button style={{flexShrink:0,marginLeft:16,padding:'3px 20px',background:'#ff9000',color:'#fff',border:'none',borderRadius:4,fontSize:13,fontWeight:400,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}} onClick={()=>{logConversionClick(); window.open('https://www.acadup.co.kr/home/member/signup_agree.asp','_blank')}}>
+              <button style={{flexShrink:0,marginLeft:16,padding:'3px 20px',background:'#ff9000',color:'#fff',border:'none',borderRadius:4,fontSize:13,fontWeight:400,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}} onClick={()=>{logConversionClick(); openConversionWindow()}}>
                 <svg width="13" height="15" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg" style={{display:'inline-block',verticalAlign:'middle',marginRight:6,marginTop:-2}}>
                   <rect x="1" y="7" width="12" height="9" rx="1.5" fill="white"/>
                   <path d="M3.5 7V5C3.5 2.79 5.07 1 7 1C8.93 1 10.5 2.79 10.5 4" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none"/>
@@ -2113,7 +2114,7 @@ export default function Students() {
                               return (
                                 <td key={i} className="att-td-day">
                                   {attend && (
-                                    <div style={{fontSize:11,lineHeight:1.3,whiteSpace:'pre-line'}}>{`${d.checkIn}\n${d.checkOut}`}</div>
+                                    <div style={{fontSize:11,lineHeight:1.3,whiteSpace:'pre-line',textAlign:'center'}}>{`${d.checkIn}\n${d.checkOut}`}</div>
                                   )}
                                 </td>
                               )
